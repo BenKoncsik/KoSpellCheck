@@ -1,0 +1,11 @@
+root = false
+
+[*]
+kospellcheck_enabled = true
+kospellcheck_languages = hu,en
+kospellcheck_allow_mixed_languages = true
+kospellcheck_treat_as_hungarian_when_ascii_only = true
+kospellcheck_ignore_words = Async,SignalR,STM32
+kospellcheck_ignore_all_caps_length_threshold = 4
+kospellcheck_suggestions_max = 5
+kospellcheck_prefer_terms = model:modell

@@ -1,0 +1,29 @@
+# Troubleshooting
+
+## VS Code extension nem jelez hibát
+
+- Ellenőrizd, hogy a `KoSpellCheck` extension aktiválódott-e.
+- Nézd meg a `kospellcheck.enabled` vagy `kospellcheck.json` `enabled` értékét.
+- Futtasd: `npm run build` a `src/KoSpellCheck.VSCode` mappában.
+
+## VSIX csomag nem épül
+
+- A VS Code csomag `vsce package` paranccsal készül.
+- Windows + VS2022 esetén ellenőrizd, hogy telepítve van-e a szükséges workload.
+
+## `Extract: extension/package.json not found inside zip`
+
+Ez akkor történik, ha VS Code-ba nem a VS Code-os VSIX-et telepíted.
+
+- VS Code-hoz ezt használd: `artifacts/vscode/KoSpellCheck.VSCode.vsix`
+- A `artifacts/vsix/KoSpellCheck.VS2022.vsix` csak Visual Studio 2022-höz való.
+
+## Magyar ékezet nélküli token nem fogadott el
+
+- `treatAsHungarianWhenAsciiOnly` legyen `true`.
+- Ellenőrizd, hogy a HU dictionary fájlok tényleg bekerültek-e a futási mappába.
+
+## Lassú ellenőrzés
+
+- Csökkentsd a `maxTokensPerDocument` értéket.
+- Növeld a debounce időt (VS Code extensionben).

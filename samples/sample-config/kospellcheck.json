@@ -1,0 +1,20 @@
+{
+  "enabled": true,
+  "languages": ["hu", "en"],
+  "allowMixedLanguages": true,
+  "preferTerms": {
+    "model": "modell"
+  },
+  "treatAsHungarianWhenAsciiOnly": true,
+  "ignoreWords": ["Async", "SignalR", "STM32"],
+  "projectDictionary": ["KoSpellCheck"],
+  "ignorePatterns": [
+    "^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$",
+    "^https?://"
+  ],
+  "minTokenLength": 2,
+  "maxTokenLength": 64,
+  "ignoreAllCapsLengthThreshold": 4,
+  "suggestionsMax": 5,
+  "maxTokensPerDocument": 2000
+}

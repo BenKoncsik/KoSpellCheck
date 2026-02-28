@@ -1,0 +1,75 @@
+{
+  "name": "kospellcheck",
+  "displayName": "KoSpellCheck",
+  "description": "Offline HU+EN code-aware spell checker for VS Code.",
+  "version": "0.1.1",
+  "publisher": "kospellcheck",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onLanguage:csharp",
+    "onLanguage:typescript",
+    "onLanguage:javascript",
+    "onCommand:kospellcheck.addWordToProjectDictionary"
+  ],
+  "main": "./out/extension.js",
+  "files": [
+    "out/**",
+    "resources/**",
+    "package.json",
+    "LICENSE",
+    "README.md"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "kospellcheck.addWordToProjectDictionary",
+        "title": "KoSpellCheck: Add word to project dictionary"
+      }
+    ],
+    "configuration": {
+      "title": "KoSpellCheck",
+      "properties": {
+        "kospellcheck.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable KoSpellCheck diagnostics."
+        },
+        "kospellcheck.debounceMs": {
+          "type": "number",
+          "default": 500,
+          "description": "Debounce delay for document re-check."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "prepare-assets": "node ./scripts/sync-assets.mjs",
+    "build": "npm run prepare-assets && tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext .ts",
+    "test": "tsx --test src/test/**/*.test.ts",
+    "package": "npm run build && npx vsce package --allow-missing-repository"
+  },
+  "dependencies": {
+    "nspell": "^2.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/nspell": "^2.1.3",
+    "@types/vscode": "^1.95.0",
+    "@typescript-eslint/eslint-plugin": "^8.18.1",
+    "@typescript-eslint/parser": "^8.18.1",
+    "@vscode/vsce": "^3.6.2",
+    "eslint": "^9.17.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
