@@ -44,6 +44,11 @@ internal sealed class ConfigService : IDisposable
         return new SpellSettings(entry.Config.Clone(), entry.Scope, workspaceRoot, filePath);
     }
 
+    public string? GetDocumentFilePath(ITextBuffer textBuffer)
+    {
+        return GetFilePath(textBuffer);
+    }
+
     public bool AddWordToProjectDictionary(ITextBuffer textBuffer, string token)
     {
         if (string.IsNullOrWhiteSpace(token))

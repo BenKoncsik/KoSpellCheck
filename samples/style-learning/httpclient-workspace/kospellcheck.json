@@ -1,0 +1,9 @@
+{
+  "enabled": true,
+  "styleLearningEnabled": true,
+  "styleLearningMaxFiles": 200,
+  "styleLearningMaxTokens": 20000,
+  "styleLearningTimeBudgetMs": 3000,
+  "styleLearningFileExtensions": ["cs"],
+  "styleLearningIgnoreFolders": ["bin", "obj", ".git", ".vs", "node_modules", "artifacts"]
+}

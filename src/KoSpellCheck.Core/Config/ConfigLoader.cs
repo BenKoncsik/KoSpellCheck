@@ -67,6 +67,15 @@ public static class ConfigLoader
             json.Value<int?>("ignoreAllCapsLengthThreshold") ?? config.IgnoreAllCapsLengthThreshold;
         config.SuggestionsMax = json.Value<int?>("suggestionsMax") ?? config.SuggestionsMax;
         config.MaxTokensPerDocument = json.Value<int?>("maxTokensPerDocument") ?? config.MaxTokensPerDocument;
+        config.StyleLearningEnabled = json.Value<bool?>("styleLearningEnabled") ?? config.StyleLearningEnabled;
+        config.StyleLearningMaxFiles = json.Value<int?>("styleLearningMaxFiles") ?? config.StyleLearningMaxFiles;
+        config.StyleLearningMaxTokens = json.Value<int?>("styleLearningMaxTokens") ?? config.StyleLearningMaxTokens;
+        config.StyleLearningTimeBudgetMs =
+            json.Value<int?>("styleLearningTimeBudgetMs") ?? config.StyleLearningTimeBudgetMs;
+        config.StyleLearningCachePath =
+            json.Value<string>("styleLearningCachePath") ?? config.StyleLearningCachePath;
+        config.StyleLearningMinTokenLength =
+            json.Value<int?>("styleLearningMinTokenLength") ?? config.StyleLearningMinTokenLength;
 
         var ignoreWords = json["ignoreWords"]?.Values<string>()?.Where(v => !string.IsNullOrWhiteSpace(v));
         if (ignoreWords != null)
@@ -84,6 +93,26 @@ public static class ConfigLoader
         if (ignorePatterns is { Count: > 0 })
         {
             config.IgnorePatterns = ignorePatterns;
+        }
+
+        var styleExtensions = json["styleLearningFileExtensions"]?
+            .Values<string>()?
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Select(v => v.Trim().TrimStart('.').ToLowerInvariant())
+            .ToList();
+        if (styleExtensions is { Count: > 0 })
+        {
+            config.StyleLearningFileExtensions = styleExtensions;
+        }
+
+        var styleIgnoreFolders = json["styleLearningIgnoreFolders"]?
+            .Values<string>()?
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Select(v => v.Trim())
+            .ToList();
+        if (styleIgnoreFolders is { Count: > 0 })
+        {
+            config.StyleLearningIgnoreFolders = styleIgnoreFolders;
         }
 
         var preferTerms = json["preferTerms"] as JObject;
@@ -144,6 +173,33 @@ public static class ConfigLoader
                 break;
             case "kospellcheck_prefer_terms":
                 config.PreferTerms = ParsePreferTerms(value);
+                break;
+            case "kospellcheck_style_learning":
+                config.StyleLearningEnabled = ParseBool(value, config.StyleLearningEnabled);
+                break;
+            case "kospellcheck_style_learning_max_files":
+                config.StyleLearningMaxFiles = ParseInt(value, config.StyleLearningMaxFiles);
+                break;
+            case "kospellcheck_style_learning_max_tokens":
+                config.StyleLearningMaxTokens = ParseInt(value, config.StyleLearningMaxTokens);
+                break;
+            case "kospellcheck_style_learning_time_budget_ms":
+                config.StyleLearningTimeBudgetMs = ParseInt(value, config.StyleLearningTimeBudgetMs);
+                break;
+            case "kospellcheck_style_learning_file_extensions":
+                config.StyleLearningFileExtensions = ParseList(value)
+                    .Select(v => v.Trim().TrimStart('.').ToLowerInvariant())
+                    .Where(v => v.Length > 0)
+                    .ToList();
+                break;
+            case "kospellcheck_style_learning_cache_path":
+                config.StyleLearningCachePath = value;
+                break;
+            case "kospellcheck_style_learning_min_token_length":
+                config.StyleLearningMinTokenLength = ParseInt(value, config.StyleLearningMinTokenLength);
+                break;
+            case "kospellcheck_style_learning_ignore_folders":
+                config.StyleLearningIgnoreFolders = ParseList(value);
                 break;
         }
     }

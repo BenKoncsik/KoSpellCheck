@@ -34,5 +34,37 @@ const engine_1 = require("../engine");
         focusOffsets: [targetOffset]
     });
     node_assert_1.default.equal(withFocus.some((issue) => issue.token === 'Almma'), true);
+    const almmaIssue = withFocus.find((issue) => issue.token === 'Almma');
+    node_assert_1.default.ok(almmaIssue);
+    node_assert_1.default.ok(almmaIssue.message.includes('alma'));
+});
+(0, node_test_1.default)('engine produces a single fix for multi-part identifier misspellings', () => {
+    const config = (0, config_1.defaultConfig)();
+    const text = 'public void TesztirsaAlmmakorte() {}';
+    const service = {
+        check(token) {
+            const normalized = token.toLowerCase();
+            const misspelled = normalized === 'tesztirsa' || normalized === 'almmakorte';
+            return {
+                correct: !misspelled,
+                languages: misspelled ? [] : ['hu']
+            };
+        },
+        suggest(token) {
+            const normalized = token.toLowerCase();
+            if (normalized === 'tesztirsa') {
+                return [{ replacement: 'Tesztiras', confidence: 0.95, sourceDictionary: 'hu' }];
+            }
+            if (normalized === 'almmakorte') {
+                return [{ replacement: 'AlmaKorte', confidence: 0.97, sourceDictionary: 'hu' }];
+            }
+            return [];
+        }
+    };
+    const issues = (0, engine_1.checkDocument)(text, config, service);
+    node_assert_1.default.equal(issues.length, 1);
+    const issue = issues[0];
+    node_assert_1.default.equal(issue.token, 'TesztirsaAlmmakorte');
+    node_assert_1.default.equal(issue.suggestions[0]?.replacement, 'TesztirasAlmaKorte');
 });
 //# sourceMappingURL=engine.test.js.map

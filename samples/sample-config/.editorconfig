@@ -1,6 +1,7 @@
 root = false
 
 [*]
+kospellcheck.debugLogging = true
 kospellcheck_enabled = true
 kospellcheck_languages = hu,en
 kospellcheck_allow_mixed_languages = true

@@ -48,6 +48,7 @@ internal sealed class SpellSuggestedActionsSource : ISuggestedActionsSource
 
         var actions = new List<ISuggestedAction>();
         var trackingSpan = range.Snapshot.CreateTrackingSpan(issue.Span, SpanTrackingMode.EdgeInclusive);
+        var filePath = _configService.GetDocumentFilePath(_textBuffer);
 
         foreach (var suggestion in issue.Suggestions
                      .Select(s => s.Replacement)
@@ -55,7 +56,7 @@ internal sealed class SpellSuggestedActionsSource : ISuggestedActionsSource
                      .Distinct(StringComparer.OrdinalIgnoreCase)
                      .Take(5))
         {
-            actions.Add(new ReplaceWithSuggestionAction(_textBuffer, trackingSpan, suggestion));
+            actions.Add(new ReplaceWithSuggestionAction(_textBuffer, trackingSpan, suggestion, filePath));
         }
 
         actions.Add(new AddToProjectDictionaryAction(_textBuffer, _orchestrator, _configService, issue.Token));

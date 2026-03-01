@@ -11,13 +11,9 @@ const separators = new Set(['_', '-', '.', '/', '\\']);
 
 export function tokenize(text: string, config: KoSpellCheckConfig, ignoreRegexes: RegExp[]): TokenSpan[] {
   const out: TokenSpan[] = [];
-  for (const match of text.matchAll(candidateRegex)) {
-    const raw = match[0];
-    const index = match.index ?? 0;
-    if (shouldIgnoreRaw(raw, ignoreRegexes)) {
-      continue;
-    }
-
+  for (const candidate of scanCandidateSpans(text, ignoreRegexes)) {
+    const raw = candidate.value;
+    const index = candidate.start;
     const split = splitBySeparatorsAndCasing(raw);
     for (const part of split) {
       if (!part.value) {
@@ -30,6 +26,31 @@ export function tokenize(text: string, config: KoSpellCheckConfig, ignoreRegexes
         end: index + part.end
       });
     }
+  }
+
+  return out;
+}
+
+export interface CandidateSpan {
+  value: string;
+  start: number;
+  end: number;
+}
+
+export function scanCandidateSpans(text: string, ignoreRegexes: RegExp[]): CandidateSpan[] {
+  const out: CandidateSpan[] = [];
+  for (const match of text.matchAll(candidateRegex)) {
+    const raw = match[0];
+    const index = match.index ?? 0;
+    if (shouldIgnoreRaw(raw, ignoreRegexes)) {
+      continue;
+    }
+
+    out.push({
+      value: raw,
+      start: index,
+      end: index + raw.length
+    });
   }
 
   return out;

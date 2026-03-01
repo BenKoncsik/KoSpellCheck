@@ -18,6 +18,13 @@ Ez akkor történik, ha VS Code-ba nem a VS Code-os VSIX-et telepíted.
 - VS Code-hoz ezt használd: `artifacts/vscode/KoSpellCheck.VSCode.vsix`
 - A `artifacts/vsix/KoSpellCheck.VS2022.vsix` csak Visual Studio 2022-höz való.
 
+## Debug logok bekapcsolása (VS Code)
+
+1. Nyisd meg a Settings-et és keresd: `kospellcheck.debugLogging`
+2. Kapcsold be.
+3. `Developer: Reload Window`
+4. `View -> Output`, majd a legördülőből válaszd: `KoSpellCheck`
+
 ## Magyar ékezet nélküli token nem fogadott el
 
 - `treatAsHungarianWhenAsciiOnly` legyen `true`.

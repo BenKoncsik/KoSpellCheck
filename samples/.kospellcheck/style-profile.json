@@ -1,0 +1,1376 @@
+{
+  "workspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples",
+  "fingerprint": "a7a5bab725539aba134a0eabf2619cc6f3ccdf02929a86b384cae1357fe30ef7",
+  "profile": {
+    "workspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples",
+    "createdAtUtc": "2026-03-01T10:05:24.103Z",
+    "updatedAtUtc": "2026-03-01T10:05:24.177Z",
+    "tokenStats": {
+      "workspaceroot": {
+        "totalCount": 7,
+        "variants": {
+          "workspaceRoot": 6,
+          "workspaceroot": 1
+        },
+        "preferredVariant": "workspaceRoot",
+        "confidence": 0.7
+      },
+      "createdatutc": {
+        "totalCount": 5,
+        "variants": {
+          "createdAtUtc": 4,
+          "createdatutc": 1
+        },
+        "preferredVariant": "createdAtUtc",
+        "confidence": 0.5
+      },
+      "2026-03-01t10": {
+        "totalCount": 2,
+        "variants": {
+          "2026-03-01T10": 2
+        },
+        "preferredVariant": "2026-03-01T10",
+        "confidence": 0.2
+      },
+      "07.999z": {
+        "totalCount": 1,
+        "variants": {
+          "07.999Z": 1
+        },
+        "preferredVariant": "07.999Z",
+        "confidence": 0.1
+      },
+      "updatedatutc": {
+        "totalCount": 5,
+        "variants": {
+          "updatedAtUtc": 4,
+          "updatedatutc": 1
+        },
+        "preferredVariant": "updatedAtUtc",
+        "confidence": 0.5
+      },
+      "08.088z": {
+        "totalCount": 1,
+        "variants": {
+          "08.088Z": 1
+        },
+        "preferredVariant": "08.088Z",
+        "confidence": 0.1
+      },
+      "tokenstats": {
+        "totalCount": 5,
+        "variants": {
+          "tokenStats": 4,
+          "tokenstats": 1
+        },
+        "preferredVariant": "tokenStats",
+        "confidence": 0.5
+      },
+      "totalcount": {
+        "totalCount": 182,
+        "variants": {
+          "totalCount": 181,
+          "totalcount": 1
+        },
+        "preferredVariant": "totalCount",
+        "confidence": 1
+      },
+      "projectdictionary": {
+        "totalCount": 5,
+        "variants": {
+          "projectDictionary": 4,
+          "projectdictionary": 1
+        },
+        "preferredVariant": "projectDictionary",
+        "confidence": 0.5
+      },
+      "preferredvariant": {
+        "totalCount": 182,
+        "variants": {
+          "preferredVariant": 181,
+          "preferredvariant": 1
+        },
+        "preferredVariant": "preferredVariant",
+        "confidence": 1
+      },
+      "kospellchek.sample": {
+        "totalCount": 4,
+        "variants": {
+          "kospellchek.sample": 1,
+          "KoSpellChek.Sample": 3
+        },
+        "preferredVariant": "KoSpellChek.Sample",
+        "confidence": 0.4
+      },
+      "modelservce": {
+        "totalCount": 4,
+        "variants": {
+          "ModelServce": 3,
+          "modelservce": 1
+        },
+        "preferredVariant": "ModelServce",
+        "confidence": 0.4
+      },
+      "gps_coordinate_lat": {
+        "totalCount": 4,
+        "variants": {
+          "gps_coordinate_lat": 4
+        },
+        "preferredVariant": "gps_coordinate_lat",
+        "confidence": 0.4
+      },
+      "string.empty": {
+        "totalCount": 4,
+        "variants": {
+          "string.empty": 1,
+          "string.Empty": 3
+        },
+        "preferredVariant": "string.Empty",
+        "confidence": 0.4
+      },
+      "httpserverconfig": {
+        "totalCount": 7,
+        "variants": {
+          "HTTPServerConfig": 6,
+          "httpserverconfig": 1
+        },
+        "preferredVariant": "HTTPServerConfig",
+        "confidence": 0.7
+      },
+      "console.writeline": {
+        "totalCount": 5,
+        "variants": {
+          "console.writeline": 1,
+          "Console.WriteLine": 4
+        },
+        "preferredVariant": "Console.WriteLine",
+        "confidence": 0.5
+      },
+      "tesztirasalmakorteview": {
+        "totalCount": 4,
+        "variants": {
+          "TesztIrasAlmaKorteView": 3,
+          "tesztirasalmakorteview": 1
+        },
+        "preferredVariant": "TesztIrasAlmaKorteView",
+        "confidence": 0.4
+      },
+      "replaceviewmodel": {
+        "totalCount": 4,
+        "variants": {
+          "ReplaceViewModel": 3,
+          "replaceviewmodel": 1
+        },
+        "preferredVariant": "ReplaceViewModel",
+        "confidence": 0.4
+      },
+      "rendermodelcard": {
+        "totalCount": 4,
+        "variants": {
+          "renderModelCard": 3,
+          "rendermodelcard": 1
+        },
+        "preferredVariant": "renderModelCard",
+        "confidence": 0.4
+      },
+      "user_profle_name": {
+        "totalCount": 5,
+        "variants": {
+          "user_profle_name": 5
+        },
+        "preferredVariant": "user_profle_name",
+        "confidence": 0.5
+      },
+      "allowmixedlanguages": {
+        "totalCount": 4,
+        "variants": {
+          "allowMixedLanguages": 3,
+          "allowmixedlanguages": 1
+        },
+        "preferredVariant": "allowMixedLanguages",
+        "confidence": 0.4
+      },
+      "preferterms": {
+        "totalCount": 4,
+        "variants": {
+          "preferTerms": 3,
+          "preferterms": 1
+        },
+        "preferredVariant": "preferTerms",
+        "confidence": 0.4
+      },
+      "ignorewords": {
+        "totalCount": 4,
+        "variants": {
+          "ignoreWords": 3,
+          "ignorewords": 1
+        },
+        "preferredVariant": "ignoreWords",
+        "confidence": 0.4
+      },
+      "signalr": {
+        "totalCount": 4,
+        "variants": {
+          "SignalR": 3,
+          "signalr": 1
+        },
+        "preferredVariant": "SignalR",
+        "confidence": 0.4
+      },
+      "stm32": {
+        "totalCount": 4,
+        "variants": {
+          "stm32": 1,
+          "STM32": 3
+        },
+        "preferredVariant": "STM32",
+        "confidence": 0.4
+      },
+      "kospellcheck": {
+        "totalCount": 4,
+        "variants": {
+          "KoSpellCheck": 3,
+          "kospellcheck": 1
+        },
+        "preferredVariant": "KoSpellCheck",
+        "confidence": 0.4
+      },
+      "ignorepatterns": {
+        "totalCount": 4,
+        "variants": {
+          "ignorePatterns": 3,
+          "ignorepatterns": 1
+        },
+        "preferredVariant": "ignorePatterns",
+        "confidence": 0.4
+      },
+      "0-9a-fa-f": {
+        "totalCount": 6,
+        "variants": {
+          "0-9a-fa-f": 1,
+          "0-9a-fA-F": 5
+        },
+        "preferredVariant": "0-9a-fA-F",
+        "confidence": 0.6
+      },
+      "mintokenlength": {
+        "totalCount": 4,
+        "variants": {
+          "minTokenLength": 3,
+          "mintokenlength": 1
+        },
+        "preferredVariant": "minTokenLength",
+        "confidence": 0.4
+      },
+      "maxtokenlength": {
+        "totalCount": 4,
+        "variants": {
+          "maxTokenLength": 3,
+          "maxtokenlength": 1
+        },
+        "preferredVariant": "maxTokenLength",
+        "confidence": 0.4
+      },
+      "suggestionsmax": {
+        "totalCount": 4,
+        "variants": {
+          "suggestionsMax": 3,
+          "suggestionsmax": 1
+        },
+        "preferredVariant": "suggestionsMax",
+        "confidence": 0.4
+      },
+      "maxtokensperdocument": {
+        "totalCount": 4,
+        "variants": {
+          "maxTokensPerDocument": 3,
+          "maxtokensperdocument": 1
+        },
+        "preferredVariant": "maxTokensPerDocument",
+        "confidence": 0.4
+      },
+      "stylelearningenabled": {
+        "totalCount": 5,
+        "variants": {
+          "styleLearningEnabled": 4,
+          "stylelearningenabled": 1
+        },
+        "preferredVariant": "styleLearningEnabled",
+        "confidence": 0.5
+      },
+      "stylelearningmaxfiles": {
+        "totalCount": 5,
+        "variants": {
+          "styleLearningMaxFiles": 4,
+          "stylelearningmaxfiles": 1
+        },
+        "preferredVariant": "styleLearningMaxFiles",
+        "confidence": 0.5
+      },
+      "stylelearningmaxtokens": {
+        "totalCount": 5,
+        "variants": {
+          "styleLearningMaxTokens": 4,
+          "stylelearningmaxtokens": 1
+        },
+        "preferredVariant": "styleLearningMaxTokens",
+        "confidence": 0.5
+      },
+      "stylelearningcachepath": {
+        "totalCount": 4,
+        "variants": {
+          "styleLearningCachePath": 3,
+          "stylelearningcachepath": 1
+        },
+        "preferredVariant": "styleLearningCachePath",
+        "confidence": 0.4
+      },
+      "node_modules": {
+        "totalCount": 5,
+        "variants": {
+          "node_modules": 5
+        },
+        "preferredVariant": "node_modules",
+        "confidence": 0.5
+      },
+      "2026-03-01t09": {
+        "totalCount": 5,
+        "variants": {
+          "2026-03-01t09": 1,
+          "2026-03-01T09": 4
+        },
+        "preferredVariant": "2026-03-01T09",
+        "confidence": 0.5
+      },
+      "38.715z": {
+        "totalCount": 4,
+        "variants": {
+          "38.715z": 1,
+          "38.715Z": 3
+        },
+        "preferredVariant": "38.715Z",
+        "confidence": 0.4
+      },
+      "38.721z": {
+        "totalCount": 4,
+        "variants": {
+          "38.721z": 1,
+          "38.721Z": 3
+        },
+        "preferredVariant": "38.721Z",
+        "confidence": 0.4
+      },
+      "stylelearningsample": {
+        "totalCount": 8,
+        "variants": {
+          "StyleLearningSample": 5,
+          "stylelearningsample": 3
+        },
+        "preferredVariant": "StyleLearningSample",
+        "confidence": 0.8
+      },
+      "httpclientfactory": {
+        "totalCount": 9,
+        "variants": {
+          "HttpClientFactory": 6,
+          "httpclientfactory": 3
+        },
+        "preferredVariant": "HttpClientFactory",
+        "confidence": 0.9
+      },
+      "httpclient": {
+        "totalCount": 14,
+        "variants": {
+          "HttpClient": 11,
+          "httpclient": 3
+        },
+        "preferredVariant": "HttpClient",
+        "confidence": 1
+      },
+      "createhttpclient": {
+        "totalCount": 8,
+        "variants": {
+          "CreateHttpClient": 5,
+          "createhttpclient": 3
+        },
+        "preferredVariant": "CreateHttpClient",
+        "confidence": 0.8
+      },
+      "localclient": {
+        "totalCount": 9,
+        "variants": {
+          "localClient": 6,
+          "localclient": 3
+        },
+        "preferredVariant": "localClient",
+        "confidence": 0.9
+      },
+      "usehttpclient": {
+        "totalCount": 8,
+        "variants": {
+          "UseHttpClient": 5,
+          "usehttpclient": 3
+        },
+        "preferredVariant": "UseHttpClient",
+        "confidence": 0.8
+      },
+      "inputclient": {
+        "totalCount": 9,
+        "variants": {
+          "inputClient": 6,
+          "inputclient": 3
+        },
+        "preferredVariant": "inputClient",
+        "confidence": 0.9
+      },
+      "httpclientalias": {
+        "totalCount": 9,
+        "variants": {
+          "HttpClientAlias": 6,
+          "httpclientalias": 3
+        },
+        "preferredVariant": "HttpClientAlias",
+        "confidence": 0.9
+      },
+      "workspace": {
+        "totalCount": 9,
+        "variants": {
+          "workspace": 9
+        },
+        "preferredVariant": "workspace",
+        "confidence": 0.9
+      },
+      "root": {
+        "totalCount": 9,
+        "variants": {
+          "Root": 8,
+          "root": 1
+        },
+        "preferredVariant": "Root",
+        "confidence": 0.9
+      },
+      "fingerprint": {
+        "totalCount": 5,
+        "variants": {
+          "fingerprint": 5
+        },
+        "preferredVariant": "fingerprint",
+        "confidence": 0.5
+      },
+      "profile": {
+        "totalCount": 5,
+        "variants": {
+          "profile": 5
+        },
+        "preferredVariant": "profile",
+        "confidence": 0.5
+      },
+      "created": {
+        "totalCount": 7,
+        "variants": {
+          "created": 7
+        },
+        "preferredVariant": "created",
+        "confidence": 0.7
+      },
+      "utc": {
+        "totalCount": 11,
+        "variants": {
+          "Utc": 10,
+          "utc": 1
+        },
+        "preferredVariant": "Utc",
+        "confidence": 1
+      },
+      "updated": {
+        "totalCount": 7,
+        "variants": {
+          "updated": 7
+        },
+        "preferredVariant": "updated",
+        "confidence": 0.7
+      },
+      "token": {
+        "totalCount": 14,
+        "variants": {
+          "token": 6,
+          "Token": 8
+        },
+        "preferredVariant": "Token",
+        "confidence": 1
+      },
+      "stats": {
+        "totalCount": 7,
+        "variants": {
+          "Stats": 6,
+          "stats": 1
+        },
+        "preferredVariant": "Stats",
+        "confidence": 0.7
+      },
+      "total": {
+        "totalCount": 184,
+        "variants": {
+          "total": 184
+        },
+        "preferredVariant": "total",
+        "confidence": 1
+      },
+      "count": {
+        "totalCount": 184,
+        "variants": {
+          "Count": 183,
+          "count": 1
+        },
+        "preferredVariant": "Count",
+        "confidence": 1
+      },
+      "variants": {
+        "totalCount": 182,
+        "variants": {
+          "variants": 182
+        },
+        "preferredVariant": "variants",
+        "confidence": 1
+      },
+      "project": {
+        "totalCount": 7,
+        "variants": {
+          "project": 7
+        },
+        "preferredVariant": "project",
+        "confidence": 0.7
+      },
+      "dictionary": {
+        "totalCount": 7,
+        "variants": {
+          "Dictionary": 6,
+          "dictionary": 1
+        },
+        "preferredVariant": "Dictionary",
+        "confidence": 0.7
+      },
+      "preferred": {
+        "totalCount": 184,
+        "variants": {
+          "preferred": 184
+        },
+        "preferredVariant": "preferred",
+        "confidence": 1
+      },
+      "variant": {
+        "totalCount": 184,
+        "variants": {
+          "Variant": 183,
+          "variant": 1
+        },
+        "preferredVariant": "Variant",
+        "confidence": 1
+      },
+      "confidence": {
+        "totalCount": 182,
+        "variants": {
+          "confidence": 182
+        },
+        "preferredVariant": "confidence",
+        "confidence": 1
+      },
+      "enabled": {
+        "totalCount": 11,
+        "variants": {
+          "enabled": 6,
+          "Enabled": 5
+        },
+        "preferredVariant": "enabled",
+        "confidence": 1
+      },
+      "true": {
+        "totalCount": 10,
+        "variants": {
+          "true": 10
+        },
+        "preferredVariant": "true",
+        "confidence": 1
+      },
+      "config": {
+        "totalCount": 10,
+        "variants": {
+          "config": 1,
+          "Config": 9
+        },
+        "preferredVariant": "Config",
+        "confidence": 1
+      },
+      "kospellchek": {
+        "totalCount": 1,
+        "variants": {
+          "kospellchek": 1
+        },
+        "preferredVariant": "kospellchek",
+        "confidence": 0.1
+      },
+      "sample": {
+        "totalCount": 16,
+        "variants": {
+          "sample": 4,
+          "Sample": 12
+        },
+        "preferredVariant": "Sample",
+        "confidence": 1
+      },
+      "spell": {
+        "totalCount": 9,
+        "variants": {
+          "Spell": 8,
+          "spell": 1
+        },
+        "preferredVariant": "Spell",
+        "confidence": 0.9
+      },
+      "chek": {
+        "totalCount": 6,
+        "variants": {
+          "Chek": 5,
+          "chek": 1
+        },
+        "preferredVariant": "Chek",
+        "confidence": 0.6
+      },
+      "model": {
+        "totalCount": 14,
+        "variants": {
+          "Model": 11,
+          "model": 3
+        },
+        "preferredVariant": "Model",
+        "confidence": 1
+      },
+      "servce": {
+        "totalCount": 6,
+        "variants": {
+          "Servce": 5,
+          "servce": 1
+        },
+        "preferredVariant": "Servce",
+        "confidence": 0.6
+      },
+      "gps": {
+        "totalCount": 7,
+        "variants": {
+          "gps": 7
+        },
+        "preferredVariant": "gps",
+        "confidence": 0.7
+      },
+      "coordinate": {
+        "totalCount": 7,
+        "variants": {
+          "coordinate": 7
+        },
+        "preferredVariant": "coordinate",
+        "confidence": 0.7
+      },
+      "lat": {
+        "totalCount": 7,
+        "variants": {
+          "lat": 7
+        },
+        "preferredVariant": "lat",
+        "confidence": 0.7
+      },
+      "string": {
+        "totalCount": 9,
+        "variants": {
+          "string": 9
+        },
+        "preferredVariant": "string",
+        "confidence": 0.9
+      },
+      "empty": {
+        "totalCount": 7,
+        "variants": {
+          "empty": 2,
+          "Empty": 5
+        },
+        "preferredVariant": "Empty",
+        "confidence": 0.7
+      },
+      "server": {
+        "totalCount": 9,
+        "variants": {
+          "Server": 8,
+          "server": 1
+        },
+        "preferredVariant": "Server",
+        "confidence": 0.9
+      },
+      "console": {
+        "totalCount": 8,
+        "variants": {
+          "console": 2,
+          "Console": 6
+        },
+        "preferredVariant": "Console",
+        "confidence": 0.8
+      },
+      "writeline": {
+        "totalCount": 1,
+        "variants": {
+          "writeline": 1
+        },
+        "preferredVariant": "writeline",
+        "confidence": 0.1
+      },
+      "write": {
+        "totalCount": 7,
+        "variants": {
+          "Write": 6,
+          "write": 1
+        },
+        "preferredVariant": "Write",
+        "confidence": 0.7
+      },
+      "line": {
+        "totalCount": 7,
+        "variants": {
+          "Line": 6,
+          "line": 1
+        },
+        "preferredVariant": "Line",
+        "confidence": 0.7
+      },
+      "teszt": {
+        "totalCount": 10,
+        "variants": {
+          "Teszt": 4,
+          "teszt": 6
+        },
+        "preferredVariant": "teszt",
+        "confidence": 1
+      },
+      "iras": {
+        "totalCount": 6,
+        "variants": {
+          "Iras": 5,
+          "iras": 1
+        },
+        "preferredVariant": "Iras",
+        "confidence": 0.6
+      },
+      "alma": {
+        "totalCount": 6,
+        "variants": {
+          "Alma": 5,
+          "alma": 1
+        },
+        "preferredVariant": "Alma",
+        "confidence": 0.6
+      },
+      "korte": {
+        "totalCount": 6,
+        "variants": {
+          "Korte": 5,
+          "korte": 1
+        },
+        "preferredVariant": "Korte",
+        "confidence": 0.6
+      },
+      "view": {
+        "totalCount": 9,
+        "variants": {
+          "View": 8,
+          "view": 1
+        },
+        "preferredVariant": "View",
+        "confidence": 0.9
+      },
+      "replace": {
+        "totalCount": 6,
+        "variants": {
+          "Replace": 5,
+          "replace": 1
+        },
+        "preferredVariant": "Replace",
+        "confidence": 0.6
+      },
+      "using": {
+        "totalCount": 4,
+        "variants": {
+          "using": 4
+        },
+        "preferredVariant": "using",
+        "confidence": 0.4
+      },
+      "system": {
+        "totalCount": 4,
+        "variants": {
+          "system": 1,
+          "System": 3
+        },
+        "preferredVariant": "System",
+        "confidence": 0.4
+      },
+      "namespace": {
+        "totalCount": 8,
+        "variants": {
+          "namespace": 8
+        },
+        "preferredVariant": "namespace",
+        "confidence": 0.8
+      },
+      "public": {
+        "totalCount": 14,
+        "variants": {
+          "public": 14
+        },
+        "preferredVariant": "public",
+        "confidence": 1
+      },
+      "class": {
+        "totalCount": 8,
+        "variants": {
+          "class": 8
+        },
+        "preferredVariant": "class",
+        "confidence": 0.8
+      },
+      "get": {
+        "totalCount": 4,
+        "variants": {
+          "get": 4
+        },
+        "preferredVariant": "get",
+        "confidence": 0.4
+      },
+      "set": {
+        "totalCount": 4,
+        "variants": {
+          "set": 4
+        },
+        "preferredVariant": "set",
+        "confidence": 0.4
+      },
+      "void": {
+        "totalCount": 5,
+        "variants": {
+          "void": 5
+        },
+        "preferredVariant": "void",
+        "confidence": 0.5
+      },
+      "var": {
+        "totalCount": 7,
+        "variants": {
+          "var": 7
+        },
+        "preferredVariant": "var",
+        "confidence": 0.7
+      },
+      "homerseklet": {
+        "totalCount": 7,
+        "variants": {
+          "homerseklet": 7
+        },
+        "preferredVariant": "homerseklet",
+        "confidence": 0.7
+      },
+      "normal": {
+        "totalCount": 5,
+        "variants": {
+          "normal": 5
+        },
+        "preferredVariant": "normal",
+        "confidence": 0.5
+      },
+      "modell": {
+        "totalCount": 8,
+        "variants": {
+          "modell": 8
+        },
+        "preferredVariant": "modell",
+        "confidence": 0.8
+      },
+      "domain": {
+        "totalCount": 5,
+        "variants": {
+          "domain": 5
+        },
+        "preferredVariant": "domain",
+        "confidence": 0.5
+      },
+      "tezst": {
+        "totalCount": 3,
+        "variants": {
+          "tezst": 3
+        },
+        "preferredVariant": "tezst",
+        "confidence": 0.3
+      },
+      "render": {
+        "totalCount": 6,
+        "variants": {
+          "render": 6
+        },
+        "preferredVariant": "render",
+        "confidence": 0.6
+      },
+      "card": {
+        "totalCount": 6,
+        "variants": {
+          "Card": 5,
+          "card": 1
+        },
+        "preferredVariant": "Card",
+        "confidence": 0.6
+      },
+      "user": {
+        "totalCount": 8,
+        "variants": {
+          "user": 8
+        },
+        "preferredVariant": "user",
+        "confidence": 0.8
+      },
+      "profle": {
+        "totalCount": 8,
+        "variants": {
+          "profle": 8
+        },
+        "preferredVariant": "profle",
+        "confidence": 0.8
+      },
+      "name": {
+        "totalCount": 8,
+        "variants": {
+          "name": 8
+        },
+        "preferredVariant": "name",
+        "confidence": 0.8
+      },
+      "export": {
+        "totalCount": 4,
+        "variants": {
+          "export": 4
+        },
+        "preferredVariant": "export",
+        "confidence": 0.4
+      },
+      "function": {
+        "totalCount": 4,
+        "variants": {
+          "function": 4
+        },
+        "preferredVariant": "function",
+        "confidence": 0.4
+      },
+      "const": {
+        "totalCount": 6,
+        "variants": {
+          "const": 6
+        },
+        "preferredVariant": "const",
+        "confidence": 0.6
+      },
+      "ready": {
+        "totalCount": 4,
+        "variants": {
+          "ready": 4
+        },
+        "preferredVariant": "ready",
+        "confidence": 0.4
+      },
+      "return": {
+        "totalCount": 9,
+        "variants": {
+          "return": 9
+        },
+        "preferredVariant": "return",
+        "confidence": 0.9
+      },
+      "allow": {
+        "totalCount": 6,
+        "variants": {
+          "allow": 6
+        },
+        "preferredVariant": "allow",
+        "confidence": 0.6
+      },
+      "mixed": {
+        "totalCount": 6,
+        "variants": {
+          "Mixed": 5,
+          "mixed": 1
+        },
+        "preferredVariant": "Mixed",
+        "confidence": 0.6
+      },
+      "languages": {
+        "totalCount": 8,
+        "variants": {
+          "Languages": 4,
+          "languages": 4
+        },
+        "preferredVariant": "languages",
+        "confidence": 0.8
+      },
+      "prefer": {
+        "totalCount": 6,
+        "variants": {
+          "prefer": 6
+        },
+        "preferredVariant": "prefer",
+        "confidence": 0.6
+      },
+      "terms": {
+        "totalCount": 6,
+        "variants": {
+          "Terms": 5,
+          "terms": 1
+        },
+        "preferredVariant": "Terms",
+        "confidence": 0.6
+      },
+      "ignore": {
+        "totalCount": 9,
+        "variants": {
+          "ignore": 9
+        },
+        "preferredVariant": "ignore",
+        "confidence": 0.9
+      },
+      "words": {
+        "totalCount": 6,
+        "variants": {
+          "Words": 5,
+          "words": 1
+        },
+        "preferredVariant": "Words",
+        "confidence": 0.6
+      },
+      "signal": {
+        "totalCount": 6,
+        "variants": {
+          "Signal": 5,
+          "signal": 1
+        },
+        "preferredVariant": "Signal",
+        "confidence": 0.6
+      },
+      "stm": {
+        "totalCount": 1,
+        "variants": {
+          "stm": 1
+        },
+        "preferredVariant": "stm",
+        "confidence": 0.1
+      },
+      "check": {
+        "totalCount": 6,
+        "variants": {
+          "Check": 5,
+          "check": 1
+        },
+        "preferredVariant": "Check",
+        "confidence": 0.6
+      },
+      "patterns": {
+        "totalCount": 6,
+        "variants": {
+          "Patterns": 5,
+          "patterns": 1
+        },
+        "preferredVariant": "Patterns",
+        "confidence": 0.6
+      },
+      "min": {
+        "totalCount": 6,
+        "variants": {
+          "min": 6
+        },
+        "preferredVariant": "min",
+        "confidence": 0.6
+      },
+      "length": {
+        "totalCount": 9,
+        "variants": {
+          "Length": 8,
+          "length": 1
+        },
+        "preferredVariant": "Length",
+        "confidence": 0.9
+      },
+      "max": {
+        "totalCount": 21,
+        "variants": {
+          "max": 8,
+          "Max": 13
+        },
+        "preferredVariant": "Max",
+        "confidence": 1
+      },
+      "suggestions": {
+        "totalCount": 6,
+        "variants": {
+          "suggestions": 6
+        },
+        "preferredVariant": "suggestions",
+        "confidence": 0.6
+      },
+      "tokens": {
+        "totalCount": 10,
+        "variants": {
+          "Tokens": 9,
+          "tokens": 1
+        },
+        "preferredVariant": "Tokens",
+        "confidence": 1
+      },
+      "per": {
+        "totalCount": 6,
+        "variants": {
+          "Per": 5,
+          "per": 1
+        },
+        "preferredVariant": "Per",
+        "confidence": 0.6
+      },
+      "document": {
+        "totalCount": 6,
+        "variants": {
+          "Document": 5,
+          "document": 1
+        },
+        "preferredVariant": "Document",
+        "confidence": 0.6
+      },
+      "style": {
+        "totalCount": 27,
+        "variants": {
+          "style": 19,
+          "Style": 8
+        },
+        "preferredVariant": "style",
+        "confidence": 1
+      },
+      "learning": {
+        "totalCount": 27,
+        "variants": {
+          "Learning": 24,
+          "learning": 3
+        },
+        "preferredVariant": "Learning",
+        "confidence": 1
+      },
+      "files": {
+        "totalCount": 7,
+        "variants": {
+          "Files": 6,
+          "files": 1
+        },
+        "preferredVariant": "Files",
+        "confidence": 0.7
+      },
+      "cache": {
+        "totalCount": 6,
+        "variants": {
+          "Cache": 5,
+          "cache": 1
+        },
+        "preferredVariant": "Cache",
+        "confidence": 0.6
+      },
+      "path": {
+        "totalCount": 6,
+        "variants": {
+          "Path": 5,
+          "path": 1
+        },
+        "preferredVariant": "Path",
+        "confidence": 0.6
+      },
+      "node": {
+        "totalCount": 8,
+        "variants": {
+          "node": 8
+        },
+        "preferredVariant": "node",
+        "confidence": 0.8
+      },
+      "modules": {
+        "totalCount": 8,
+        "variants": {
+          "modules": 8
+        },
+        "preferredVariant": "modules",
+        "confidence": 0.8
+      },
+      "async": {
+        "totalCount": 4,
+        "variants": {
+          "async": 1,
+          "Async": 3
+        },
+        "preferredVariant": "Async",
+        "confidence": 0.4
+      },
+      "https": {
+        "totalCount": 4,
+        "variants": {
+          "https": 4
+        },
+        "preferredVariant": "https",
+        "confidence": 0.4
+      },
+      "tsx": {
+        "totalCount": 4,
+        "variants": {
+          "tsx": 4
+        },
+        "preferredVariant": "tsx",
+        "confidence": 0.4
+      },
+      "jsx": {
+        "totalCount": 4,
+        "variants": {
+          "jsx": 4
+        },
+        "preferredVariant": "jsx",
+        "confidence": 0.4
+      },
+      "json": {
+        "totalCount": 4,
+        "variants": {
+          "json": 4
+        },
+        "preferredVariant": "json",
+        "confidence": 0.4
+      },
+      "bin": {
+        "totalCount": 5,
+        "variants": {
+          "bin": 5
+        },
+        "preferredVariant": "bin",
+        "confidence": 0.5
+      },
+      "obj": {
+        "totalCount": 5,
+        "variants": {
+          "obj": 5
+        },
+        "preferredVariant": "obj",
+        "confidence": 0.5
+      },
+      "git": {
+        "totalCount": 5,
+        "variants": {
+          "git": 5
+        },
+        "preferredVariant": "git",
+        "confidence": 0.5
+      },
+      "artifacts": {
+        "totalCount": 5,
+        "variants": {
+          "artifacts": 5
+        },
+        "preferredVariant": "artifacts",
+        "confidence": 0.5
+      },
+      "http": {
+        "totalCount": 40,
+        "variants": {
+          "Http": 37,
+          "http": 3
+        },
+        "preferredVariant": "Http",
+        "confidence": 1
+      },
+      "client": {
+        "totalCount": 58,
+        "variants": {
+          "Client": 49,
+          "client": 9
+        },
+        "preferredVariant": "Client",
+        "confidence": 1
+      },
+      "factory": {
+        "totalCount": 13,
+        "variants": {
+          "Factory": 10,
+          "factory": 3
+        },
+        "preferredVariant": "Factory",
+        "confidence": 1
+      },
+      "create": {
+        "totalCount": 12,
+        "variants": {
+          "Create": 9,
+          "create": 3
+        },
+        "preferredVariant": "Create",
+        "confidence": 1
+      },
+      "local": {
+        "totalCount": 12,
+        "variants": {
+          "local": 12
+        },
+        "preferredVariant": "local",
+        "confidence": 1
+      },
+      "use": {
+        "totalCount": 12,
+        "variants": {
+          "Use": 9,
+          "use": 3
+        },
+        "preferredVariant": "Use",
+        "confidence": 1
+      },
+      "input": {
+        "totalCount": 12,
+        "variants": {
+          "input": 12
+        },
+        "preferredVariant": "input",
+        "confidence": 1
+      },
+      "alias": {
+        "totalCount": 13,
+        "variants": {
+          "Alias": 10,
+          "alias": 3
+        },
+        "preferredVariant": "Alias",
+        "confidence": 1
+      },
+      "sealed": {
+        "totalCount": 7,
+        "variants": {
+          "sealed": 7
+        },
+        "preferredVariant": "sealed",
+        "confidence": 0.7
+      },
+      "private": {
+        "totalCount": 7,
+        "variants": {
+          "private": 7
+        },
+        "preferredVariant": "private",
+        "confidence": 0.7
+      },
+      "readonly": {
+        "totalCount": 7,
+        "variants": {
+          "readonly": 7
+        },
+        "preferredVariant": "readonly",
+        "confidence": 0.7
+      }
+    }
+  }
+}

@@ -36,6 +36,24 @@ public sealed class KoSpellCheckConfig
 
     public int MaxTokensPerDocument { get; set; } = 2000;
 
+    public bool StyleLearningEnabled { get; set; } = true;
+
+    public int StyleLearningMaxFiles { get; set; } = 2000;
+
+    public int StyleLearningMaxTokens { get; set; } = 200000;
+
+    public int StyleLearningTimeBudgetMs { get; set; } = 2000;
+
+    public IList<string> StyleLearningFileExtensions { get; set; } =
+        new List<string> { "cs", "ts", "js", "tsx", "jsx", "json", "md" };
+
+    public string StyleLearningCachePath { get; set; } = ".kospellcheck/style-profile.json";
+
+    public int StyleLearningMinTokenLength { get; set; } = 3;
+
+    public IList<string> StyleLearningIgnoreFolders { get; set; } =
+        new List<string> { "bin", "obj", "node_modules", ".git", ".vs", "artifacts" };
+
     public bool IsLanguageEnabled(string languageCode)
     {
         return LanguagesEnabled.Any(l =>
@@ -59,6 +77,14 @@ public sealed class KoSpellCheckConfig
             IgnoreAllCapsLengthThreshold = IgnoreAllCapsLengthThreshold,
             SuggestionsMax = SuggestionsMax,
             MaxTokensPerDocument = MaxTokensPerDocument,
+            StyleLearningEnabled = StyleLearningEnabled,
+            StyleLearningMaxFiles = StyleLearningMaxFiles,
+            StyleLearningMaxTokens = StyleLearningMaxTokens,
+            StyleLearningTimeBudgetMs = StyleLearningTimeBudgetMs,
+            StyleLearningFileExtensions = StyleLearningFileExtensions.ToList(),
+            StyleLearningCachePath = StyleLearningCachePath,
+            StyleLearningMinTokenLength = StyleLearningMinTokenLength,
+            StyleLearningIgnoreFolders = StyleLearningIgnoreFolders.ToList(),
         };
     }
 

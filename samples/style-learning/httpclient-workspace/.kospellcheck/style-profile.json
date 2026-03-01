@@ -1,0 +1,220 @@
+{
+  "workspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples/style-learning/httpclient-workspace",
+  "fingerprint": "147645f3a923e48b366c30b107cc9cf0581fb1250ac9223c8d3f618496436ff4",
+  "profile": {
+    "workspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples/style-learning/httpclient-workspace",
+    "createdAtUtc": "2026-03-01T09:30:38.715Z",
+    "updatedAtUtc": "2026-03-01T09:30:38.721Z",
+    "tokenStats": {
+      "stylelearningsample": {
+        "totalCount": 1,
+        "variants": {
+          "StyleLearningSample": 1
+        },
+        "preferredVariant": "StyleLearningSample",
+        "confidence": 0.1
+      },
+      "httpclientfactory": {
+        "totalCount": 2,
+        "variants": {
+          "HttpClientFactory": 2
+        },
+        "preferredVariant": "HttpClientFactory",
+        "confidence": 0.2
+      },
+      "httpclient": {
+        "totalCount": 7,
+        "variants": {
+          "HttpClient": 7
+        },
+        "preferredVariant": "HttpClient",
+        "confidence": 0.7
+      },
+      "createhttpclient": {
+        "totalCount": 1,
+        "variants": {
+          "CreateHttpClient": 1
+        },
+        "preferredVariant": "CreateHttpClient",
+        "confidence": 0.1
+      },
+      "localclient": {
+        "totalCount": 2,
+        "variants": {
+          "localClient": 2
+        },
+        "preferredVariant": "localClient",
+        "confidence": 0.2
+      },
+      "usehttpclient": {
+        "totalCount": 1,
+        "variants": {
+          "UseHttpClient": 1
+        },
+        "preferredVariant": "UseHttpClient",
+        "confidence": 0.1
+      },
+      "inputclient": {
+        "totalCount": 2,
+        "variants": {
+          "inputClient": 2
+        },
+        "preferredVariant": "inputClient",
+        "confidence": 0.2
+      },
+      "httpclientalias": {
+        "totalCount": 2,
+        "variants": {
+          "HttpClientAlias": 2
+        },
+        "preferredVariant": "HttpClientAlias",
+        "confidence": 0.2
+      },
+      "namespace": {
+        "totalCount": 1,
+        "variants": {
+          "namespace": 1
+        },
+        "preferredVariant": "namespace",
+        "confidence": 0.1
+      },
+      "style": {
+        "totalCount": 1,
+        "variants": {
+          "Style": 1
+        },
+        "preferredVariant": "Style",
+        "confidence": 0.1
+      },
+      "learning": {
+        "totalCount": 1,
+        "variants": {
+          "Learning": 1
+        },
+        "preferredVariant": "Learning",
+        "confidence": 0.1
+      },
+      "sample": {
+        "totalCount": 1,
+        "variants": {
+          "Sample": 1
+        },
+        "preferredVariant": "Sample",
+        "confidence": 0.1
+      },
+      "public": {
+        "totalCount": 4,
+        "variants": {
+          "public": 4
+        },
+        "preferredVariant": "public",
+        "confidence": 0.4
+      },
+      "sealed": {
+        "totalCount": 1,
+        "variants": {
+          "sealed": 1
+        },
+        "preferredVariant": "sealed",
+        "confidence": 0.1
+      },
+      "class": {
+        "totalCount": 1,
+        "variants": {
+          "class": 1
+        },
+        "preferredVariant": "class",
+        "confidence": 0.1
+      },
+      "http": {
+        "totalCount": 13,
+        "variants": {
+          "Http": 13
+        },
+        "preferredVariant": "Http",
+        "confidence": 1
+      },
+      "client": {
+        "totalCount": 22,
+        "variants": {
+          "Client": 17,
+          "client": 5
+        },
+        "preferredVariant": "Client",
+        "confidence": 1
+      },
+      "factory": {
+        "totalCount": 2,
+        "variants": {
+          "Factory": 2
+        },
+        "preferredVariant": "Factory",
+        "confidence": 0.2
+      },
+      "private": {
+        "totalCount": 1,
+        "variants": {
+          "private": 1
+        },
+        "preferredVariant": "private",
+        "confidence": 0.1
+      },
+      "readonly": {
+        "totalCount": 1,
+        "variants": {
+          "readonly": 1
+        },
+        "preferredVariant": "readonly",
+        "confidence": 0.1
+      },
+      "create": {
+        "totalCount": 1,
+        "variants": {
+          "Create": 1
+        },
+        "preferredVariant": "Create",
+        "confidence": 0.1
+      },
+      "local": {
+        "totalCount": 2,
+        "variants": {
+          "local": 2
+        },
+        "preferredVariant": "local",
+        "confidence": 0.2
+      },
+      "return": {
+        "totalCount": 2,
+        "variants": {
+          "return": 2
+        },
+        "preferredVariant": "return",
+        "confidence": 0.2
+      },
+      "use": {
+        "totalCount": 1,
+        "variants": {
+          "Use": 1
+        },
+        "preferredVariant": "Use",
+        "confidence": 0.1
+      },
+      "input": {
+        "totalCount": 2,
+        "variants": {
+          "input": 2
+        },
+        "preferredVariant": "input",
+        "confidence": 0.2
+      },
+      "alias": {
+        "totalCount": 2,
+        "variants": {
+          "Alias": 2
+        },
+        "preferredVariant": "Alias",
+        "confidence": 0.2
+      }
+    }
+  }
+}

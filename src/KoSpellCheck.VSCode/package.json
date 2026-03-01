@@ -2,7 +2,7 @@
   "name": "kospellcheck",
   "displayName": "KoSpellCheck",
   "description": "Offline HU+EN code-aware spell checker for VS Code.",
-  "version": "0.1.1",
+  "version": "0.1.8",
   "publisher": "kospellcheck",
   "license": "MIT",
   "engines": {
@@ -23,6 +23,8 @@
   "files": [
     "out/**",
     "resources/**",
+    "node_modules/nspell/**",
+    "node_modules/is-buffer/**",
     "package.json",
     "LICENSE",
     "README.md"
@@ -46,6 +48,11 @@
           "type": "number",
           "default": 500,
           "description": "Debounce delay for document re-check."
+        },
+        "kospellcheck.debugLogging": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable verbose KoSpellCheck debug logs in Output panel."
         }
       }
     }

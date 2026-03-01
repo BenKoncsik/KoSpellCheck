@@ -25,7 +25,15 @@ const DEFAULT_CONFIG = {
     maxTokenLength: 64,
     ignoreAllCapsLengthThreshold: 4,
     suggestionsMax: 5,
-    maxTokensPerDocument: 2000
+    maxTokensPerDocument: 2000,
+    styleLearningEnabled: true,
+    styleLearningMaxFiles: 2000,
+    styleLearningMaxTokens: 200000,
+    styleLearningTimeBudgetMs: 2000,
+    styleLearningFileExtensions: ['cs', 'ts', 'js', 'tsx', 'jsx', 'json', 'md'],
+    styleLearningCachePath: '.kospellcheck/style-profile.json',
+    styleLearningMinTokenLength: 3,
+    styleLearningIgnoreFolders: ['bin', 'obj', 'node_modules', '.git', '.vs', 'artifacts']
 };
 function defaultConfig() {
     return JSON.parse(JSON.stringify(DEFAULT_CONFIG));
@@ -104,6 +112,30 @@ function applyEditorConfig(config, content) {
             case 'kospellcheck_prefer_terms':
                 config.preferTerms = parsePreferTerms(value);
                 break;
+            case 'kospellcheck_style_learning':
+                config.styleLearningEnabled = parseBool(value, config.styleLearningEnabled);
+                break;
+            case 'kospellcheck_style_learning_max_files':
+                config.styleLearningMaxFiles = parseIntOr(value, config.styleLearningMaxFiles);
+                break;
+            case 'kospellcheck_style_learning_max_tokens':
+                config.styleLearningMaxTokens = parseIntOr(value, config.styleLearningMaxTokens);
+                break;
+            case 'kospellcheck_style_learning_time_budget_ms':
+                config.styleLearningTimeBudgetMs = parseIntOr(value, config.styleLearningTimeBudgetMs);
+                break;
+            case 'kospellcheck_style_learning_file_extensions':
+                config.styleLearningFileExtensions = parseList(value).map(normalizeExtension).filter(Boolean);
+                break;
+            case 'kospellcheck_style_learning_cache_path':
+                config.styleLearningCachePath = value;
+                break;
+            case 'kospellcheck_style_learning_min_token_length':
+                config.styleLearningMinTokenLength = parseIntOr(value, config.styleLearningMinTokenLength);
+                break;
+            case 'kospellcheck_style_learning_ignore_folders':
+                config.styleLearningIgnoreFolders = parseList(value);
+                break;
         }
     }
 }
@@ -136,6 +168,27 @@ function applyJsonConfig(config, input) {
         config.suggestionsMax = input.suggestionsMax;
     if (typeof input.maxTokensPerDocument === 'number')
         config.maxTokensPerDocument = input.maxTokensPerDocument;
+    if (typeof input.styleLearningEnabled === 'boolean')
+        config.styleLearningEnabled = input.styleLearningEnabled;
+    if (typeof input.styleLearningMaxFiles === 'number')
+        config.styleLearningMaxFiles = input.styleLearningMaxFiles;
+    if (typeof input.styleLearningMaxTokens === 'number')
+        config.styleLearningMaxTokens = input.styleLearningMaxTokens;
+    if (typeof input.styleLearningTimeBudgetMs === 'number') {
+        config.styleLearningTimeBudgetMs = input.styleLearningTimeBudgetMs;
+    }
+    if (Array.isArray(input.styleLearningFileExtensions) && input.styleLearningFileExtensions.length > 0) {
+        config.styleLearningFileExtensions = input.styleLearningFileExtensions.map(normalizeExtension).filter(Boolean);
+    }
+    if (typeof input.styleLearningCachePath === 'string' && input.styleLearningCachePath.trim().length > 0) {
+        config.styleLearningCachePath = input.styleLearningCachePath;
+    }
+    if (typeof input.styleLearningMinTokenLength === 'number') {
+        config.styleLearningMinTokenLength = input.styleLearningMinTokenLength;
+    }
+    if (Array.isArray(input.styleLearningIgnoreFolders) && input.styleLearningIgnoreFolders.length > 0) {
+        config.styleLearningIgnoreFolders = input.styleLearningIgnoreFolders;
+    }
 }
 function parseBool(value, fallback) {
     if (value.toLowerCase() === 'true')
@@ -168,5 +221,8 @@ function parsePreferTerms(value) {
 function parseIntOr(value, fallback) {
     const parsed = Number.parseInt(value, 10);
     return Number.isFinite(parsed) ? parsed : fallback;
+}
+function normalizeExtension(value) {
+    return value.trim().replace(/^\./u, '').toLowerCase();
 }
 //# sourceMappingURL=config.js.map

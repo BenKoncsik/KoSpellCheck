@@ -113,6 +113,17 @@ if command -v unzip >/dev/null 2>&1; then
     echo "[pack] generated VS Code VSIX is invalid: extension/package.json missing" >&2
     exit 1
   fi
+
+  required_runtime_files=(
+    "extension/node_modules/nspell/lib/index.js"
+    "extension/node_modules/is-buffer/index.js"
+  )
+  for runtime_file in "${required_runtime_files[@]}"; do
+    if ! unzip -Z1 "$VSCODE_VSIX_OUT" | grep -Fx "$runtime_file" >/dev/null; then
+      echo "[pack] generated VS Code VSIX is invalid: missing runtime file $runtime_file" >&2
+      exit 1
+    fi
+  done
 fi
 
 VSCODE_VSIX_ALIAS="$ARTIFACTS/vscode/KoSpellCheck.VSCode.vsix"

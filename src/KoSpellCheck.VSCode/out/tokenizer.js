@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.tokenize = tokenize;
+exports.scanCandidateSpans = scanCandidateSpans;
 const candidateRegex = /[\p{L}\p{M}\p{N}][\p{L}\p{M}\p{N}_\-./\\']*/gu;
 const numberRegex = /^\d+(\.\d+)?$/;
 const guidRegex = /^[{(]?[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}[)}]?$/;
@@ -11,12 +12,9 @@ const base64LikeRegex = /^[A-Za-z0-9+/_=-]{24,}$/;
 const separators = new Set(['_', '-', '.', '/', '\\']);
 function tokenize(text, config, ignoreRegexes) {
     const out = [];
-    for (const match of text.matchAll(candidateRegex)) {
-        const raw = match[0];
-        const index = match.index ?? 0;
-        if (shouldIgnoreRaw(raw, ignoreRegexes)) {
-            continue;
-        }
+    for (const candidate of scanCandidateSpans(text, ignoreRegexes)) {
+        const raw = candidate.value;
+        const index = candidate.start;
         const split = splitBySeparatorsAndCasing(raw);
         for (const part of split) {
             if (!part.value) {
@@ -28,6 +26,22 @@ function tokenize(text, config, ignoreRegexes) {
                 end: index + part.end
             });
         }
+    }
+    return out;
+}
+function scanCandidateSpans(text, ignoreRegexes) {
+    const out = [];
+    for (const match of text.matchAll(candidateRegex)) {
+        const raw = match[0];
+        const index = match.index ?? 0;
+        if (shouldIgnoreRaw(raw, ignoreRegexes)) {
+            continue;
+        }
+        out.push({
+            value: raw,
+            start: index,
+            end: index + raw.length
+        });
     }
     return out;
 }

@@ -121,6 +121,17 @@ try {
   if (-not $hasPackage) {
     throw 'Generated VS Code VSIX is invalid: extension/package.json missing.'
   }
+
+  $entryNames = $zip.Entries | ForEach-Object { $_.FullName }
+  $requiredRuntimeFiles = @(
+    'extension/node_modules/nspell/lib/index.js',
+    'extension/node_modules/is-buffer/index.js'
+  )
+  foreach ($runtimeFile in $requiredRuntimeFiles) {
+    if (-not ($entryNames -contains $runtimeFile)) {
+      throw "Generated VS Code VSIX is invalid: missing runtime file $runtimeFile."
+    }
+  }
 }
 finally {
   $zip.Dispose()

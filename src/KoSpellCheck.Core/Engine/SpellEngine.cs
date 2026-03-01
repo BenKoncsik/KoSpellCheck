@@ -5,6 +5,7 @@ using KoSpellCheck.Core.Config;
 using KoSpellCheck.Core.Diagnostics;
 using KoSpellCheck.Core.Dictionaries;
 using KoSpellCheck.Core.Normalization;
+using KoSpellCheck.Core.Style;
 using KoSpellCheck.Core.Tokenization;
 using KoSpellCheck.Core.Utils;
 
@@ -14,6 +15,7 @@ public sealed class SpellEngine
 {
     private readonly ISpellDictionary _dictionary;
     private readonly CodeAwareTokenizer _tokenizer;
+    private readonly IStyleRanker _styleRanker;
     private readonly LruCache<string, CachedTokenResult> _cache;
     private readonly object _cacheLock = new();
 
@@ -33,10 +35,15 @@ public sealed class SpellEngine
         public string? LanguageHint { get; }
     }
 
-    public SpellEngine(ISpellDictionary dictionary, CodeAwareTokenizer? tokenizer = null, int cacheSize = 5000)
+    public SpellEngine(
+        ISpellDictionary dictionary,
+        CodeAwareTokenizer? tokenizer = null,
+        IStyleRanker? styleRanker = null,
+        int cacheSize = 5000)
     {
         _dictionary = dictionary;
         _tokenizer = tokenizer ?? new CodeAwareTokenizer();
+        _styleRanker = styleRanker ?? new ProjectStyleRanker();
         _cache = new LruCache<string, CachedTokenResult>(cacheSize);
     }
 
@@ -83,7 +90,11 @@ public sealed class SpellEngine
             var normalized = TextNormalizer.Normalize(tokenText);
             var cacheKey = BuildCacheKey(normalized, ctx.Config);
             var cached = GetOrCompute(cacheKey, tokenText, ctx);
-            var suggestions = ApplyPreferenceSuggestions(tokenText, normalized, ctx, cached.Suggestions).ToList();
+            var preferredSuggestions = ApplyPreferenceSuggestions(tokenText, normalized, ctx, cached.Suggestions).ToList();
+            var suggestions = _styleRanker
+                .Rank(tokenText, preferredSuggestions, ctx)
+                .Take(ctx.Config.SuggestionsMax)
+                .ToList();
 
             if (!cached.IsCorrect)
             {

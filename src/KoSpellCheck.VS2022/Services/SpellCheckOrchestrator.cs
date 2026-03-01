@@ -1,5 +1,6 @@
 using KoSpellCheck.Core.Diagnostics;
 using KoSpellCheck.Core.Engine;
+using KoSpellCheck.Core.Style;
 using Microsoft.VisualStudio.Text;
 
 namespace KoSpellCheck.VS2022.Services;
@@ -13,6 +14,7 @@ internal sealed class SpellCheckOrchestrator : IDisposable
     private readonly DictionaryService _dictionaryService;
     private readonly DocumentTextExtractor _documentTextExtractor;
     private readonly TelemetryLogger _telemetryLogger;
+    private readonly IProjectStyleProfileProvider _projectStyleProfileProvider;
     private readonly object _gate = new();
     private readonly SynchronizationContext? _uiContext;
 
@@ -28,17 +30,21 @@ internal sealed class SpellCheckOrchestrator : IDisposable
         ConfigService configService,
         DictionaryService dictionaryService,
         DocumentTextExtractor documentTextExtractor,
-        TelemetryLogger telemetryLogger)
+        TelemetryLogger telemetryLogger,
+        IProjectStyleProfileProvider projectStyleProfileProvider)
     {
         _textBuffer = textBuffer;
         _configService = configService;
         _dictionaryService = dictionaryService;
         _documentTextExtractor = documentTextExtractor;
         _telemetryLogger = telemetryLogger;
+        _projectStyleProfileProvider = projectStyleProfileProvider;
         _uiContext = SynchronizationContext.Current;
 
         _textBuffer.Changed += OnBufferChanged;
         _configService.ConfigChanged += OnConfigChanged;
+        var initialSettings = _configService.GetSettings(_textBuffer);
+        _projectStyleProfileProvider.RequestRefresh(initialSettings.WorkspaceRoot, initialSettings.Config, force: true);
 
         ScheduleSpellCheck(_debounce);
     }
@@ -50,11 +56,12 @@ internal sealed class SpellCheckOrchestrator : IDisposable
         ConfigService configService,
         DictionaryService dictionaryService,
         DocumentTextExtractor documentTextExtractor,
-        TelemetryLogger telemetryLogger)
+        TelemetryLogger telemetryLogger,
+        IProjectStyleProfileProvider projectStyleProfileProvider)
     {
         return textBuffer.Properties.GetOrCreateSingletonProperty(
             BufferPropertyKey,
-            () => new SpellCheckOrchestrator(textBuffer, configService, dictionaryService, documentTextExtractor, telemetryLogger));
+            () => new SpellCheckOrchestrator(textBuffer, configService, dictionaryService, documentTextExtractor, telemetryLogger, projectStyleProfileProvider));
     }
 
     public IReadOnlyList<SpellIssueSnapshot> GetIssues(ITextSnapshot snapshot)
@@ -142,6 +149,8 @@ internal sealed class SpellCheckOrchestrator : IDisposable
             return;
         }
 
+        var settings = _configService.GetSettings(_textBuffer);
+        _projectStyleProfileProvider.RequestRefresh(settings.WorkspaceRoot, settings.Config, force: true);
         ScheduleSpellCheck(_debounce);
     }
 
@@ -195,8 +204,9 @@ internal sealed class SpellCheckOrchestrator : IDisposable
             var settings = _configService.GetSettings(_textBuffer);
             var text = snapshot.GetText();
             var extractedText = _documentTextExtractor.ExtractForSpellCheck(text, settings.Scope);
-
-            var context = new SpellCheckContext(settings.Config, settings.FilePath);
+            _projectStyleProfileProvider.RequestRefresh(settings.WorkspaceRoot, settings.Config);
+            var styleProfile = _projectStyleProfileProvider.GetProfile(settings.WorkspaceRoot);
+            var context = new SpellCheckContext(settings.Config, settings.FilePath, settings.WorkspaceRoot, styleProfile);
             var engine = _dictionaryService.GetEngine();
 
             var diagnostics = await Task

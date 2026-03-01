@@ -34,4 +34,41 @@ test('engine prioritizes focus offsets when token budget is exceeded', () => {
     focusOffsets: [targetOffset]
   });
   assert.equal(withFocus.some((issue) => issue.token === 'Almma'), true);
+  const almmaIssue = withFocus.find((issue) => issue.token === 'Almma');
+  assert.ok(almmaIssue);
+  assert.ok(almmaIssue.message.includes('alma'));
+});
+
+test('engine produces a single fix for multi-part identifier misspellings', () => {
+  const config = defaultConfig();
+  const text = 'public void TesztirsaAlmmakorte() {}';
+  const service = {
+    check(token: string) {
+      const normalized = token.toLowerCase();
+      const misspelled = normalized === 'tesztirsa' || normalized === 'almmakorte';
+      return {
+        correct: !misspelled,
+        languages: misspelled ? [] : ['hu']
+      };
+    },
+    suggest(token: string) {
+      const normalized = token.toLowerCase();
+      if (normalized === 'tesztirsa') {
+        return [{ replacement: 'Tesztiras', confidence: 0.95, sourceDictionary: 'hu' }];
+      }
+
+      if (normalized === 'almmakorte') {
+        return [{ replacement: 'AlmaKorte', confidence: 0.97, sourceDictionary: 'hu' }];
+      }
+
+      return [];
+    }
+  };
+
+  const issues = checkDocument(text, config, service as any);
+  assert.equal(issues.length, 1);
+
+  const issue = issues[0];
+  assert.equal(issue.token, 'TesztirsaAlmmakorte');
+  assert.equal(issue.suggestions[0]?.replacement, 'TesztirasAlmaKorte');
 });

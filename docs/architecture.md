@@ -12,8 +12,9 @@
 1. Input szöveg tokenizálása code-aware szabályokkal.
 2. Token normalizálás (lowercase, unicode normalize, opcionális ASCII-fold HU ellenőrzéshez).
 3. Composite dictionary ellenőrzés (HU + EN + project dictionary + ignore list).
-4. preferTerms szabályok ráillesztése (stílus diagnosztika/szortírozás).
-5. Diagnostic lista + javaslatok visszaadása.
+4. preferTerms szabályok ráillesztése.
+5. Project style ranking (`ProjectStyleProfile` + `ProjectStyleRanker`) a javaslatok sorrendjére.
+6. Diagnostic lista + javaslatok visszaadása.
 
 ## Performance
 
@@ -21,6 +22,14 @@
 - Dokumentumonként token limit
 - Opcionális `changedLines` alapú inkrementális ellenőrzés
 - VS Code oldalon debounced futás
+- Style learning: workspace-root cache (`.kospellcheck/style-profile.json`), max file/token/time budget
+
+## Style Learning réteg
+
+- `ProjectStyleDetector` háttérben profilozza a workspace releváns fájljait.
+- A profil kulcsa normalizált token (`lowercase + unicode normalize + ASCII-fold`), a variánsok eredeti alakban tárolódnak.
+- `ProjectStyleRanker` csak a javaslatok sorrendjét módosítja (nem változtatja a dictionary elfogadási logikát).
+- `preferTerms` override pontszáma magasabb, mint az automatikus stílus tanulás.
 
 ## Language modules
 

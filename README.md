@@ -13,6 +13,7 @@ KoSpellCheck egy offline helyesírás-ellenőrző ökoszisztéma fejlesztői kö
 - Code-aware tokenizálás: `camelCase`, `PascalCase`, `snake_case`, `kebab-case`, `dot.separated`
 - Quick fix javaslatok
 - `preferTerms` szabályok (pl. `model -> modell` vagy fordítva)
+- Projekt-stílus tanulás (kapitalizáció/preferált alak) workspace szinten cache-elve
 - Magyar ASCII-fold támogatás (pl. `homerseklet` elfogadása `hőmérséklet` alapú szótár mellett)
 - Teljesen offline működés
 
@@ -92,6 +93,7 @@ kospellcheck_allow_mixed_languages = true
 kospellcheck_treat_as_hungarian_when_ascii_only = true
 kospellcheck_ignore_words = Async,SignalR,STM32
 kospellcheck_prefer_terms = model:modell
+kospellcheck_style_learning = true
 ```
 
 `kospellcheck.json`:
@@ -104,6 +106,7 @@ kospellcheck_prefer_terms = model:modell
   "preferTerms": {
     "model": "modell"
   },
+  "styleLearningEnabled": true,
   "ignoreWords": ["Async", "SignalR", "STM32"],
   "projectDictionary": ["KoSpellCheck"],
   "suggestionsMax": 5

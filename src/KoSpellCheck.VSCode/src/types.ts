@@ -12,6 +12,14 @@ export interface KoSpellCheckConfig {
   ignoreAllCapsLengthThreshold: number;
   suggestionsMax: number;
   maxTokensPerDocument: number;
+  styleLearningEnabled: boolean;
+  styleLearningMaxFiles: number;
+  styleLearningMaxTokens: number;
+  styleLearningTimeBudgetMs: number;
+  styleLearningFileExtensions: string[];
+  styleLearningCachePath: string;
+  styleLearningMinTokenLength: number;
+  styleLearningIgnoreFolders: string[];
 }
 
 export interface TokenSpan {
@@ -34,4 +42,18 @@ export interface SpellIssue {
   message: string;
   languageHint?: string;
   suggestions: Suggestion[];
+}
+
+export interface TokenStyleStats {
+  totalCount: number;
+  variants: Record<string, number>;
+  preferredVariant: string;
+  confidence: number;
+}
+
+export interface ProjectStyleProfile {
+  workspaceRoot: string;
+  createdAtUtc: string;
+  updatedAtUtc: string;
+  tokenStats: Record<string, TokenStyleStats>;
 }

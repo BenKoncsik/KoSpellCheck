@@ -16,5 +16,13 @@
   "maxTokenLength": 64,
   "ignoreAllCapsLengthThreshold": 4,
   "suggestionsMax": 5,
-  "maxTokensPerDocument": 2000
+  "maxTokensPerDocument": 2000,
+  "styleLearningEnabled": true,
+  "styleLearningMaxFiles": 2000,
+  "styleLearningMaxTokens": 200000,
+  "styleLearningTimeBudgetMs": 2000,
+  "styleLearningFileExtensions": ["cs", "ts", "js", "tsx", "jsx", "json", "md"],
+  "styleLearningCachePath": ".kospellcheck/style-profile.json",
+  "styleLearningMinTokenLength": 3,
+  "styleLearningIgnoreFolders": ["bin", "obj", "node_modules", ".git", ".vs", "artifacts"]
 }

@@ -13,4 +13,11 @@ public class ModelServce
         var modell = "domain";
         Console.WriteLine($"{HTTPServerConfig}-{homerseklet}-{modell}");
     }
+
+    public void TesztIrasAlmaKorteView()
+    {
+        ReplaceViewModel();
+        var teszt = "teszt";
+        Console.WriteLine(teszt);
+    }
 }

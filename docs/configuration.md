@@ -21,6 +21,14 @@ A JSON felülírja az `.editorconfig` értékeit.
 - `kospellcheck_ignore_all_caps_length_threshold = 4`
 - `kospellcheck_suggestions_max = 5`
 - `kospellcheck_prefer_terms = model:modell,endpoint:végpont`
+- `kospellcheck_style_learning = true|false`
+- `kospellcheck_style_learning_max_files = 2000`
+- `kospellcheck_style_learning_max_tokens = 200000`
+- `kospellcheck_style_learning_time_budget_ms = 2000`
+- `kospellcheck_style_learning_file_extensions = cs,ts,js,tsx,jsx,json,md`
+- `kospellcheck_style_learning_cache_path = .kospellcheck/style-profile.json`
+- `kospellcheck_style_learning_min_token_length = 3`
+- `kospellcheck_style_learning_ignore_folders = bin,obj,node_modules,.git,.vs,artifacts`
 
 ## `kospellcheck.json` séma (MVP)
 
@@ -43,7 +51,15 @@ A JSON felülírja az `.editorconfig` értékeit.
   "maxTokenLength": 64,
   "ignoreAllCapsLengthThreshold": 4,
   "suggestionsMax": 5,
-  "maxTokensPerDocument": 2000
+  "maxTokensPerDocument": 2000,
+  "styleLearningEnabled": true,
+  "styleLearningMaxFiles": 2000,
+  "styleLearningMaxTokens": 200000,
+  "styleLearningTimeBudgetMs": 2000,
+  "styleLearningFileExtensions": ["cs", "ts", "js", "tsx", "jsx", "json", "md"],
+  "styleLearningCachePath": ".kospellcheck/style-profile.json",
+  "styleLearningMinTokenLength": 3,
+  "styleLearningIgnoreFolders": ["bin", "obj", "node_modules", ".git", ".vs", "artifacts"]
 }
 ```
 
@@ -55,3 +71,10 @@ A JSON felülírja az `.editorconfig` értékeit.
 ## Hungarian ASCII policy
 
 Ha `treatAsHungarianWhenAsciiOnly = true`, akkor a HU szótárra történik ASCII-fold ellenőrzés, így pl. `homerseklet` elfogadható a `hőmérséklet` alapján.
+
+## Style Learning
+
+- A projekt stílusprofil workspace rootonként épül (`ProjectStyleProfile`).
+- A profil cache alapból: `.kospellcheck/style-profile.json`.
+- A tanulás csak rangsorolást végez a javaslatokra, nem ad új szót a dictionaryhez.
+- `preferTerms` mindig felülírja a tanult stílust.

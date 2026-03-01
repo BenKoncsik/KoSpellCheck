@@ -1,11 +1,13 @@
-import { KoSpellCheckConfig, SpellIssue, Suggestion } from './types';
+import { KoSpellCheckConfig, ProjectStyleProfile, SpellIssue, Suggestion } from './types';
 import { SpellService } from './spellService';
 import { asciiFold, isAllCaps, normalize } from './normalization';
-import { tokenize } from './tokenizer';
+import { scanCandidateSpans, tokenize } from './tokenizer';
 import { compileIgnorePatterns } from './config';
+import { rankSuggestionsByStyle } from './styleRanker';
 
 interface CheckOptions {
   focusOffsets?: number[];
+  styleProfile?: ProjectStyleProfile;
 }
 
 export function checkDocument(
@@ -19,6 +21,7 @@ export function checkDocument(
   }
 
   const ignoreRegexes = compileIgnorePatterns(config.ignorePatterns);
+  const candidateSpans = scanCandidateSpans(text, ignoreRegexes);
   const tokens = selectTokensForCheck(
     tokenize(text, config, ignoreRegexes),
     config.maxTokensPerDocument,
@@ -50,14 +53,17 @@ export function checkDocument(
     if (preferred && preferred !== normalized) {
       suggestions = prependPreference(preferred, suggestions, config.suggestionsMax);
     }
+    suggestions = rankSuggestionsByStyle(raw, suggestions, config, options?.styleProfile)
+      .slice(0, config.suggestionsMax);
 
     if (!check.correct) {
+      const message = buildMisspellingMessage(raw, suggestions);
       issues.push({
         type: 'misspell',
         token: raw,
         start: token.start,
         end: token.end,
-        message: `Possible misspelling: '${raw}'.`,
+        message,
         languageHint: check.languages[0],
         suggestions: suggestions.slice(0, config.suggestionsMax)
       });
@@ -89,7 +95,14 @@ export function checkDocument(
     }
   }
 
-  return issues;
+  return mergeCompoundIdentifierIssues(
+    text,
+    issues,
+    candidateSpans,
+    config.suggestionsMax,
+    config,
+    options?.styleProfile
+  );
 }
 
 function selectTokensForCheck(
@@ -169,6 +182,118 @@ function findTokenIndexAtOffset(
   }
 
   return tokens.length - 1;
+}
+
+function buildMisspellingMessage(raw: string, suggestions: Suggestion[]): string {
+  if (suggestions.length === 0) {
+    return `Possible misspelling: '${raw}'.`;
+  }
+
+  const preview = suggestions
+    .slice(0, 3)
+    .map((x) => x.replacement)
+    .join(', ');
+
+  return `Possible misspelling: '${raw}'. Suggestions: ${preview}`;
+}
+
+function mergeCompoundIdentifierIssues(
+  text: string,
+  issues: SpellIssue[],
+  candidateSpans: Array<{ value: string; start: number; end: number }>,
+  maxSuggestions: number,
+  config: KoSpellCheckConfig,
+  styleProfile?: ProjectStyleProfile
+): SpellIssue[] {
+  const misspellEntries = issues
+    .map((issue, index) => ({ issue, index }))
+    .filter((entry) => entry.issue.type === 'misspell');
+
+  if (misspellEntries.length < 2) {
+    return issues;
+  }
+
+  const coveredIssueIndexes = new Set<number>();
+  const combinedIssues: SpellIssue[] = [];
+
+  for (const candidate of candidateSpans) {
+    const related = misspellEntries
+      .filter(
+        (entry) =>
+          !coveredIssueIndexes.has(entry.index) &&
+          entry.issue.start >= candidate.start &&
+          entry.issue.end <= candidate.end
+      )
+      .sort((a, b) => a.issue.start - b.issue.start);
+
+    if (related.length < 2) {
+      continue;
+    }
+
+    let cursor = candidate.start;
+    let replacement = '';
+    let confidenceSum = 0;
+    let canMerge = true;
+    for (const entry of related) {
+      if (entry.issue.start < cursor) {
+        canMerge = false;
+        break;
+      }
+
+      const topSuggestion = entry.issue.suggestions[0];
+      if (!topSuggestion?.replacement) {
+        canMerge = false;
+        break;
+      }
+
+      replacement += text.slice(cursor, entry.issue.start);
+      replacement += topSuggestion.replacement;
+      cursor = entry.issue.end;
+      confidenceSum += topSuggestion.confidence;
+    }
+
+    if (!canMerge) {
+      continue;
+    }
+
+    replacement += text.slice(cursor, candidate.end);
+    if (!replacement || replacement === candidate.value) {
+      continue;
+    }
+
+    const suggestion: Suggestion = {
+      replacement,
+      confidence: Math.max(0.55, confidenceSum / related.length),
+      sourceDictionary: 'compound-identifier'
+    };
+    const rankedSuggestions = rankSuggestionsByStyle(
+      candidate.value,
+      [suggestion],
+      config,
+      styleProfile
+    );
+    combinedIssues.push({
+      type: 'misspell',
+      token: candidate.value,
+      start: candidate.start,
+      end: candidate.end,
+      message: `Possible misspelling: '${candidate.value}'. Suggestions: ${replacement}`,
+      languageHint: related[0].issue.languageHint,
+      suggestions: rankedSuggestions.slice(0, maxSuggestions)
+    });
+
+    for (const entry of related) {
+      coveredIssueIndexes.add(entry.index);
+    }
+  }
+
+  if (combinedIssues.length === 0) {
+    return issues;
+  }
+
+  return [...issues.filter((_, idx) => !coveredIssueIndexes.has(idx)), ...combinedIssues].sort(
+    (a, b) => a.start - b.start || a.end - b.end
+  );
 }
 
 function prependPreference(preferred: string, suggestions: Suggestion[], max: number): Suggestion[] {

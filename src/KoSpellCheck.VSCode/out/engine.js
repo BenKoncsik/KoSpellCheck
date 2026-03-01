@@ -4,11 +4,13 @@ exports.checkDocument = checkDocument;
 const normalization_1 = require("./normalization");
 const tokenizer_1 = require("./tokenizer");
 const config_1 = require("./config");
+const styleRanker_1 = require("./styleRanker");
 function checkDocument(text, config, service, options) {
     if (!config.enabled || !text) {
         return [];
     }
     const ignoreRegexes = (0, config_1.compileIgnorePatterns)(config.ignorePatterns);
+    const candidateSpans = (0, tokenizer_1.scanCandidateSpans)(text, ignoreRegexes);
     const tokens = selectTokensForCheck((0, tokenizer_1.tokenize)(text, config, ignoreRegexes), config.maxTokensPerDocument, options?.focusOffsets);
     const ignoreWords = new Set(config.ignoreWords.map((x) => (0, normalization_1.normalize)(x)));
     const projectDictionary = new Set(config.projectDictionary.map((x) => (0, normalization_1.normalize)(x)));
@@ -29,13 +31,16 @@ function checkDocument(text, config, service, options) {
         if (preferred && preferred !== normalized) {
             suggestions = prependPreference(preferred, suggestions, config.suggestionsMax);
         }
+        suggestions = (0, styleRanker_1.rankSuggestionsByStyle)(raw, suggestions, config, options?.styleProfile)
+            .slice(0, config.suggestionsMax);
         if (!check.correct) {
+            const message = buildMisspellingMessage(raw, suggestions);
             issues.push({
                 type: 'misspell',
                 token: raw,
                 start: token.start,
                 end: token.end,
-                message: `Possible misspelling: '${raw}'.`,
+                message,
                 languageHint: check.languages[0],
                 suggestions: suggestions.slice(0, config.suggestionsMax)
             });
@@ -62,7 +67,7 @@ function checkDocument(text, config, service, options) {
             }
         }
     }
-    return issues;
+    return mergeCompoundIdentifierIssues(text, issues, candidateSpans, config.suggestionsMax, config, options?.styleProfile);
 }
 function selectTokensForCheck(tokens, maxTokens, focusOffsets) {
     if (maxTokens <= 0) {
@@ -120,6 +125,84 @@ function findTokenIndexAtOffset(tokens, offset) {
         return left;
     }
     return tokens.length - 1;
+}
+function buildMisspellingMessage(raw, suggestions) {
+    if (suggestions.length === 0) {
+        return `Possible misspelling: '${raw}'.`;
+    }
+    const preview = suggestions
+        .slice(0, 3)
+        .map((x) => x.replacement)
+        .join(', ');
+    return `Possible misspelling: '${raw}'. Suggestions: ${preview}`;
+}
+function mergeCompoundIdentifierIssues(text, issues, candidateSpans, maxSuggestions, config, styleProfile) {
+    const misspellEntries = issues
+        .map((issue, index) => ({ issue, index }))
+        .filter((entry) => entry.issue.type === 'misspell');
+    if (misspellEntries.length < 2) {
+        return issues;
+    }
+    const coveredIssueIndexes = new Set();
+    const combinedIssues = [];
+    for (const candidate of candidateSpans) {
+        const related = misspellEntries
+            .filter((entry) => !coveredIssueIndexes.has(entry.index) &&
+            entry.issue.start >= candidate.start &&
+            entry.issue.end <= candidate.end)
+            .sort((a, b) => a.issue.start - b.issue.start);
+        if (related.length < 2) {
+            continue;
+        }
+        let cursor = candidate.start;
+        let replacement = '';
+        let confidenceSum = 0;
+        let canMerge = true;
+        for (const entry of related) {
+            if (entry.issue.start < cursor) {
+                canMerge = false;
+                break;
+            }
+            const topSuggestion = entry.issue.suggestions[0];
+            if (!topSuggestion?.replacement) {
+                canMerge = false;
+                break;
+            }
+            replacement += text.slice(cursor, entry.issue.start);
+            replacement += topSuggestion.replacement;
+            cursor = entry.issue.end;
+            confidenceSum += topSuggestion.confidence;
+        }
+        if (!canMerge) {
+            continue;
+        }
+        replacement += text.slice(cursor, candidate.end);
+        if (!replacement || replacement === candidate.value) {
+            continue;
+        }
+        const suggestion = {
+            replacement,
+            confidence: Math.max(0.55, confidenceSum / related.length),
+            sourceDictionary: 'compound-identifier'
+        };
+        const rankedSuggestions = (0, styleRanker_1.rankSuggestionsByStyle)(candidate.value, [suggestion], config, styleProfile);
+        combinedIssues.push({
+            type: 'misspell',
+            token: candidate.value,
+            start: candidate.start,
+            end: candidate.end,
+            message: `Possible misspelling: '${candidate.value}'. Suggestions: ${replacement}`,
+            languageHint: related[0].issue.languageHint,
+            suggestions: rankedSuggestions.slice(0, maxSuggestions)
+        });
+        for (const entry of related) {
+            coveredIssueIndexes.add(entry.index);
+        }
+    }
+    if (combinedIssues.length === 0) {
+        return issues;
+    }
+    return [...issues.filter((_, idx) => !coveredIssueIndexes.has(idx)), ...combinedIssues].sort((a, b) => a.start - b.start || a.end - b.end);
 }
 function prependPreference(preferred, suggestions, max) {
     const seen = new Set([preferred.toLowerCase()]);

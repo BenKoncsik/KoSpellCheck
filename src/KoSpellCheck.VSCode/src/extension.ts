@@ -5,6 +5,7 @@ import { checkDocument } from './engine';
 import { loadConfig } from './config';
 import { SpellService } from './spellService';
 import { SpellIssue } from './types';
+import { StyleLearningCoordinator } from './styleLearningCoordinator';
 
 const SOURCE = 'KoSpellCheck';
 
@@ -21,6 +22,20 @@ export function activate(context: vscode.ExtensionContext): void {
   const timers = new Map<string, NodeJS.Timeout>();
   const pendingFocusOffsets = new Map<string, number[]>();
   let errorNotificationShown = false;
+  let initializationNotesLogged = false;
+
+  const isDebugEnabled = (uri?: vscode.Uri): boolean =>
+    vscode.workspace.getConfiguration('kospellcheck', uri).get<boolean>('debugLogging', false);
+
+  const log = (message: string, uri?: vscode.Uri, force = false): void => {
+    if (!force && !isDebugEnabled(uri)) {
+      return;
+    }
+    output.appendLine(`[${new Date().toISOString()}] ${message}`);
+  };
+  const styleLearning = new StyleLearningCoordinator(log);
+
+  log(`activate version=${context.extension.packageJSON.version ?? 'unknown'}`, undefined, true);
 
   const codeActionProvider = vscode.languages.registerCodeActionsProvider(
     [{ scheme: 'file' }],
@@ -39,14 +54,29 @@ export function activate(context: vscode.ExtensionContext): void {
           }
 
           for (const suggestion of info.suggestions.slice(0, 5)) {
-            const replace = new vscode.CodeAction(
-              `Replace with '${suggestion}'`,
+            if (isLikelyIdentifier(info.token) && isLikelyIdentifier(suggestion)) {
+              const renameSymbol = new vscode.CodeAction(
+                `Rename symbol to '${suggestion}'`,
+                vscode.CodeActionKind.QuickFix
+              );
+              renameSymbol.isPreferred = true;
+              renameSymbol.diagnostics = [diagnostic];
+              renameSymbol.command = {
+                command: 'kospellcheck.renameSymbolWithSuggestion',
+                title: 'KoSpellCheck: Rename symbol with suggestion',
+                arguments: [document.uri, diagnostic.range.start, info.token, suggestion]
+              };
+              actions.push(renameSymbol);
+            }
+
+            const replaceSingle = new vscode.CodeAction(
+              `Replace this with '${suggestion}'`,
               vscode.CodeActionKind.QuickFix
             );
-            replace.diagnostics = [diagnostic];
-            replace.edit = new vscode.WorkspaceEdit();
-            replace.edit.replace(document.uri, diagnostic.range, suggestion);
-            actions.push(replace);
+            replaceSingle.diagnostics = [diagnostic];
+            replaceSingle.edit = new vscode.WorkspaceEdit();
+            replaceSingle.edit.replace(document.uri, diagnostic.range, suggestion);
+            actions.push(replaceSingle);
           }
 
           const addToDictionary = new vscode.CodeAction(
@@ -100,36 +130,91 @@ export function activate(context: vscode.ExtensionContext): void {
         config.projectDictionary = projectDictionaryRaw;
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
         vscode.window.showInformationMessage(`KoSpellCheck: '${token}' added to project dictionary.`);
+        styleLearning.scheduleWorkspaceRefresh(workspaceFolder.uri.fsPath, 'project-dictionary-updated');
       }
 
       if (editor) {
-        scheduleDocumentCheck(editor.document);
+        scheduleDocumentCheck(editor.document, 'add-word-command');
       }
     }
   );
 
-  const checkNow = (document: vscode.TextDocument): void => {
+  const renameSymbolCommand = vscode.commands.registerCommand(
+    'kospellcheck.renameSymbolWithSuggestion',
+    async (
+      uri: vscode.Uri,
+      position: vscode.Position,
+      token: string,
+      replacement: string
+    ) => {
+      if (!uri || !position || !replacement || !isLikelyIdentifier(replacement)) {
+        return;
+      }
+
+      try {
+        const renameEdit = await vscode.commands.executeCommand<vscode.WorkspaceEdit | undefined>(
+          'vscode.executeDocumentRenameProvider',
+          uri,
+          position,
+          replacement
+        );
+
+        if (renameEdit && workspaceEditHasChanges(renameEdit)) {
+          await vscode.workspace.applyEdit(renameEdit);
+          return;
+        }
+      } catch {
+        // fall back to document-local replacement when rename provider is unavailable
+      }
+
+      const document = await vscode.workspace.openTextDocument(uri);
+      const ranges = findTokenRangesInDocument(document, token);
+      if (ranges.length === 0) {
+        return;
+      }
+
+      const edit = new vscode.WorkspaceEdit();
+      for (const range of ranges) {
+        edit.replace(uri, range, replacement);
+      }
+      await vscode.workspace.applyEdit(edit);
+    }
+  );
+
+  const checkNow = (document: vscode.TextDocument, trigger: string): void => {
     if (document.uri.scheme !== 'file') {
+      log(`skip check trigger=${trigger} reason=non-file scheme=${document.uri.scheme}`, document.uri);
       return;
     }
 
     const activeUri = vscode.window.activeTextEditor?.document.uri.toString();
     if (!activeUri || activeUri !== document.uri.toString()) {
+      log(`skip check trigger=${trigger} reason=inactive-editor`, document.uri);
       return;
     }
 
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+    const workspaceRoot = workspaceFolder?.uri.fsPath;
     const config = loadConfig(workspaceFolder?.uri.fsPath);
     const settingEnabled = vscode.workspace.getConfiguration('kospellcheck', document.uri).get<boolean>('enabled', true);
     config.enabled = config.enabled && settingEnabled;
 
     if (!config.enabled) {
+      log(`skip check trigger=${trigger} reason=disabled`, document.uri);
       diagnostics.delete(document.uri);
       return;
     }
 
     try {
+      log(`check start trigger=${trigger}`, document.uri);
       service.ensureInitialized();
+      if (!initializationNotesLogged) {
+        for (const note of service.getInitializationNotes()) {
+          const force = note.includes('fallback-wordset');
+          log(`init ${note}`, document.uri, force);
+        }
+        initializationNotesLogged = true;
+      }
 
       const uri = document.uri.toString();
       const focusOffsets: number[] = [];
@@ -143,12 +228,27 @@ export function activate(context: vscode.ExtensionContext): void {
         focusOffsets.push(document.offsetAt(editor.selection.active));
       }
 
+      if (workspaceRoot && config.styleLearningEnabled && !styleLearning.getProfile(workspaceRoot)) {
+        styleLearning.scheduleWorkspaceRefresh(workspaceRoot, `on-demand-${trigger}`, 200);
+      }
+
       const issues = checkDocument(document.getText(), config, service, {
-        focusOffsets
+        focusOffsets,
+        styleProfile: styleLearning.getProfile(workspaceRoot)
       });
       const diagList = issuesToDiagnostics(document, issues, metadata);
       diagnostics.set(document.uri, diagList);
       pendingFocusOffsets.delete(uri);
+      log(
+        `check done trigger=${trigger} issues=${issues.length} diagnostics=${diagList.length} focusOffsets=${focusOffsets.length}`,
+        document.uri
+      );
+      for (const issue of issues.slice(0, 3)) {
+        log(
+          `issue token='${issue.token}' range=${issue.start}-${issue.end} message=${issue.message}`,
+          document.uri
+        );
+      }
     } catch (error) {
       const message = formatError(error);
       output.appendLine(`[${new Date().toISOString()}] ${message}`);
@@ -162,7 +262,7 @@ export function activate(context: vscode.ExtensionContext): void {
     }
   };
 
-  const scheduleDocumentCheck = (document: vscode.TextDocument): void => {
+  const scheduleDocumentCheck = (document: vscode.TextDocument, reason: string): void => {
     const uri = document.uri.toString();
     const configuredDebounce = vscode.workspace.getConfiguration('kospellcheck', document.uri).get<number>('debounceMs', 500);
     const debounceMs = Math.min(600, Math.max(400, configuredDebounce));
@@ -176,16 +276,19 @@ export function activate(context: vscode.ExtensionContext): void {
       uri,
       setTimeout(() => {
         timers.delete(uri);
-        checkNow(document);
+        checkNow(document, reason);
       }, debounceMs)
     );
+    log(`schedule check reason=${reason} debounceMs=${debounceMs}`, document.uri);
   };
 
   context.subscriptions.push(
     diagnostics,
     output,
+    styleLearning,
     codeActionProvider,
     addWordCommand,
+    renameSymbolCommand,
     vscode.workspace.onDidChangeTextDocument((event) => {
       const uri = event.document.uri.toString();
       const list = pendingFocusOffsets.get(uri) ?? [];
@@ -193,11 +296,26 @@ export function activate(context: vscode.ExtensionContext): void {
         list.push(change.rangeOffset);
       }
       pendingFocusOffsets.set(uri, list.slice(-16));
-      scheduleDocumentCheck(event.document);
+      log(`text change edits=${event.contentChanges.length} pendingOffsets=${list.length}`, event.document.uri);
+      scheduleDocumentCheck(event.document, 'text-change');
     }),
     vscode.window.onDidChangeActiveTextEditor((editor) => {
       if (editor) {
-        scheduleDocumentCheck(editor.document);
+        scheduleDocumentCheck(editor.document, 'active-editor-changed');
+      }
+    }),
+    vscode.workspace.onDidSaveTextDocument((document) => {
+      const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
+      if (workspaceFolder) {
+        styleLearning.scheduleWorkspaceRefresh(workspaceFolder.uri.fsPath, 'document-saved');
+      }
+    }),
+    vscode.workspace.onDidChangeWorkspaceFolders(() => {
+      styleLearning.scheduleAllWorkspaceRefreshes('workspace-folders-changed');
+    }),
+    vscode.workspace.onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration('kospellcheck')) {
+        styleLearning.scheduleAllWorkspaceRefreshes('settings-changed', 250);
       }
     }),
     vscode.workspace.onDidCloseTextDocument((document) => {
@@ -208,12 +326,19 @@ export function activate(context: vscode.ExtensionContext): void {
         timers.delete(document.uri.toString());
       }
       pendingFocusOffsets.delete(document.uri.toString());
+      log(`document closed`, document.uri);
     })
   );
 
   if (vscode.window.activeTextEditor) {
-    scheduleDocumentCheck(vscode.window.activeTextEditor.document);
+    const workspaceFolder = vscode.workspace.getWorkspaceFolder(vscode.window.activeTextEditor.document.uri);
+    if (workspaceFolder) {
+      styleLearning.scheduleWorkspaceRefresh(workspaceFolder.uri.fsPath, 'activation', 100);
+    }
+    scheduleDocumentCheck(vscode.window.activeTextEditor.document, 'activation');
   }
+
+  styleLearning.scheduleAllWorkspaceRefreshes('startup');
 }
 
 export function deactivate(): void {
@@ -270,4 +395,63 @@ function formatError(error: unknown): string {
   }
 
   return `${firstLine.slice(0, 500)}...`;
+}
+
+function findTokenRangesInDocument(
+  document: vscode.TextDocument,
+  token: string
+): vscode.Range[] {
+  if (!token) {
+    return [];
+  }
+
+  const text = document.getText();
+  const ranges: vscode.Range[] = [];
+  let offset = 0;
+
+  while (offset < text.length) {
+    const hit = text.indexOf(token, offset);
+    if (hit < 0) {
+      break;
+    }
+
+    const prev = hit > 0 ? text[hit - 1] : '';
+    const nextIndex = hit + token.length;
+    const next = nextIndex < text.length ? text[nextIndex] : '';
+    const isLeftBoundary = !isIdentifierChar(prev);
+    const isRightBoundary = !isIdentifierChar(next);
+
+    if (isLeftBoundary && isRightBoundary) {
+      ranges.push(
+        new vscode.Range(
+          document.positionAt(hit),
+          document.positionAt(nextIndex)
+        )
+      );
+    }
+
+    offset = hit + token.length;
+  }
+
+  return ranges;
+}
+
+function isIdentifierChar(char: string): boolean {
+  if (!char) {
+    return false;
+  }
+
+  return /[\p{L}\p{M}\p{N}_]/u.test(char);
+}
+
+function workspaceEditHasChanges(edit: vscode.WorkspaceEdit): boolean {
+  return edit.entries().some(([, changes]) => changes.length > 0);
+}
+
+function isLikelyIdentifier(token: string): boolean {
+  if (!token) {
+    return false;
+  }
+
+  return /^[@\p{L}_][\p{L}\p{M}\p{N}_]*$/u.test(token);
 }

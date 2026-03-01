@@ -55,9 +55,10 @@ public sealed class KoSpellCheckAnalyzer : DiagnosticAnalyzer
         }
 
         var root = context.Tree.GetRoot(context.CancellationToken);
-        var cfg = LoadConfig(context.Tree.FilePath);
+        var workspaceRoot = ResolveWorkspaceRoot(context.Tree.FilePath);
+        var cfg = LoadConfig(workspaceRoot);
 
-        var spellCtx = new SpellCheckContext(cfg, context.Tree.FilePath);
+        var spellCtx = new SpellCheckContext(cfg, context.Tree.FilePath, workspaceRoot);
 
         foreach (var token in root.DescendantTokens())
         {
@@ -121,9 +122,8 @@ public sealed class KoSpellCheckAnalyzer : DiagnosticAnalyzer
         }
     }
 
-    private static KoSpellCheckConfig LoadConfig(string? filePath)
+    private static KoSpellCheckConfig LoadConfig(string workspaceRoot)
     {
-        var workspaceRoot = ResolveWorkspaceRoot(filePath);
         return ConfigCache.GetOrAdd(workspaceRoot, ConfigLoader.Load);
     }
 
