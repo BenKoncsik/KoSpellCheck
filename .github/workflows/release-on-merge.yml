@@ -1,0 +1,84 @@
+name: release-on-merge
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/KoSpellCheck.VSCode/package-lock.json
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump extension versions
+        id: version
+        run: |
+          VERSION="$(./scripts/bump-version.sh patch)"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Build and package extensions
+        run: ./scripts/pack.sh
+
+      - name: Commit version bump and create tag
+        run: |
+          git add Directory.Build.props \
+            src/KoSpellCheck.VSCode/package.json \
+            src/KoSpellCheck.VSCode/package-lock.json \
+            src/KoSpellCheck.VS2022/source.extension.vsixmanifest
+
+          git commit -m "chore(release): v${VERSION} [skip ci]"
+          git tag "v${VERSION}"
+          git push origin HEAD:main
+          git push origin "v${VERSION}"
+
+      - name: Prepare release artifact names
+        run: |
+          cp "artifacts/vsix/KoSpellCheck.VS2022.vsix" "artifacts/vsix/KoSpellCheck.VS2022-${VERSION}.vsix"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: KoSpellCheck v${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          files: |
+            artifacts/vscode/KoSpellCheck.VSCode-${{ steps.version.outputs.version }}.vsix
+            artifacts/vsix/KoSpellCheck.VS2022-${{ steps.version.outputs.version }}.vsix
+
+      - name: Marketplace publish placeholder (disabled)
+        if: ${{ false }}
+        run: |
+          echo "TODO: add VS Code Marketplace/Open VSX/Visual Studio Marketplace publishing."
+          echo "Expected secrets: VSCE_PAT, OVSX_PAT, VS_MARKETPLACE_PAT."
