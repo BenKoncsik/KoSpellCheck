@@ -19,5 +19,6 @@ public class ModelServce
         ReplaceViewModel();
         var teszt = "teszt";
         Console.WriteLine(teszt);
+        teszt.All(c => c == 't');
     }
 }

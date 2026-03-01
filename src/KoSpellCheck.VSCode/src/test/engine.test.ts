@@ -72,3 +72,25 @@ test('engine produces a single fix for multi-part identifier misspellings', () =
   assert.equal(issue.token, 'TesztirsaAlmmakorte');
   assert.equal(issue.suggestions[0]?.replacement, 'TesztirasAlmaKorte');
 });
+
+test('engine suggests ASCII identifier preference for accented identifier segments', () => {
+  const config = defaultConfig();
+  const text = 'public void TesztIrasAlmaKörteView() {}';
+  const service = {
+    check() {
+      return {
+        correct: true,
+        languages: ['hu']
+      };
+    },
+    suggest() {
+      return [];
+    }
+  };
+
+  const issues = checkDocument(text, config, service as any);
+  const asciiIssue = issues.find((issue) => issue.message.includes('ASCII-only'));
+  assert.ok(asciiIssue);
+  assert.equal(asciiIssue.token, 'Körte');
+  assert.equal(asciiIssue.suggestions[0]?.replacement, 'Korte');
+});
