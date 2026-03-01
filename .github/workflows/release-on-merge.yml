@@ -77,8 +77,9 @@ jobs:
             artifacts/vscode/KoSpellCheck.VSCode-${{ steps.version.outputs.version }}.vsix
             artifacts/vsix/KoSpellCheck.VS2022-${{ steps.version.outputs.version }}.vsix
 
-      - name: Marketplace publish placeholder (disabled)
-        if: ${{ false }}
-        run: |
-          echo "TODO: add VS Code Marketplace/Open VSX/Visual Studio Marketplace publishing."
-          echo "Expected secrets: VSCE_PAT, OVSX_PAT, VS_MARKETPLACE_PAT."
+     - name: Publish to VS Code Marketplace
+      uses: HaaLeo/publish-vscode-extension@v2
+      with:
+          pat: ${{ secrets.VSCE_TOKEN }}
+          extensionFile: artifacts/vscode/KoSpellCheck.VSCode-${{ steps.version.outputs.version }}.vsix
+          registryUrl: https://marketplace.visualstudio.comgistryUrl: https://marketplace.visualstudio.com
