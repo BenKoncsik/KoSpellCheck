@@ -17,7 +17,6 @@ jobs:
   release:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -57,7 +56,6 @@ jobs:
             src/KoSpellCheck.VSCode/package.json \
             src/KoSpellCheck.VSCode/package-lock.json \
             src/KoSpellCheck.VS2022/source.extension.vsixmanifest
-
           git commit -m "chore(release): v${VERSION} [skip ci]"
           git tag "v${VERSION}"
           git push origin HEAD:main
@@ -77,16 +75,16 @@ jobs:
             artifacts/vscode/KoSpellCheck.VSCode-${{ steps.version.outputs.version }}.vsix
             artifacts/vsix/KoSpellCheck.VS2022-${{ steps.version.outputs.version }}.vsix
 
-     - name: Publish to VS Code Marketplace
-      uses: HaaLeo/publish-vscode-extension@v2
-      with:
+      - name: Publish to VS Code Marketplace
+        uses: HaaLeo/publish-vscode-extension@v2
+        with:
           pat: ${{ secrets.VSCE_TOKEN }}
           extensionFile: artifacts/vscode/KoSpellCheck.VSCode-${{ steps.version.outputs.version }}.vsix
-          registryUrl: https://marketplace.visualstudio.comgistryUrl: https://marketplace.visualstudio.com
+          registryUrl: https://marketplace.visualstudio.com
 
-  - name: Publish VS2022 extension to Visual Studio Marketplace
-    uses: cezarypiatek/VsixPublisherAction@1.1
-    with:
-      extension-file: artifacts/vsix/KoSpellCheck.VS2022-${{ steps.version.outputs.version }}.vsix
-      publish-manifest-file: src/KoSpellCheck.VS2022/publishManifest.json
-      personal-access-code: ${{ secrets.VS_PUBLISHER_ACCESS_TOKEN }}
+      - name: Publish VS2022 extension to Visual Studio Marketplace
+        uses: cezarypiatek/VsixPublisherAction@1.1
+        with:
+          extension-file: artifacts/vsix/KoSpellCheck.VS2022-${{ steps.version.outputs.version }}.vsix
+          publish-manifest-file: src/KoSpellCheck.VS2022/publishManifest.json
+          personal-access-code: ${{ secrets.VS_PUBLISHER_ACCESS_TOKEN }}
