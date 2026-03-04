@@ -45,13 +45,13 @@ jobs:
           VERSION=$(grep -oP '(?<=<Version>)(.*)(?=</Version>)' Directory.Build.props | head -n 1)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Restore Node modules
-        working-directory: src/KoSpellCheck.VSCode
-        run: npm ci
-
-      - name: Build VS Code extension
-        working-directory: src/KoSpellCheck.VSCode
-        run: npm run vsce:package
+  #    - name: Restore Node modules
+  #  #      working-directory: src/KoSpellCheck.VSCode
+  #       run: npm ci
+# 
+  #  # - name: Build VS Code extension
+   #      working-directory: src/KoSpellCheck.VSCode
+   #      # run: npm run vsce:package
 
       - name: Build VS2022 KoSpellCheck.VS2022
         run: |
