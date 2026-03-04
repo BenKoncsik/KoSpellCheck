@@ -1,6 +1,32 @@
 #!/usr/bin/env bash
     set -euo pipefail
 
+# Fallback implementation for the 'ditto' command on non-macOS systems.
+# If 'ditto' is not available (e.g., on Windows runners), define a function that
+# creates a ZIP archive from the source directory to the destination.
+if ! command -v ditto >/dev/null 2>&1; then
+  ditto() {
+    local src="$1"
+    local dest="$2"
+    # Remove existing destination file.
+    rm -f "$dest"
+    # Prefer zip if available.
+    if command -v zip >/dev/null 2>&1; then
+      (cd "$src" && zip -rq "$dest" .)
+    # Otherwise fallback to 7z.
+    elif command -v 7z >/dev/null 2>&1; then
+      (cd "$src" && 7z a -tzip "$dest" . >/dev/null)
+    # Use PowerShell Compress-Archive as a last resort.
+    elif command -v powershell >/dev/null 2>&1; then
+      (cd "$src" && powershell -Command "Compress-Archive -Path * -DestinationPath \"${dest}\" -Force")
+    else
+      echo "[pack] error: no archiver available to emulate 'ditto'" >&2
+      return 1
+    fi
+  }
+fi
+
+
     ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
     ARTIFACTS="$ROOT/artifacts"
     VS2022_VSIX_OUT="$ARTIFACTS/vsix/KoSpellCheck.VS2022.vsix"
