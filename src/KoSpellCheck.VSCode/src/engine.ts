@@ -53,6 +53,15 @@ export function checkDocument(
     if (preferred && preferred !== normalized) {
       suggestions = prependPreference(preferred, suggestions, config.suggestionsMax);
     }
+    const asciiPreferred = findAsciiIdentifierPreference(raw);
+    if (asciiPreferred && asciiPreferred !== raw) {
+      suggestions = prependSuggestion(
+        asciiPreferred,
+        suggestions,
+        config.suggestionsMax,
+        'identifier-ascii'
+      );
+    }
     suggestions = rankSuggestionsByStyle(raw, suggestions, config, options?.styleProfile)
       .slice(0, config.suggestionsMax);
 
@@ -77,6 +86,19 @@ export function checkDocument(
         start: token.start,
         end: token.end,
         message: `Preferred term is '${preferred}'.`,
+        languageHint: check.languages[0],
+        suggestions: suggestions.slice(0, config.suggestionsMax)
+      });
+      continue;
+    }
+
+    if (asciiPreferred && asciiPreferred !== raw) {
+      issues.push({
+        type: 'preference',
+        token: raw,
+        start: token.start,
+        end: token.end,
+        message: `Preferred identifier form is '${asciiPreferred}' (ASCII-only).`,
         languageHint: check.languages[0],
         suggestions: suggestions.slice(0, config.suggestionsMax)
       });
@@ -297,8 +319,18 @@ function mergeCompoundIdentifierIssues(
 }
 
 function prependPreference(preferred: string, suggestions: Suggestion[], max: number): Suggestion[] {
-  const seen = new Set<string>([preferred.toLowerCase()]);
-  const merged: Suggestion[] = [{ replacement: preferred, confidence: 1, sourceDictionary: 'preference' }];
+  return prependSuggestion(preferred, suggestions, max, 'preference');
+}
+
+function prependSuggestion(
+  replacement: string,
+  suggestions: Suggestion[],
+  max: number,
+  sourceDictionary: string
+): Suggestion[] {
+  const normalizedReplacement = replacement.toLowerCase();
+  const seen = new Set<string>([normalizedReplacement]);
+  const merged: Suggestion[] = [{ replacement, confidence: 1, sourceDictionary }];
 
   for (const item of suggestions) {
     if (seen.has(item.replacement.toLowerCase())) {
@@ -312,6 +344,31 @@ function prependPreference(preferred: string, suggestions: Suggestion[], max: nu
   }
 
   return merged;
+}
+
+function findAsciiIdentifierPreference(token: string): string | undefined {
+  if (!isLikelyIdentifierToken(token)) {
+    return undefined;
+  }
+
+  if (/^[\x00-\x7F]+$/u.test(token)) {
+    return undefined;
+  }
+
+  const folded = token
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .replace(/[^\x00-\x7F]/gu, '');
+
+  if (!folded || folded === token) {
+    return undefined;
+  }
+
+  return folded;
+}
+
+function isLikelyIdentifierToken(token: string): boolean {
+  return /^[@\p{L}_][\p{L}\p{M}\p{N}_]*$/u.test(token);
 }
 
 function findPreferred(normalized: string, map: Record<string, string>): string | undefined {

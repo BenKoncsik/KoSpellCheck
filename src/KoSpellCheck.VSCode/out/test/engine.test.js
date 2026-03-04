@@ -67,4 +67,24 @@ const engine_1 = require("../engine");
     node_assert_1.default.equal(issue.token, 'TesztirsaAlmmakorte');
     node_assert_1.default.equal(issue.suggestions[0]?.replacement, 'TesztirasAlmaKorte');
 });
+(0, node_test_1.default)('engine suggests ASCII identifier preference for accented identifier segments', () => {
+    const config = (0, config_1.defaultConfig)();
+    const text = 'public void TesztIrasAlmaKörteView() {}';
+    const service = {
+        check() {
+            return {
+                correct: true,
+                languages: ['hu']
+            };
+        },
+        suggest() {
+            return [];
+        }
+    };
+    const issues = (0, engine_1.checkDocument)(text, config, service);
+    const asciiIssue = issues.find((issue) => issue.message.includes('ASCII-only'));
+    node_assert_1.default.ok(asciiIssue);
+    node_assert_1.default.equal(asciiIssue.token, 'Körte');
+    node_assert_1.default.equal(asciiIssue.suggestions[0]?.replacement, 'Korte');
+});
 //# sourceMappingURL=engine.test.js.map

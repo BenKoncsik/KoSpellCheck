@@ -12,23 +12,29 @@ internal sealed class ReplaceWithSuggestionAction : ISuggestedAction
     private readonly ITrackingSpan _trackingSpan;
     private readonly string _replacement;
     private readonly string? _filePath;
+    private readonly SuggestionApplyMode _applyMode;
+    private readonly string? _renameTarget;
 
     public ReplaceWithSuggestionAction(
         ITextBuffer textBuffer,
         ITrackingSpan trackingSpan,
         string replacement,
-        string? filePath = null)
+        SuggestionApplyMode applyMode,
+        string? filePath = null,
+        string? renameTarget = null)
     {
         _textBuffer = textBuffer;
         _trackingSpan = trackingSpan;
         _replacement = replacement;
+        _applyMode = applyMode;
         _filePath = filePath;
+        _renameTarget = renameTarget;
     }
 
     public string DisplayText =>
-        IsLikelyIdentifier(_replacement)
-            ? $"Rename symbol to '{_replacement}'"
-            : $"Replace with '{_replacement}'";
+        _applyMode == SuggestionApplyMode.RenameSymbol
+            ? $"Rename symbol to '{_renameTarget ?? _replacement}'"
+            : $"Replace this with '{_replacement}'";
 
     public bool HasPreview => true;
 
@@ -52,7 +58,7 @@ internal sealed class ReplaceWithSuggestionAction : ISuggestedAction
 
     public Task<object?> GetPreviewAsync(CancellationToken cancellationToken)
     {
-        return Task.FromResult<object?>($"Replace with '{_replacement}'");
+        return Task.FromResult<object?>(DisplayText);
     }
 
     public void Invoke(CancellationToken cancellationToken)
@@ -62,7 +68,7 @@ internal sealed class ReplaceWithSuggestionAction : ISuggestedAction
             return;
         }
 
-        if (TryRenameSymbol(cancellationToken))
+        if (_applyMode == SuggestionApplyMode.RenameSymbol && TryRenameSymbol(cancellationToken))
         {
             return;
         }
@@ -93,7 +99,13 @@ internal sealed class ReplaceWithSuggestionAction : ISuggestedAction
 
     private async Task<bool> TryRenameSymbolAsync(CancellationToken cancellationToken)
     {
-        if (!IsLikelyIdentifier(_replacement))
+        if (_applyMode != SuggestionApplyMode.RenameSymbol)
+        {
+            return false;
+        }
+
+        var renameValue = _renameTarget ?? _replacement;
+        if (!IsLikelyIdentifier(renameValue))
         {
             return false;
         }
@@ -155,7 +167,7 @@ internal sealed class ReplaceWithSuggestionAction : ISuggestedAction
 
 #pragma warning disable CS0618
         var renamedSolution = await Renamer
-            .RenameSymbolAsync(workspace.CurrentSolution, symbol, _replacement, workspace.Options, cancellationToken)
+            .RenameSymbolAsync(workspace.CurrentSolution, symbol, renameValue, workspace.Options, cancellationToken)
             .ConfigureAwait(false);
 #pragma warning restore CS0618
 

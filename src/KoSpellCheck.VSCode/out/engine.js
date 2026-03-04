@@ -31,6 +31,10 @@ function checkDocument(text, config, service, options) {
         if (preferred && preferred !== normalized) {
             suggestions = prependPreference(preferred, suggestions, config.suggestionsMax);
         }
+        const asciiPreferred = findAsciiIdentifierPreference(raw);
+        if (asciiPreferred && asciiPreferred !== raw) {
+            suggestions = prependSuggestion(asciiPreferred, suggestions, config.suggestionsMax, 'identifier-ascii');
+        }
         suggestions = (0, styleRanker_1.rankSuggestionsByStyle)(raw, suggestions, config, options?.styleProfile)
             .slice(0, config.suggestionsMax);
         if (!check.correct) {
@@ -53,6 +57,18 @@ function checkDocument(text, config, service, options) {
                 start: token.start,
                 end: token.end,
                 message: `Preferred term is '${preferred}'.`,
+                languageHint: check.languages[0],
+                suggestions: suggestions.slice(0, config.suggestionsMax)
+            });
+            continue;
+        }
+        if (asciiPreferred && asciiPreferred !== raw) {
+            issues.push({
+                type: 'preference',
+                token: raw,
+                start: token.start,
+                end: token.end,
+                message: `Preferred identifier form is '${asciiPreferred}' (ASCII-only).`,
                 languageHint: check.languages[0],
                 suggestions: suggestions.slice(0, config.suggestionsMax)
             });
@@ -205,8 +221,12 @@ function mergeCompoundIdentifierIssues(text, issues, candidateSpans, maxSuggesti
     return [...issues.filter((_, idx) => !coveredIssueIndexes.has(idx)), ...combinedIssues].sort((a, b) => a.start - b.start || a.end - b.end);
 }
 function prependPreference(preferred, suggestions, max) {
-    const seen = new Set([preferred.toLowerCase()]);
-    const merged = [{ replacement: preferred, confidence: 1, sourceDictionary: 'preference' }];
+    return prependSuggestion(preferred, suggestions, max, 'preference');
+}
+function prependSuggestion(replacement, suggestions, max, sourceDictionary) {
+    const normalizedReplacement = replacement.toLowerCase();
+    const seen = new Set([normalizedReplacement]);
+    const merged = [{ replacement, confidence: 1, sourceDictionary }];
     for (const item of suggestions) {
         if (seen.has(item.replacement.toLowerCase())) {
             continue;
@@ -218,6 +238,25 @@ function prependPreference(preferred, suggestions, max) {
         }
     }
     return merged;
+}
+function findAsciiIdentifierPreference(token) {
+    if (!isLikelyIdentifierToken(token)) {
+        return undefined;
+    }
+    if (/^[\x00-\x7F]+$/u.test(token)) {
+        return undefined;
+    }
+    const folded = token
+        .normalize('NFD')
+        .replace(/\p{M}/gu, '')
+        .replace(/[^\x00-\x7F]/gu, '');
+    if (!folded || folded === token) {
+        return undefined;
+    }
+    return folded;
+}
+function isLikelyIdentifierToken(token) {
+    return /^[@\p{L}_][\p{L}\p{M}\p{N}_]*$/u.test(token);
 }
 function findPreferred(normalized, map) {
     for (const [key, value] of Object.entries(map)) {

@@ -65,28 +65,31 @@ function activate(context) {
     const styleLearning = new styleLearningCoordinator_1.StyleLearningCoordinator(log);
     log(`activate version=${context.extension.packageJSON.version ?? 'unknown'}`, undefined, true);
     const codeActionProvider = vscode.languages.registerCodeActionsProvider([{ scheme: 'file' }], {
-        provideCodeActions(document, _range, codeActionContext) {
+        provideCodeActions(document, range, codeActionContext) {
             const actions = [];
-            for (const diagnostic of codeActionContext.diagnostics) {
-                if (diagnostic.source !== SOURCE) {
-                    continue;
-                }
+            const targetDiagnostics = pickTargetDiagnostics(document, codeActionContext.diagnostics, range);
+            for (const diagnostic of targetDiagnostics) {
                 const key = diagnosticKey(document.uri, diagnostic.range, diagnostic.message);
                 const info = metadata.get(key);
                 if (!info) {
                     continue;
                 }
+                const contextKind = classifyDiagnosticContext(document, diagnostic.range);
                 for (const suggestion of info.suggestions.slice(0, 5)) {
-                    if (isLikelyIdentifier(info.token) && isLikelyIdentifier(suggestion)) {
-                        const renameSymbol = new vscode.CodeAction(`Rename symbol to '${suggestion}'`, vscode.CodeActionKind.QuickFix);
+                    if (contextKind === 'identifier' &&
+                        isLikelyIdentifier(info.token) &&
+                        isLikelyIdentifier(suggestion)) {
+                        const renameTarget = buildRenameTarget(document, diagnostic.range, suggestion);
+                        const renameSymbol = new vscode.CodeAction(`Rename symbol to '${renameTarget}'`, vscode.CodeActionKind.QuickFix);
                         renameSymbol.isPreferred = true;
                         renameSymbol.diagnostics = [diagnostic];
                         renameSymbol.command = {
                             command: 'kospellcheck.renameSymbolWithSuggestion',
                             title: 'KoSpellCheck: Rename symbol with suggestion',
-                            arguments: [document.uri, diagnostic.range.start, info.token, suggestion]
+                            arguments: [document.uri, diagnostic.range, info.token, suggestion, renameTarget]
                         };
                         actions.push(renameSymbol);
+                        continue;
                     }
                     const replaceSingle = new vscode.CodeAction(`Replace this with '${suggestion}'`, vscode.CodeActionKind.QuickFix);
                     replaceSingle.diagnostics = [diagnostic];
@@ -139,12 +142,24 @@ function activate(context) {
             scheduleDocumentCheck(editor.document, 'add-word-command');
         }
     });
-    const renameSymbolCommand = vscode.commands.registerCommand('kospellcheck.renameSymbolWithSuggestion', async (uri, position, token, replacement) => {
-        if (!uri || !position || !replacement || !isLikelyIdentifier(replacement)) {
+    const renameSymbolCommand = vscode.commands.registerCommand('kospellcheck.renameSymbolWithSuggestion', async (uri, range, token, replacement, renameTarget) => {
+        if (!uri || !range || !replacement) {
             return;
         }
+        const document = await vscode.workspace.openTextDocument(uri);
+        const contextKind = classifyDiagnosticContext(document, range);
+        if (contextKind !== 'identifier') {
+            const edit = new vscode.WorkspaceEdit();
+            edit.replace(uri, range, replacement);
+            await vscode.workspace.applyEdit(edit);
+            return;
+        }
+        const targetName = isLikelyIdentifier(renameTarget ?? '')
+            ? renameTarget
+            : buildRenameTarget(document, range, replacement);
+        const renamePosition = findContainingIdentifierRange(document, range.start)?.start ?? range.start;
         try {
-            const renameEdit = await vscode.commands.executeCommand('vscode.executeDocumentRenameProvider', uri, position, replacement);
+            const renameEdit = await vscode.commands.executeCommand('vscode.executeDocumentRenameProvider', uri, renamePosition, targetName);
             if (renameEdit && workspaceEditHasChanges(renameEdit)) {
                 await vscode.workspace.applyEdit(renameEdit);
                 return;
@@ -153,7 +168,6 @@ function activate(context) {
         catch {
             // fall back to document-local replacement when rename provider is unavailable
         }
-        const document = await vscode.workspace.openTextDocument(uri);
         const ranges = findTokenRangesInDocument(document, token);
         if (ranges.length === 0) {
             return;
@@ -362,5 +376,168 @@ function isLikelyIdentifier(token) {
         return false;
     }
     return /^[@\p{L}_][\p{L}\p{M}\p{N}_]*$/u.test(token);
+}
+function rangesIntersect(left, right) {
+    return !!left.intersection(right);
+}
+function pickTargetDiagnostics(document, diagnostics, range) {
+    const sameSource = diagnostics.filter((diagnostic) => diagnostic.source === SOURCE);
+    const intersecting = sameSource.filter((diagnostic) => rangesIntersect(diagnostic.range, range));
+    if (intersecting.length === 0) {
+        return [];
+    }
+    const containingCursor = intersecting.filter((diagnostic) => diagnostic.range.contains(range.start));
+    if (containingCursor.length > 0) {
+        return dedupeDiagnostics(containingCursor);
+    }
+    const cursorOffset = document.offsetAt(range.start);
+    const sortedByDistance = intersecting
+        .slice()
+        .sort((left, right) => distanceToRange(document, left.range, cursorOffset) - distanceToRange(document, right.range, cursorOffset));
+    return dedupeDiagnostics(sortedByDistance.slice(0, 1));
+}
+function distanceToRange(document, range, offset) {
+    const start = document.offsetAt(range.start);
+    const end = document.offsetAt(range.end);
+    if (offset < start) {
+        return start - offset;
+    }
+    if (offset > end) {
+        return offset - end;
+    }
+    return 0;
+}
+function dedupeDiagnostics(diagnostics) {
+    const seen = new Set();
+    const output = [];
+    for (const diagnostic of diagnostics) {
+        const id = `${diagnostic.range.start.line}:${diagnostic.range.start.character}-${diagnostic.range.end.line}:${diagnostic.range.end.character}|${diagnostic.message}`;
+        if (seen.has(id)) {
+            continue;
+        }
+        seen.add(id);
+        output.push(diagnostic);
+    }
+    return output;
+}
+function classifyDiagnosticContext(document, range) {
+    const startOffset = document.offsetAt(range.start);
+    const text = document.getText();
+    if (startOffset < 0 || startOffset >= text.length) {
+        return 'identifier';
+    }
+    if (isInsideQuotedString(text, startOffset) || isInsideLineComment(text, startOffset)) {
+        return 'literal';
+    }
+    return 'identifier';
+}
+function isInsideQuotedString(text, offset) {
+    let inSingle = false;
+    let inDouble = false;
+    let escaped = false;
+    for (let i = 0; i < text.length && i < offset; i++) {
+        const ch = text[i];
+        if (ch === '\n' || ch === '\r') {
+            if (!inSingle && !inDouble) {
+                escaped = false;
+            }
+            continue;
+        }
+        if (escaped) {
+            escaped = false;
+            continue;
+        }
+        if (ch === '\\') {
+            escaped = inSingle || inDouble;
+            continue;
+        }
+        if (!inDouble && ch === '\'') {
+            inSingle = !inSingle;
+            continue;
+        }
+        if (!inSingle && ch === '"') {
+            inDouble = !inDouble;
+            continue;
+        }
+    }
+    return inSingle || inDouble;
+}
+function isInsideLineComment(text, offset) {
+    const lineStart = text.lastIndexOf('\n', Math.max(0, offset - 1)) + 1;
+    const lineEndIdx = text.indexOf('\n', offset);
+    const lineEnd = lineEndIdx >= 0 ? lineEndIdx : text.length;
+    const line = text.slice(lineStart, lineEnd);
+    const localOffset = offset - lineStart;
+    let inSingle = false;
+    let inDouble = false;
+    let escaped = false;
+    for (let i = 0; i < line.length; i++) {
+        if (i >= localOffset) {
+            break;
+        }
+        const ch = line[i];
+        const next = i + 1 < line.length ? line[i + 1] : '';
+        if (escaped) {
+            escaped = false;
+            continue;
+        }
+        if (ch === '\\') {
+            escaped = inSingle || inDouble;
+            continue;
+        }
+        if (!inDouble && ch === '\'') {
+            inSingle = !inSingle;
+            continue;
+        }
+        if (!inSingle && ch === '"') {
+            inDouble = !inDouble;
+            continue;
+        }
+        if (!inSingle && !inDouble && ch === '/' && next === '/') {
+            return true;
+        }
+    }
+    return false;
+}
+function findContainingIdentifierRange(document, position) {
+    const offset = document.offsetAt(position);
+    const text = document.getText();
+    if (offset < 0 || offset > text.length) {
+        return undefined;
+    }
+    let start = offset;
+    while (start > 0 && isIdentifierChar(text[start - 1])) {
+        start -= 1;
+    }
+    let end = offset;
+    while (end < text.length && isIdentifierChar(text[end])) {
+        end += 1;
+    }
+    if (end <= start) {
+        return undefined;
+    }
+    return new vscode.Range(document.positionAt(start), document.positionAt(end));
+}
+function buildRenameTarget(document, range, replacement) {
+    if (!isLikelyIdentifier(replacement)) {
+        return replacement;
+    }
+    const identifierRange = findContainingIdentifierRange(document, range.start);
+    if (!identifierRange) {
+        return replacement;
+    }
+    const identifierText = document.getText(identifierRange);
+    const identifierStart = document.offsetAt(identifierRange.start);
+    const partStart = document.offsetAt(range.start);
+    const partEnd = document.offsetAt(range.end);
+    const relStart = partStart - identifierStart;
+    const relEnd = partEnd - identifierStart;
+    if (relStart < 0 || relEnd < relStart || relEnd > identifierText.length) {
+        return replacement;
+    }
+    const candidate = identifierText.slice(0, relStart) +
+        replacement +
+        identifierText.slice(relEnd);
+    return isLikelyIdentifier(candidate) ? candidate : replacement;
 }
 //# sourceMappingURL=extension.js.map

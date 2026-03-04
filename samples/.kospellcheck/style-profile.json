@@ -1,115 +1,331 @@
 {
   "workspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples",
-  "fingerprint": "a7a5bab725539aba134a0eabf2619cc6f3ccdf02929a86b384cae1357fe30ef7",
+  "fingerprint": "1fb53f7e087e643ab21b7b1e0af5c582a3215da4e09fbe57fee3d8b144035503",
   "profile": {
     "workspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples",
-    "createdAtUtc": "2026-03-01T10:05:24.103Z",
-    "updatedAtUtc": "2026-03-01T10:05:24.177Z",
+    "createdAtUtc": "2026-03-04T16:54:16.499Z",
+    "updatedAtUtc": "2026-03-04T16:54:16.512Z",
     "tokenStats": {
       "workspaceroot": {
-        "totalCount": 7,
+        "totalCount": 8,
         "variants": {
           "workspaceRoot": 6,
-          "workspaceroot": 1
+          "workspaceroot": 2
         },
         "preferredVariant": "workspaceRoot",
-        "confidence": 0.7
+        "confidence": 0.8
       },
       "createdatutc": {
-        "totalCount": 5,
+        "totalCount": 6,
         "variants": {
           "createdAtUtc": 4,
-          "createdatutc": 1
+          "createdatutc": 2
         },
         "preferredVariant": "createdAtUtc",
-        "confidence": 0.5
+        "confidence": 0.6
       },
-      "2026-03-01t10": {
+      "2026-03-04t16": {
         "totalCount": 2,
         "variants": {
-          "2026-03-01T10": 2
+          "2026-03-04T16": 2
         },
-        "preferredVariant": "2026-03-01T10",
+        "preferredVariant": "2026-03-04T16",
         "confidence": 0.2
       },
-      "07.999z": {
+      "15.069z": {
         "totalCount": 1,
         "variants": {
-          "07.999Z": 1
+          "15.069Z": 1
         },
-        "preferredVariant": "07.999Z",
+        "preferredVariant": "15.069Z",
         "confidence": 0.1
       },
       "updatedatutc": {
-        "totalCount": 5,
+        "totalCount": 6,
         "variants": {
           "updatedAtUtc": 4,
-          "updatedatutc": 1
+          "updatedatutc": 2
         },
         "preferredVariant": "updatedAtUtc",
-        "confidence": 0.5
+        "confidence": 0.6
       },
-      "08.088z": {
+      "15.080z": {
         "totalCount": 1,
         "variants": {
-          "08.088Z": 1
+          "15.080Z": 1
         },
-        "preferredVariant": "08.088Z",
+        "preferredVariant": "15.080Z",
         "confidence": 0.1
       },
       "tokenstats": {
-        "totalCount": 5,
+        "totalCount": 6,
         "variants": {
           "tokenStats": 4,
-          "tokenstats": 1
+          "tokenstats": 2
         },
         "preferredVariant": "tokenStats",
-        "confidence": 0.5
+        "confidence": 0.6
       },
       "totalcount": {
-        "totalCount": 182,
+        "totalCount": 226,
         "variants": {
-          "totalCount": 181,
-          "totalcount": 1
+          "totalCount": 224,
+          "totalcount": 2
         },
         "preferredVariant": "totalCount",
         "confidence": 1
       },
-      "projectdictionary": {
-        "totalCount": 5,
-        "variants": {
-          "projectDictionary": 4,
-          "projectdictionary": 1
-        },
-        "preferredVariant": "projectDictionary",
-        "confidence": 0.5
-      },
       "preferredvariant": {
-        "totalCount": 182,
+        "totalCount": 226,
         "variants": {
-          "preferredVariant": 181,
-          "preferredvariant": 1
+          "preferredVariant": 224,
+          "preferredvariant": 2
         },
         "preferredVariant": "preferredVariant",
         "confidence": 1
       },
-      "kospellchek.sample": {
+      "2026-03-01t20": {
         "totalCount": 4,
         "variants": {
-          "kospellchek.sample": 1,
+          "2026-03-01t20": 2,
+          "2026-03-01T20": 2
+        },
+        "preferredVariant": "2026-03-01t20",
+        "confidence": 0.4
+      },
+      "00.169z": {
+        "totalCount": 3,
+        "variants": {
+          "00.169z": 1,
+          "00.169Z": 2
+        },
+        "preferredVariant": "00.169Z",
+        "confidence": 0.3
+      },
+      "00.247z": {
+        "totalCount": 3,
+        "variants": {
+          "00.247z": 1,
+          "00.247Z": 2
+        },
+        "preferredVariant": "00.247Z",
+        "confidence": 0.3
+      },
+      "43.941z": {
+        "totalCount": 4,
+        "variants": {
+          "43.941z": 2,
+          "43.941Z": 2
+        },
+        "preferredVariant": "43.941z",
+        "confidence": 0.4
+      },
+      "44.356z": {
+        "totalCount": 4,
+        "variants": {
+          "44.356z": 2,
+          "44.356Z": 2
+        },
+        "preferredVariant": "44.356z",
+        "confidence": 0.4
+      },
+      "17.952z": {
+        "totalCount": 4,
+        "variants": {
+          "17.952z": 3,
+          "17.952Z": 1
+        },
+        "preferredVariant": "17.952z",
+        "confidence": 0.4
+      },
+      "17.961z": {
+        "totalCount": 4,
+        "variants": {
+          "17.961z": 3,
+          "17.961Z": 1
+        },
+        "preferredVariant": "17.961z",
+        "confidence": 0.4
+      },
+      "53.831z": {
+        "totalCount": 4,
+        "variants": {
+          "53.831z": 3,
+          "53.831Z": 1
+        },
+        "preferredVariant": "53.831z",
+        "confidence": 0.4
+      },
+      "53.840z": {
+        "totalCount": 4,
+        "variants": {
+          "53.840z": 3,
+          "53.840Z": 1
+        },
+        "preferredVariant": "53.840z",
+        "confidence": 0.4
+      },
+      "10.182z": {
+        "totalCount": 4,
+        "variants": {
+          "10.182z": 3,
+          "10.182Z": 1
+        },
+        "preferredVariant": "10.182z",
+        "confidence": 0.4
+      },
+      "10.190z": {
+        "totalCount": 4,
+        "variants": {
+          "10.190z": 3,
+          "10.190Z": 1
+        },
+        "preferredVariant": "10.190z",
+        "confidence": 0.4
+      },
+      "33.581z": {
+        "totalCount": 4,
+        "variants": {
+          "33.581z": 3,
+          "33.581Z": 1
+        },
+        "preferredVariant": "33.581z",
+        "confidence": 0.4
+      },
+      "33.590z": {
+        "totalCount": 4,
+        "variants": {
+          "33.590z": 3,
+          "33.590Z": 1
+        },
+        "preferredVariant": "33.590z",
+        "confidence": 0.4
+      },
+      "46.090z": {
+        "totalCount": 4,
+        "variants": {
+          "46.090z": 3,
+          "46.090Z": 1
+        },
+        "preferredVariant": "46.090z",
+        "confidence": 0.4
+      },
+      "46.373z": {
+        "totalCount": 4,
+        "variants": {
+          "46.373z": 3,
+          "46.373Z": 1
+        },
+        "preferredVariant": "46.373z",
+        "confidence": 0.4
+      },
+      "32.679z": {
+        "totalCount": 4,
+        "variants": {
+          "32.679z": 3,
+          "32.679Z": 1
+        },
+        "preferredVariant": "32.679z",
+        "confidence": 0.4
+      },
+      "33.453z": {
+        "totalCount": 4,
+        "variants": {
+          "33.453z": 3,
+          "33.453Z": 1
+        },
+        "preferredVariant": "33.453z",
+        "confidence": 0.4
+      },
+      "16.996z": {
+        "totalCount": 4,
+        "variants": {
+          "16.996z": 3,
+          "16.996Z": 1
+        },
+        "preferredVariant": "16.996z",
+        "confidence": 0.4
+      },
+      "17.012z": {
+        "totalCount": 4,
+        "variants": {
+          "17.012z": 3,
+          "17.012Z": 1
+        },
+        "preferredVariant": "17.012z",
+        "confidence": 0.4
+      },
+      "2026-03-01t10": {
+        "totalCount": 4,
+        "variants": {
+          "2026-03-01t10": 3,
+          "2026-03-01T10": 1
+        },
+        "preferredVariant": "2026-03-01t10",
+        "confidence": 0.4
+      },
+      "24.103z": {
+        "totalCount": 4,
+        "variants": {
+          "24.103z": 3,
+          "24.103Z": 1
+        },
+        "preferredVariant": "24.103z",
+        "confidence": 0.4
+      },
+      "24.177z": {
+        "totalCount": 4,
+        "variants": {
+          "24.177z": 3,
+          "24.177Z": 1
+        },
+        "preferredVariant": "24.177z",
+        "confidence": 0.4
+      },
+      "07.999z": {
+        "totalCount": 4,
+        "variants": {
+          "07.999z": 3,
+          "07.999Z": 1
+        },
+        "preferredVariant": "07.999z",
+        "confidence": 0.4
+      },
+      "08.088z": {
+        "totalCount": 4,
+        "variants": {
+          "08.088z": 3,
+          "08.088Z": 1
+        },
+        "preferredVariant": "08.088z",
+        "confidence": 0.4
+      },
+      "projectdictionary": {
+        "totalCount": 6,
+        "variants": {
+          "projectDictionary": 4,
+          "projectdictionary": 2
+        },
+        "preferredVariant": "projectDictionary",
+        "confidence": 0.6
+      },
+      "kospellchek.sample": {
+        "totalCount": 5,
+        "variants": {
+          "kospellchek.sample": 2,
           "KoSpellChek.Sample": 3
         },
         "preferredVariant": "KoSpellChek.Sample",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "modelservce": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
           "ModelServce": 3,
-          "modelservce": 1
+          "modelservce": 2
         },
         "preferredVariant": "ModelServce",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "gps_coordinate_lat": {
         "totalCount": 4,
@@ -120,58 +336,59 @@
         "confidence": 0.4
       },
       "string.empty": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
-          "string.empty": 1,
+          "string.empty": 2,
           "string.Empty": 3
         },
         "preferredVariant": "string.Empty",
-        "confidence": 0.4
-      },
-      "httpserverconfig": {
-        "totalCount": 7,
-        "variants": {
-          "HTTPServerConfig": 6,
-          "httpserverconfig": 1
-        },
-        "preferredVariant": "HTTPServerConfig",
-        "confidence": 0.7
-      },
-      "console.writeline": {
-        "totalCount": 5,
-        "variants": {
-          "console.writeline": 1,
-          "Console.WriteLine": 4
-        },
-        "preferredVariant": "Console.WriteLine",
         "confidence": 0.5
       },
-      "tesztirasalmakorteview": {
-        "totalCount": 4,
+      "httpserverconfig": {
+        "totalCount": 8,
         "variants": {
-          "TesztIrasAlmaKorteView": 3,
-          "tesztirasalmakorteview": 1
+          "HTTPServerConfig": 6,
+          "httpserverconfig": 2
         },
-        "preferredVariant": "TesztIrasAlmaKorteView",
-        "confidence": 0.4
+        "preferredVariant": "HTTPServerConfig",
+        "confidence": 0.8
+      },
+      "console.writeline": {
+        "totalCount": 7,
+        "variants": {
+          "console.writeline": 2,
+          "Console.WriteLine": 5
+        },
+        "preferredVariant": "Console.WriteLine",
+        "confidence": 0.7
+      },
+      "tesztirasalmakorteview": {
+        "totalCount": 6,
+        "variants": {
+          "TesztIrasAlmaKorteView": 2,
+          "TesztIrasAlmaKörteView": 1,
+          "tesztirasalmakorteview": 3
+        },
+        "preferredVariant": "tesztirasalmakorteview",
+        "confidence": 0.6
       },
       "replaceviewmodel": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
           "ReplaceViewModel": 3,
-          "replaceviewmodel": 1
+          "replaceviewmodel": 2
         },
         "preferredVariant": "ReplaceViewModel",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "rendermodelcard": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
           "renderModelCard": 3,
-          "rendermodelcard": 1
+          "rendermodelcard": 2
         },
         "preferredVariant": "renderModelCard",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "user_profle_name": {
         "totalCount": 5,
@@ -182,148 +399,148 @@
         "confidence": 0.5
       },
       "allowmixedlanguages": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
           "allowMixedLanguages": 3,
-          "allowmixedlanguages": 1
+          "allowmixedlanguages": 2
         },
         "preferredVariant": "allowMixedLanguages",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "preferterms": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
           "preferTerms": 3,
-          "preferterms": 1
+          "preferterms": 2
         },
         "preferredVariant": "preferTerms",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "ignorewords": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
           "ignoreWords": 3,
-          "ignorewords": 1
+          "ignorewords": 2
         },
         "preferredVariant": "ignoreWords",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "signalr": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
           "SignalR": 3,
-          "signalr": 1
+          "signalr": 2
         },
         "preferredVariant": "SignalR",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "stm32": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
-          "stm32": 1,
+          "stm32": 2,
           "STM32": 3
         },
         "preferredVariant": "STM32",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "kospellcheck": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
           "KoSpellCheck": 3,
-          "kospellcheck": 1
+          "kospellcheck": 2
         },
         "preferredVariant": "KoSpellCheck",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "ignorepatterns": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
           "ignorePatterns": 3,
-          "ignorepatterns": 1
+          "ignorepatterns": 2
         },
         "preferredVariant": "ignorePatterns",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "0-9a-fa-f": {
-        "totalCount": 6,
+        "totalCount": 7,
         "variants": {
-          "0-9a-fa-f": 1,
+          "0-9a-fa-f": 2,
           "0-9a-fA-F": 5
         },
         "preferredVariant": "0-9a-fA-F",
-        "confidence": 0.6
+        "confidence": 0.7
       },
       "mintokenlength": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
           "minTokenLength": 3,
-          "mintokenlength": 1
+          "mintokenlength": 2
         },
         "preferredVariant": "minTokenLength",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "maxtokenlength": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
           "maxTokenLength": 3,
-          "maxtokenlength": 1
+          "maxtokenlength": 2
         },
         "preferredVariant": "maxTokenLength",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "suggestionsmax": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
           "suggestionsMax": 3,
-          "suggestionsmax": 1
+          "suggestionsmax": 2
         },
         "preferredVariant": "suggestionsMax",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "maxtokensperdocument": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
           "maxTokensPerDocument": 3,
-          "maxtokensperdocument": 1
+          "maxtokensperdocument": 2
         },
         "preferredVariant": "maxTokensPerDocument",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "stylelearningenabled": {
-        "totalCount": 5,
+        "totalCount": 6,
         "variants": {
           "styleLearningEnabled": 4,
-          "stylelearningenabled": 1
+          "stylelearningenabled": 2
         },
         "preferredVariant": "styleLearningEnabled",
-        "confidence": 0.5
+        "confidence": 0.6
       },
       "stylelearningmaxfiles": {
-        "totalCount": 5,
+        "totalCount": 6,
         "variants": {
           "styleLearningMaxFiles": 4,
-          "stylelearningmaxfiles": 1
+          "stylelearningmaxfiles": 2
         },
         "preferredVariant": "styleLearningMaxFiles",
-        "confidence": 0.5
+        "confidence": 0.6
       },
       "stylelearningmaxtokens": {
-        "totalCount": 5,
+        "totalCount": 6,
         "variants": {
           "styleLearningMaxTokens": 4,
-          "stylelearningmaxtokens": 1
+          "stylelearningmaxtokens": 2
         },
         "preferredVariant": "styleLearningMaxTokens",
-        "confidence": 0.5
+        "confidence": 0.6
       },
       "stylelearningcachepath": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
           "styleLearningCachePath": 3,
-          "stylelearningcachepath": 1
+          "stylelearningcachepath": 2
         },
         "preferredVariant": "styleLearningCachePath",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "node_modules": {
         "totalCount": 5,
@@ -334,30 +551,30 @@
         "confidence": 0.5
       },
       "2026-03-01t09": {
-        "totalCount": 5,
+        "totalCount": 4,
         "variants": {
-          "2026-03-01t09": 1,
-          "2026-03-01T09": 4
+          "2026-03-01t09": 3,
+          "2026-03-01T09": 1
         },
-        "preferredVariant": "2026-03-01T09",
-        "confidence": 0.5
+        "preferredVariant": "2026-03-01t09",
+        "confidence": 0.4
       },
       "38.715z": {
         "totalCount": 4,
         "variants": {
-          "38.715z": 1,
-          "38.715Z": 3
+          "38.715z": 3,
+          "38.715Z": 1
         },
-        "preferredVariant": "38.715Z",
+        "preferredVariant": "38.715z",
         "confidence": 0.4
       },
       "38.721z": {
         "totalCount": 4,
         "variants": {
-          "38.721z": 1,
-          "38.721Z": 3
+          "38.721z": 3,
+          "38.721Z": 1
         },
-        "preferredVariant": "38.721Z",
+        "preferredVariant": "38.721z",
         "confidence": 0.4
       },
       "stylelearningsample": {
@@ -432,6 +649,87 @@
         "preferredVariant": "HttpClientAlias",
         "confidence": 0.9
       },
+      "42.559z": {
+        "totalCount": 4,
+        "variants": {
+          "42.559z": 3,
+          "42.559Z": 1
+        },
+        "preferredVariant": "42.559z",
+        "confidence": 0.4
+      },
+      "42.564z": {
+        "totalCount": 4,
+        "variants": {
+          "42.564z": 3,
+          "42.564Z": 1
+        },
+        "preferredVariant": "42.564z",
+        "confidence": 0.4
+      },
+      "teszt.all": {
+        "totalCount": 5,
+        "variants": {
+          "teszt.all": 3,
+          "teszt.All": 2
+        },
+        "preferredVariant": "teszt.all",
+        "confidence": 0.5
+      },
+      "tezst.all": {
+        "totalCount": 4,
+        "variants": {
+          "tezst.all": 3,
+          "tezst.All": 1
+        },
+        "preferredVariant": "tezst.all",
+        "confidence": 0.4
+      },
+      "50.382z": {
+        "totalCount": 4,
+        "variants": {
+          "50.382z": 3,
+          "50.382Z": 1
+        },
+        "preferredVariant": "50.382z",
+        "confidence": 0.4
+      },
+      "50.388z": {
+        "totalCount": 4,
+        "variants": {
+          "50.388z": 3,
+          "50.388Z": 1
+        },
+        "preferredVariant": "50.388z",
+        "confidence": 0.4
+      },
+      "2026-03-03t20": {
+        "totalCount": 5,
+        "variants": {
+          "2026-03-03t20": 1,
+          "2026-03-03T20": 4
+        },
+        "preferredVariant": "2026-03-03T20",
+        "confidence": 0.5
+      },
+      "22.300z": {
+        "totalCount": 4,
+        "variants": {
+          "22.300z": 1,
+          "22.300Z": 3
+        },
+        "preferredVariant": "22.300Z",
+        "confidence": 0.4
+      },
+      "22.305z": {
+        "totalCount": 4,
+        "variants": {
+          "22.305z": 1,
+          "22.305Z": 3
+        },
+        "preferredVariant": "22.305Z",
+        "confidence": 0.4
+      },
       "workspace": {
         "totalCount": 9,
         "variants": {
@@ -441,13 +739,13 @@
         "confidence": 0.9
       },
       "root": {
-        "totalCount": 9,
+        "totalCount": 10,
         "variants": {
           "Root": 8,
-          "root": 1
+          "root": 2
         },
         "preferredVariant": "Root",
-        "confidence": 0.9
+        "confidence": 1
       },
       "fingerprint": {
         "totalCount": 5,
@@ -474,10 +772,10 @@
         "confidence": 0.7
       },
       "utc": {
-        "totalCount": 11,
+        "totalCount": 12,
         "variants": {
           "Utc": 10,
-          "utc": 1
+          "utc": 2
         },
         "preferredVariant": "Utc",
         "confidence": 1
@@ -500,37 +798,62 @@
         "confidence": 1
       },
       "stats": {
-        "totalCount": 7,
+        "totalCount": 8,
         "variants": {
           "Stats": 6,
-          "stats": 1
+          "stats": 2
         },
         "preferredVariant": "Stats",
-        "confidence": 0.7
+        "confidence": 0.8
       },
       "total": {
-        "totalCount": 184,
+        "totalCount": 227,
         "variants": {
-          "total": 184
+          "total": 227
         },
         "preferredVariant": "total",
         "confidence": 1
       },
       "count": {
-        "totalCount": 184,
+        "totalCount": 228,
         "variants": {
-          "Count": 183,
-          "count": 1
+          "Count": 226,
+          "count": 2
         },
         "preferredVariant": "Count",
         "confidence": 1
       },
       "variants": {
-        "totalCount": 182,
+        "totalCount": 225,
         "variants": {
-          "variants": 182
+          "variants": 225
         },
         "preferredVariant": "variants",
+        "confidence": 1
+      },
+      "preferred": {
+        "totalCount": 227,
+        "variants": {
+          "preferred": 227
+        },
+        "preferredVariant": "preferred",
+        "confidence": 1
+      },
+      "variant": {
+        "totalCount": 228,
+        "variants": {
+          "Variant": 226,
+          "variant": 2
+        },
+        "preferredVariant": "Variant",
+        "confidence": 1
+      },
+      "confidence": {
+        "totalCount": 225,
+        "variants": {
+          "confidence": 225
+        },
+        "preferredVariant": "confidence",
         "confidence": 1
       },
       "project": {
@@ -542,99 +865,48 @@
         "confidence": 0.7
       },
       "dictionary": {
-        "totalCount": 7,
+        "totalCount": 8,
         "variants": {
           "Dictionary": 6,
-          "dictionary": 1
+          "dictionary": 2
         },
         "preferredVariant": "Dictionary",
-        "confidence": 0.7
-      },
-      "preferred": {
-        "totalCount": 184,
-        "variants": {
-          "preferred": 184
-        },
-        "preferredVariant": "preferred",
-        "confidence": 1
-      },
-      "variant": {
-        "totalCount": 184,
-        "variants": {
-          "Variant": 183,
-          "variant": 1
-        },
-        "preferredVariant": "Variant",
-        "confidence": 1
-      },
-      "confidence": {
-        "totalCount": 182,
-        "variants": {
-          "confidence": 182
-        },
-        "preferredVariant": "confidence",
-        "confidence": 1
-      },
-      "enabled": {
-        "totalCount": 11,
-        "variants": {
-          "enabled": 6,
-          "Enabled": 5
-        },
-        "preferredVariant": "enabled",
-        "confidence": 1
-      },
-      "true": {
-        "totalCount": 10,
-        "variants": {
-          "true": 10
-        },
-        "preferredVariant": "true",
-        "confidence": 1
-      },
-      "config": {
-        "totalCount": 10,
-        "variants": {
-          "config": 1,
-          "Config": 9
-        },
-        "preferredVariant": "Config",
-        "confidence": 1
+        "confidence": 0.8
       },
       "kospellchek": {
-        "totalCount": 1,
+        "totalCount": 5,
         "variants": {
-          "kospellchek": 1
+          "kospellchek": 5
         },
         "preferredVariant": "kospellchek",
-        "confidence": 0.1
+        "confidence": 0.5
       },
       "sample": {
-        "totalCount": 16,
+        "totalCount": 17,
         "variants": {
-          "sample": 4,
+          "sample": 5,
           "Sample": 12
         },
         "preferredVariant": "Sample",
         "confidence": 1
       },
       "spell": {
-        "totalCount": 9,
+        "totalCount": 10,
         "variants": {
           "Spell": 8,
-          "spell": 1
+          "spell": 2
         },
         "preferredVariant": "Spell",
-        "confidence": 0.9
+        "confidence": 1
       },
       "chek": {
-        "totalCount": 6,
+        "totalCount": 7,
         "variants": {
           "Chek": 5,
-          "chek": 1
+          "chek": 2
         },
         "preferredVariant": "Chek",
-        "confidence": 0.6
+        "confidence": 0.7
       },
       "model": {
         "totalCount": 14,
@@ -646,13 +918,13 @@
         "confidence": 1
       },
       "servce": {
-        "totalCount": 6,
+        "totalCount": 7,
         "variants": {
           "Servce": 5,
-          "servce": 1
+          "servce": 2
         },
         "preferredVariant": "Servce",
-        "confidence": 0.6
+        "confidence": 0.7
       },
       "gps": {
         "totalCount": 7,
@@ -679,119 +951,491 @@
         "confidence": 0.7
       },
       "string": {
-        "totalCount": 9,
+        "totalCount": 10,
         "variants": {
-          "string": 9
+          "string": 10
         },
         "preferredVariant": "string",
-        "confidence": 0.9
+        "confidence": 1
       },
       "empty": {
-        "totalCount": 7,
+        "totalCount": 9,
         "variants": {
-          "empty": 2,
+          "empty": 4,
           "Empty": 5
         },
         "preferredVariant": "Empty",
-        "confidence": 0.7
-      },
-      "server": {
-        "totalCount": 9,
-        "variants": {
-          "Server": 8,
-          "server": 1
-        },
-        "preferredVariant": "Server",
         "confidence": 0.9
       },
-      "console": {
-        "totalCount": 8,
-        "variants": {
-          "console": 2,
-          "Console": 6
-        },
-        "preferredVariant": "Console",
-        "confidence": 0.8
-      },
-      "writeline": {
-        "totalCount": 1,
-        "variants": {
-          "writeline": 1
-        },
-        "preferredVariant": "writeline",
-        "confidence": 0.1
-      },
-      "write": {
-        "totalCount": 7,
-        "variants": {
-          "Write": 6,
-          "write": 1
-        },
-        "preferredVariant": "Write",
-        "confidence": 0.7
-      },
-      "line": {
-        "totalCount": 7,
-        "variants": {
-          "Line": 6,
-          "line": 1
-        },
-        "preferredVariant": "Line",
-        "confidence": 0.7
-      },
-      "teszt": {
+      "server": {
         "totalCount": 10,
         "variants": {
+          "Server": 8,
+          "server": 2
+        },
+        "preferredVariant": "Server",
+        "confidence": 1
+      },
+      "config": {
+        "totalCount": 11,
+        "variants": {
+          "Config": 9,
+          "config": 2
+        },
+        "preferredVariant": "Config",
+        "confidence": 1
+      },
+      "console": {
+        "totalCount": 11,
+        "variants": {
+          "console": 4,
+          "Console": 7
+        },
+        "preferredVariant": "Console",
+        "confidence": 1
+      },
+      "writeline": {
+        "totalCount": 5,
+        "variants": {
+          "writeline": 5
+        },
+        "preferredVariant": "writeline",
+        "confidence": 0.5
+      },
+      "write": {
+        "totalCount": 9,
+        "variants": {
+          "Write": 7,
+          "write": 2
+        },
+        "preferredVariant": "Write",
+        "confidence": 0.9
+      },
+      "line": {
+        "totalCount": 9,
+        "variants": {
+          "Line": 7,
+          "line": 2
+        },
+        "preferredVariant": "Line",
+        "confidence": 0.9
+      },
+      "teszt": {
+        "totalCount": 15,
+        "variants": {
           "Teszt": 4,
-          "teszt": 6
+          "teszt": 11
         },
         "preferredVariant": "teszt",
         "confidence": 1
       },
       "iras": {
-        "totalCount": 6,
+        "totalCount": 7,
         "variants": {
           "Iras": 5,
-          "iras": 1
+          "iras": 2
         },
         "preferredVariant": "Iras",
-        "confidence": 0.6
+        "confidence": 0.7
       },
       "alma": {
-        "totalCount": 6,
+        "totalCount": 7,
         "variants": {
           "Alma": 5,
-          "alma": 1
+          "alma": 2
         },
         "preferredVariant": "Alma",
-        "confidence": 0.6
+        "confidence": 0.7
       },
       "korte": {
-        "totalCount": 6,
+        "totalCount": 8,
         "variants": {
-          "Korte": 5,
-          "korte": 1
+          "Korte": 4,
+          "Körte": 2,
+          "korte": 2
         },
         "preferredVariant": "Korte",
-        "confidence": 0.6
+        "confidence": 0.8
       },
       "view": {
-        "totalCount": 9,
+        "totalCount": 10,
         "variants": {
           "View": 8,
-          "view": 1
+          "view": 2
         },
         "preferredVariant": "View",
-        "confidence": 0.9
+        "confidence": 1
       },
       "replace": {
-        "totalCount": 6,
+        "totalCount": 7,
         "variants": {
           "Replace": 5,
-          "replace": 1
+          "replace": 2
         },
         "preferredVariant": "Replace",
+        "confidence": 0.7
+      },
+      "render": {
+        "totalCount": 6,
+        "variants": {
+          "render": 6
+        },
+        "preferredVariant": "render",
         "confidence": 0.6
+      },
+      "card": {
+        "totalCount": 7,
+        "variants": {
+          "Card": 5,
+          "card": 2
+        },
+        "preferredVariant": "Card",
+        "confidence": 0.7
+      },
+      "user": {
+        "totalCount": 8,
+        "variants": {
+          "user": 8
+        },
+        "preferredVariant": "user",
+        "confidence": 0.8
+      },
+      "profle": {
+        "totalCount": 8,
+        "variants": {
+          "profle": 8
+        },
+        "preferredVariant": "profle",
+        "confidence": 0.8
+      },
+      "name": {
+        "totalCount": 8,
+        "variants": {
+          "name": 8
+        },
+        "preferredVariant": "name",
+        "confidence": 0.8
+      },
+      "allow": {
+        "totalCount": 6,
+        "variants": {
+          "allow": 6
+        },
+        "preferredVariant": "allow",
+        "confidence": 0.6
+      },
+      "mixed": {
+        "totalCount": 7,
+        "variants": {
+          "Mixed": 5,
+          "mixed": 2
+        },
+        "preferredVariant": "Mixed",
+        "confidence": 0.7
+      },
+      "languages": {
+        "totalCount": 8,
+        "variants": {
+          "Languages": 4,
+          "languages": 4
+        },
+        "preferredVariant": "languages",
+        "confidence": 0.8
+      },
+      "prefer": {
+        "totalCount": 6,
+        "variants": {
+          "prefer": 6
+        },
+        "preferredVariant": "prefer",
+        "confidence": 0.6
+      },
+      "terms": {
+        "totalCount": 7,
+        "variants": {
+          "Terms": 5,
+          "terms": 2
+        },
+        "preferredVariant": "Terms",
+        "confidence": 0.7
+      },
+      "ignore": {
+        "totalCount": 9,
+        "variants": {
+          "ignore": 9
+        },
+        "preferredVariant": "ignore",
+        "confidence": 0.9
+      },
+      "words": {
+        "totalCount": 7,
+        "variants": {
+          "Words": 5,
+          "words": 2
+        },
+        "preferredVariant": "Words",
+        "confidence": 0.7
+      },
+      "signal": {
+        "totalCount": 7,
+        "variants": {
+          "Signal": 5,
+          "signal": 2
+        },
+        "preferredVariant": "Signal",
+        "confidence": 0.7
+      },
+      "stm": {
+        "totalCount": 5,
+        "variants": {
+          "stm": 5
+        },
+        "preferredVariant": "stm",
+        "confidence": 0.5
+      },
+      "check": {
+        "totalCount": 7,
+        "variants": {
+          "Check": 5,
+          "check": 2
+        },
+        "preferredVariant": "Check",
+        "confidence": 0.7
+      },
+      "patterns": {
+        "totalCount": 7,
+        "variants": {
+          "Patterns": 5,
+          "patterns": 2
+        },
+        "preferredVariant": "Patterns",
+        "confidence": 0.7
+      },
+      "min": {
+        "totalCount": 6,
+        "variants": {
+          "min": 6
+        },
+        "preferredVariant": "min",
+        "confidence": 0.6
+      },
+      "length": {
+        "totalCount": 10,
+        "variants": {
+          "Length": 8,
+          "length": 2
+        },
+        "preferredVariant": "Length",
+        "confidence": 1
+      },
+      "max": {
+        "totalCount": 21,
+        "variants": {
+          "max": 8,
+          "Max": 13
+        },
+        "preferredVariant": "Max",
+        "confidence": 1
+      },
+      "suggestions": {
+        "totalCount": 6,
+        "variants": {
+          "suggestions": 6
+        },
+        "preferredVariant": "suggestions",
+        "confidence": 0.6
+      },
+      "tokens": {
+        "totalCount": 11,
+        "variants": {
+          "Tokens": 9,
+          "tokens": 2
+        },
+        "preferredVariant": "Tokens",
+        "confidence": 1
+      },
+      "per": {
+        "totalCount": 7,
+        "variants": {
+          "Per": 5,
+          "per": 2
+        },
+        "preferredVariant": "Per",
+        "confidence": 0.7
+      },
+      "document": {
+        "totalCount": 7,
+        "variants": {
+          "Document": 5,
+          "document": 2
+        },
+        "preferredVariant": "Document",
+        "confidence": 0.7
+      },
+      "style": {
+        "totalCount": 27,
+        "variants": {
+          "style": 19,
+          "Style": 8
+        },
+        "preferredVariant": "style",
+        "confidence": 1
+      },
+      "learning": {
+        "totalCount": 27,
+        "variants": {
+          "Learning": 24,
+          "learning": 3
+        },
+        "preferredVariant": "Learning",
+        "confidence": 1
+      },
+      "enabled": {
+        "totalCount": 11,
+        "variants": {
+          "Enabled": 5,
+          "enabled": 6
+        },
+        "preferredVariant": "enabled",
+        "confidence": 1
+      },
+      "files": {
+        "totalCount": 8,
+        "variants": {
+          "Files": 6,
+          "files": 2
+        },
+        "preferredVariant": "Files",
+        "confidence": 0.8
+      },
+      "cache": {
+        "totalCount": 7,
+        "variants": {
+          "Cache": 5,
+          "cache": 2
+        },
+        "preferredVariant": "Cache",
+        "confidence": 0.7
+      },
+      "path": {
+        "totalCount": 7,
+        "variants": {
+          "Path": 5,
+          "path": 2
+        },
+        "preferredVariant": "Path",
+        "confidence": 0.7
+      },
+      "node": {
+        "totalCount": 8,
+        "variants": {
+          "node": 8
+        },
+        "preferredVariant": "node",
+        "confidence": 0.8
+      },
+      "modules": {
+        "totalCount": 8,
+        "variants": {
+          "modules": 8
+        },
+        "preferredVariant": "modules",
+        "confidence": 0.8
+      },
+      "http": {
+        "totalCount": 40,
+        "variants": {
+          "Http": 37,
+          "http": 3
+        },
+        "preferredVariant": "Http",
+        "confidence": 1
+      },
+      "client": {
+        "totalCount": 58,
+        "variants": {
+          "Client": 49,
+          "client": 9
+        },
+        "preferredVariant": "Client",
+        "confidence": 1
+      },
+      "factory": {
+        "totalCount": 13,
+        "variants": {
+          "Factory": 10,
+          "factory": 3
+        },
+        "preferredVariant": "Factory",
+        "confidence": 1
+      },
+      "create": {
+        "totalCount": 12,
+        "variants": {
+          "Create": 9,
+          "create": 3
+        },
+        "preferredVariant": "Create",
+        "confidence": 1
+      },
+      "local": {
+        "totalCount": 12,
+        "variants": {
+          "local": 12
+        },
+        "preferredVariant": "local",
+        "confidence": 1
+      },
+      "use": {
+        "totalCount": 12,
+        "variants": {
+          "Use": 9,
+          "use": 3
+        },
+        "preferredVariant": "Use",
+        "confidence": 1
+      },
+      "input": {
+        "totalCount": 12,
+        "variants": {
+          "input": 12
+        },
+        "preferredVariant": "input",
+        "confidence": 1
+      },
+      "alias": {
+        "totalCount": 13,
+        "variants": {
+          "Alias": 10,
+          "alias": 3
+        },
+        "preferredVariant": "Alias",
+        "confidence": 1
+      },
+      "all": {
+        "totalCount": 13,
+        "variants": {
+          "all": 9,
+          "All": 4
+        },
+        "preferredVariant": "all",
+        "confidence": 1
+      },
+      "tezst": {
+        "totalCount": 7,
+        "variants": {
+          "tezst": 7
+        },
+        "preferredVariant": "tezst",
+        "confidence": 0.7
+      },
+      "true": {
+        "totalCount": 10,
+        "variants": {
+          "true": 10
+        },
+        "preferredVariant": "true",
+        "confidence": 1
       },
       "using": {
         "totalCount": 4,
@@ -802,21 +1446,21 @@
         "confidence": 0.4
       },
       "system": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
-          "system": 1,
+          "system": 2,
           "System": 3
         },
         "preferredVariant": "System",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "namespace": {
-        "totalCount": 8,
+        "totalCount": 9,
         "variants": {
-          "namespace": 8
+          "namespace": 9
         },
         "preferredVariant": "namespace",
-        "confidence": 0.8
+        "confidence": 0.9
       },
       "public": {
         "totalCount": 14,
@@ -898,55 +1542,6 @@
         "preferredVariant": "domain",
         "confidence": 0.5
       },
-      "tezst": {
-        "totalCount": 3,
-        "variants": {
-          "tezst": 3
-        },
-        "preferredVariant": "tezst",
-        "confidence": 0.3
-      },
-      "render": {
-        "totalCount": 6,
-        "variants": {
-          "render": 6
-        },
-        "preferredVariant": "render",
-        "confidence": 0.6
-      },
-      "card": {
-        "totalCount": 6,
-        "variants": {
-          "Card": 5,
-          "card": 1
-        },
-        "preferredVariant": "Card",
-        "confidence": 0.6
-      },
-      "user": {
-        "totalCount": 8,
-        "variants": {
-          "user": 8
-        },
-        "preferredVariant": "user",
-        "confidence": 0.8
-      },
-      "profle": {
-        "totalCount": 8,
-        "variants": {
-          "profle": 8
-        },
-        "preferredVariant": "profle",
-        "confidence": 0.8
-      },
-      "name": {
-        "totalCount": 8,
-        "variants": {
-          "name": 8
-        },
-        "preferredVariant": "name",
-        "confidence": 0.8
-      },
       "export": {
         "totalCount": 4,
         "variants": {
@@ -987,239 +1582,22 @@
         "preferredVariant": "return",
         "confidence": 0.9
       },
-      "allow": {
-        "totalCount": 6,
-        "variants": {
-          "allow": 6
-        },
-        "preferredVariant": "allow",
-        "confidence": 0.6
-      },
-      "mixed": {
-        "totalCount": 6,
-        "variants": {
-          "Mixed": 5,
-          "mixed": 1
-        },
-        "preferredVariant": "Mixed",
-        "confidence": 0.6
-      },
-      "languages": {
-        "totalCount": 8,
-        "variants": {
-          "Languages": 4,
-          "languages": 4
-        },
-        "preferredVariant": "languages",
-        "confidence": 0.8
-      },
-      "prefer": {
-        "totalCount": 6,
-        "variants": {
-          "prefer": 6
-        },
-        "preferredVariant": "prefer",
-        "confidence": 0.6
-      },
-      "terms": {
-        "totalCount": 6,
-        "variants": {
-          "Terms": 5,
-          "terms": 1
-        },
-        "preferredVariant": "Terms",
-        "confidence": 0.6
-      },
-      "ignore": {
-        "totalCount": 9,
-        "variants": {
-          "ignore": 9
-        },
-        "preferredVariant": "ignore",
-        "confidence": 0.9
-      },
-      "words": {
-        "totalCount": 6,
-        "variants": {
-          "Words": 5,
-          "words": 1
-        },
-        "preferredVariant": "Words",
-        "confidence": 0.6
-      },
-      "signal": {
-        "totalCount": 6,
-        "variants": {
-          "Signal": 5,
-          "signal": 1
-        },
-        "preferredVariant": "Signal",
-        "confidence": 0.6
-      },
-      "stm": {
-        "totalCount": 1,
-        "variants": {
-          "stm": 1
-        },
-        "preferredVariant": "stm",
-        "confidence": 0.1
-      },
-      "check": {
-        "totalCount": 6,
-        "variants": {
-          "Check": 5,
-          "check": 1
-        },
-        "preferredVariant": "Check",
-        "confidence": 0.6
-      },
-      "patterns": {
-        "totalCount": 6,
-        "variants": {
-          "Patterns": 5,
-          "patterns": 1
-        },
-        "preferredVariant": "Patterns",
-        "confidence": 0.6
-      },
-      "min": {
-        "totalCount": 6,
-        "variants": {
-          "min": 6
-        },
-        "preferredVariant": "min",
-        "confidence": 0.6
-      },
-      "length": {
-        "totalCount": 9,
-        "variants": {
-          "Length": 8,
-          "length": 1
-        },
-        "preferredVariant": "Length",
-        "confidence": 0.9
-      },
-      "max": {
-        "totalCount": 21,
-        "variants": {
-          "max": 8,
-          "Max": 13
-        },
-        "preferredVariant": "Max",
-        "confidence": 1
-      },
-      "suggestions": {
-        "totalCount": 6,
-        "variants": {
-          "suggestions": 6
-        },
-        "preferredVariant": "suggestions",
-        "confidence": 0.6
-      },
-      "tokens": {
-        "totalCount": 10,
-        "variants": {
-          "Tokens": 9,
-          "tokens": 1
-        },
-        "preferredVariant": "Tokens",
-        "confidence": 1
-      },
-      "per": {
-        "totalCount": 6,
-        "variants": {
-          "Per": 5,
-          "per": 1
-        },
-        "preferredVariant": "Per",
-        "confidence": 0.6
-      },
-      "document": {
-        "totalCount": 6,
-        "variants": {
-          "Document": 5,
-          "document": 1
-        },
-        "preferredVariant": "Document",
-        "confidence": 0.6
-      },
-      "style": {
-        "totalCount": 27,
-        "variants": {
-          "style": 19,
-          "Style": 8
-        },
-        "preferredVariant": "style",
-        "confidence": 1
-      },
-      "learning": {
-        "totalCount": 27,
-        "variants": {
-          "Learning": 24,
-          "learning": 3
-        },
-        "preferredVariant": "Learning",
-        "confidence": 1
-      },
-      "files": {
-        "totalCount": 7,
-        "variants": {
-          "Files": 6,
-          "files": 1
-        },
-        "preferredVariant": "Files",
-        "confidence": 0.7
-      },
-      "cache": {
-        "totalCount": 6,
-        "variants": {
-          "Cache": 5,
-          "cache": 1
-        },
-        "preferredVariant": "Cache",
-        "confidence": 0.6
-      },
-      "path": {
-        "totalCount": 6,
-        "variants": {
-          "Path": 5,
-          "path": 1
-        },
-        "preferredVariant": "Path",
-        "confidence": 0.6
-      },
-      "node": {
-        "totalCount": 8,
-        "variants": {
-          "node": 8
-        },
-        "preferredVariant": "node",
-        "confidence": 0.8
-      },
-      "modules": {
-        "totalCount": 8,
-        "variants": {
-          "modules": 8
-        },
-        "preferredVariant": "modules",
-        "confidence": 0.8
-      },
       "async": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
-          "async": 1,
+          "async": 2,
           "Async": 3
         },
         "preferredVariant": "Async",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "https": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
-          "https": 4
+          "https": 5
         },
         "preferredVariant": "https",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "tsx": {
         "totalCount": 4,
@@ -1277,76 +1655,6 @@
         "preferredVariant": "artifacts",
         "confidence": 0.5
       },
-      "http": {
-        "totalCount": 40,
-        "variants": {
-          "Http": 37,
-          "http": 3
-        },
-        "preferredVariant": "Http",
-        "confidence": 1
-      },
-      "client": {
-        "totalCount": 58,
-        "variants": {
-          "Client": 49,
-          "client": 9
-        },
-        "preferredVariant": "Client",
-        "confidence": 1
-      },
-      "factory": {
-        "totalCount": 13,
-        "variants": {
-          "Factory": 10,
-          "factory": 3
-        },
-        "preferredVariant": "Factory",
-        "confidence": 1
-      },
-      "create": {
-        "totalCount": 12,
-        "variants": {
-          "Create": 9,
-          "create": 3
-        },
-        "preferredVariant": "Create",
-        "confidence": 1
-      },
-      "local": {
-        "totalCount": 12,
-        "variants": {
-          "local": 12
-        },
-        "preferredVariant": "local",
-        "confidence": 1
-      },
-      "use": {
-        "totalCount": 12,
-        "variants": {
-          "Use": 9,
-          "use": 3
-        },
-        "preferredVariant": "Use",
-        "confidence": 1
-      },
-      "input": {
-        "totalCount": 12,
-        "variants": {
-          "input": 12
-        },
-        "preferredVariant": "input",
-        "confidence": 1
-      },
-      "alias": {
-        "totalCount": 13,
-        "variants": {
-          "Alias": 10,
-          "alias": 3
-        },
-        "preferredVariant": "Alias",
-        "confidence": 1
-      },
       "sealed": {
         "totalCount": 7,
         "variants": {
@@ -1370,6 +1678,57 @@
         },
         "preferredVariant": "readonly",
         "confidence": 0.7
+      },
+      "see": {
+        "totalCount": 4,
+        "variants": {
+          "see": 1,
+          "See": 3
+        },
+        "preferredVariant": "See",
+        "confidence": 0.4
+      },
+      "for": {
+        "totalCount": 4,
+        "variants": {
+          "for": 4
+        },
+        "preferredVariant": "for",
+        "confidence": 0.4
+      },
+      "more": {
+        "totalCount": 4,
+        "variants": {
+          "more": 4
+        },
+        "preferredVariant": "more",
+        "confidence": 0.4
+      },
+      "information": {
+        "totalCount": 4,
+        "variants": {
+          "information": 4
+        },
+        "preferredVariant": "information",
+        "confidence": 0.4
+      },
+      "hello": {
+        "totalCount": 4,
+        "variants": {
+          "hello": 1,
+          "Hello": 3
+        },
+        "preferredVariant": "Hello",
+        "confidence": 0.4
+      },
+      "world": {
+        "totalCount": 4,
+        "variants": {
+          "world": 1,
+          "World": 3
+        },
+        "preferredVariant": "World",
+        "confidence": 0.4
       }
     }
   }
