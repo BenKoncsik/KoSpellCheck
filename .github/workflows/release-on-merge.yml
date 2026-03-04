@@ -16,7 +16,7 @@ concurrency:
 jobs:
   release:
     if: github.actor != 'github-actions[bot]'
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -45,15 +45,8 @@ jobs:
           VERSION=$(grep -oP '(?<=<Version>)(.*)(?=</Version>)' Directory.Build.props | head -n 1)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-  #    - name: Restore Node modules
-  #  #      working-directory: src/KoSpellCheck.VSCode
-  #       run: npm ci
-# 
-  #  # - name: Build VS Code extension
-   #      working-directory: src/KoSpellCheck.VSCode
-   #      # run: npm run vsce:package
-
-      - name: Build VS2022 KoSpellCheck.VS2022
+      - name: Package extensions
+        shell: bash
         run: |
           chmod +x scripts/pack.sh
           ./scripts/pack.sh
