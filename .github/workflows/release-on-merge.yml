@@ -1,5 +1,6 @@
 name: release-on-merge
 
+
 on:
   push:
     branches:
@@ -22,67 +23,55 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: src/KoSpellCheck.VSCode/package-lock.json
-
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-
-      - name: Configure git identity
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Bump extension versions
+      - name: Restore NuGet packages
+        run: dotnet restore src/KoSpellCheck.VS2022/KoSpellCheck.VS2022.csproj
+      - name: Get version from csproj
         id: version
+        shell: bash
         run: |
-          VERSION="$(./scripts/bump-version.sh patch)"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-
-      - name: Build and package extensions
-        run: ./scripts/pack.sh
-
-      - name: Commit version bump and create tag
+          VERSION=$(grep -oP '(?<=<Version>)(.*)(?=</Version>)' src/KoSpellCheck/KoSpellCheck.csproj | head -n 1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      - name: Restore Node modules
+        working-directory: src/KoSpellCheck.VSCode
+        run: npm ci
+      - name: Build VS Code extension
+        working-directory: src/KoSpellCheck.VSCode
+        run: npm run vsce:package
+      - name: Build VS2022 extension
         run: |
-          git add Directory.Build.props \
-            src/KoSpellCheck.VSCode/package.json \
-            src/KoSpellCheck.VSCode/package-lock.json \
-            src/KoSpellCheck.VS2022/source.extension.vsixmanifest
-          git commit -m "chore(release): v${VERSION} [skip ci]"
-          git tag "v${VERSION}"
-          git push origin HEAD:main
-          git push origin "v${VERSION}"
-
-      - name: Prepare release artifact names
-        run: |
-          cp "artifacts/vsix/KoSpellCheck.VS2022.vsix" "artifacts/vsix/KoSpellCheck.VS2022-${VERSION}.vsix"
-
-      - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+          chmod +x scripts/pack.sh
+          ./scripts/pack.sh
+      - name: Commit version bump and tag
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(release): bump version to ${{ steps.version.outputs.version }}"
+          tagging_message: "v${{ steps.version.outputs.version }}"
+          push_options: "--force"
+          branch: ${{ github.ref }}
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.version.outputs.version }}
-          name: KoSpellCheck v${{ steps.version.outputs.version }}
-          generate_release_notes: true
           files: |
             artifacts/vscode/KoSpellCheck.VSCode-${{ steps.version.outputs.version }}.vsix
             artifacts/vsix/KoSpellCheck.VS2022-${{ steps.version.outputs.version }}.vsix
-
       - name: Publish to VS Code Marketplace
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ secrets.VSCE_TOKEN }}
           extensionFile: artifacts/vscode/KoSpellCheck.VSCode-${{ steps.version.outputs.version }}.vsix
           registryUrl: https://marketplace.visualstudio.com
-
-      - name: Publish VS2022 extension to Visual Studio Marketplace
+      - name: Publish to Visual Studio Marketplace
         uses: cezarypiatek/VsixPublisherAction@1.1
         with:
           extension-file: artifacts/vsix/KoSpellCheck.VS2022-${{ steps.version.outputs.version }}.vsix
