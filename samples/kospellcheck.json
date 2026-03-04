@@ -1,6 +1,7 @@
 {
   "enabled": true,
   "projectDictionary": [
-    "Config"
+    "Config",
+    "namespace"
   ]
 }

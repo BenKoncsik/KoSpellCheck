@@ -1,10 +1,10 @@
 {
   "workspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples",
-  "fingerprint": "955e3c5d0669d180cc3f905ca70224958a5ea78d9e906d12dffc1548c34bd5d2",
+  "fingerprint": "1fb53f7e087e643ab21b7b1e0af5c582a3215da4e09fbe57fee3d8b144035503",
   "profile": {
     "workspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples",
-    "createdAtUtc": "2026-03-01T20:47:00.169Z",
-    "updatedAtUtc": "2026-03-01T20:47:00.247Z",
+    "createdAtUtc": "2026-03-04T16:54:16.499Z",
+    "updatedAtUtc": "2026-03-04T16:54:16.512Z",
     "tokenStats": {
       "workspaceroot": {
         "totalCount": 8,
@@ -24,21 +24,20 @@
         "preferredVariant": "createdAtUtc",
         "confidence": 0.6
       },
-      "2026-03-01t20": {
-        "totalCount": 8,
+      "2026-03-04t16": {
+        "totalCount": 2,
         "variants": {
-          "2026-03-01T20": 6,
-          "2026-03-01t20": 2
+          "2026-03-04T16": 2
         },
-        "preferredVariant": "2026-03-01T20",
-        "confidence": 0.8
+        "preferredVariant": "2026-03-04T16",
+        "confidence": 0.2
       },
-      "43.941z": {
+      "15.069z": {
         "totalCount": 1,
         "variants": {
-          "43.941Z": 1
+          "15.069Z": 1
         },
-        "preferredVariant": "43.941Z",
+        "preferredVariant": "15.069Z",
         "confidence": 0.1
       },
       "updatedatutc": {
@@ -50,12 +49,12 @@
         "preferredVariant": "updatedAtUtc",
         "confidence": 0.6
       },
-      "44.356z": {
+      "15.080z": {
         "totalCount": 1,
         "variants": {
-          "44.356Z": 1
+          "15.080Z": 1
         },
-        "preferredVariant": "44.356Z",
+        "preferredVariant": "15.080Z",
         "confidence": 0.1
       },
       "tokenstats": {
@@ -68,46 +67,91 @@
         "confidence": 0.6
       },
       "totalcount": {
-        "totalCount": 213,
+        "totalCount": 226,
         "variants": {
-          "totalCount": 211,
+          "totalCount": 224,
           "totalcount": 2
         },
         "preferredVariant": "totalCount",
         "confidence": 1
       },
       "preferredvariant": {
-        "totalCount": 213,
+        "totalCount": 226,
         "variants": {
-          "preferredVariant": 211,
+          "preferredVariant": 224,
           "preferredvariant": 2
         },
         "preferredVariant": "preferredVariant",
         "confidence": 1
       },
-      "17.952z": {
+      "2026-03-01t20": {
+        "totalCount": 4,
+        "variants": {
+          "2026-03-01t20": 2,
+          "2026-03-01T20": 2
+        },
+        "preferredVariant": "2026-03-01t20",
+        "confidence": 0.4
+      },
+      "00.169z": {
         "totalCount": 3,
         "variants": {
-          "17.952z": 1,
-          "17.952Z": 2
+          "00.169z": 1,
+          "00.169Z": 2
         },
-        "preferredVariant": "17.952Z",
+        "preferredVariant": "00.169Z",
         "confidence": 0.3
       },
-      "17.961z": {
+      "00.247z": {
         "totalCount": 3,
         "variants": {
-          "17.961z": 1,
-          "17.961Z": 2
+          "00.247z": 1,
+          "00.247Z": 2
         },
-        "preferredVariant": "17.961Z",
+        "preferredVariant": "00.247Z",
         "confidence": 0.3
+      },
+      "43.941z": {
+        "totalCount": 4,
+        "variants": {
+          "43.941z": 2,
+          "43.941Z": 2
+        },
+        "preferredVariant": "43.941z",
+        "confidence": 0.4
+      },
+      "44.356z": {
+        "totalCount": 4,
+        "variants": {
+          "44.356z": 2,
+          "44.356Z": 2
+        },
+        "preferredVariant": "44.356z",
+        "confidence": 0.4
+      },
+      "17.952z": {
+        "totalCount": 4,
+        "variants": {
+          "17.952z": 3,
+          "17.952Z": 1
+        },
+        "preferredVariant": "17.952z",
+        "confidence": 0.4
+      },
+      "17.961z": {
+        "totalCount": 4,
+        "variants": {
+          "17.961z": 3,
+          "17.961Z": 1
+        },
+        "preferredVariant": "17.961z",
+        "confidence": 0.4
       },
       "53.831z": {
         "totalCount": 4,
         "variants": {
-          "53.831z": 2,
-          "53.831Z": 2
+          "53.831z": 3,
+          "53.831Z": 1
         },
         "preferredVariant": "53.831z",
         "confidence": 0.4
@@ -115,8 +159,8 @@
       "53.840z": {
         "totalCount": 4,
         "variants": {
-          "53.840z": 2,
-          "53.840Z": 2
+          "53.840z": 3,
+          "53.840Z": 1
         },
         "preferredVariant": "53.840z",
         "confidence": 0.4
@@ -310,13 +354,13 @@
         "confidence": 0.8
       },
       "console.writeline": {
-        "totalCount": 6,
+        "totalCount": 7,
         "variants": {
           "console.writeline": 2,
-          "Console.WriteLine": 4
+          "Console.WriteLine": 5
         },
         "preferredVariant": "Console.WriteLine",
-        "confidence": 0.6
+        "confidence": 0.7
       },
       "tesztirasalmakorteview": {
         "totalCount": 6,
@@ -635,29 +679,56 @@
       "tezst.all": {
         "totalCount": 4,
         "variants": {
-          "tezst.all": 2,
-          "tezst.All": 2
+          "tezst.all": 3,
+          "tezst.All": 1
         },
         "preferredVariant": "tezst.all",
         "confidence": 0.4
       },
       "50.382z": {
-        "totalCount": 5,
+        "totalCount": 4,
         "variants": {
-          "50.382z": 2,
-          "50.382Z": 3
+          "50.382z": 3,
+          "50.382Z": 1
         },
-        "preferredVariant": "50.382Z",
-        "confidence": 0.5
+        "preferredVariant": "50.382z",
+        "confidence": 0.4
       },
       "50.388z": {
+        "totalCount": 4,
+        "variants": {
+          "50.388z": 3,
+          "50.388Z": 1
+        },
+        "preferredVariant": "50.388z",
+        "confidence": 0.4
+      },
+      "2026-03-03t20": {
         "totalCount": 5,
         "variants": {
-          "50.388z": 2,
-          "50.388Z": 3
+          "2026-03-03t20": 1,
+          "2026-03-03T20": 4
         },
-        "preferredVariant": "50.388Z",
+        "preferredVariant": "2026-03-03T20",
         "confidence": 0.5
+      },
+      "22.300z": {
+        "totalCount": 4,
+        "variants": {
+          "22.300z": 1,
+          "22.300Z": 3
+        },
+        "preferredVariant": "22.300Z",
+        "confidence": 0.4
+      },
+      "22.305z": {
+        "totalCount": 4,
+        "variants": {
+          "22.305z": 1,
+          "22.305Z": 3
+        },
+        "preferredVariant": "22.305Z",
+        "confidence": 0.4
       },
       "workspace": {
         "totalCount": 9,
@@ -736,51 +807,51 @@
         "confidence": 0.8
       },
       "total": {
-        "totalCount": 214,
+        "totalCount": 227,
         "variants": {
-          "total": 214
+          "total": 227
         },
         "preferredVariant": "total",
         "confidence": 1
       },
       "count": {
-        "totalCount": 215,
+        "totalCount": 228,
         "variants": {
-          "Count": 213,
+          "Count": 226,
           "count": 2
         },
         "preferredVariant": "Count",
         "confidence": 1
       },
       "variants": {
-        "totalCount": 212,
+        "totalCount": 225,
         "variants": {
-          "variants": 212
+          "variants": 225
         },
         "preferredVariant": "variants",
         "confidence": 1
       },
       "preferred": {
-        "totalCount": 214,
+        "totalCount": 227,
         "variants": {
-          "preferred": 214
+          "preferred": 227
         },
         "preferredVariant": "preferred",
         "confidence": 1
       },
       "variant": {
-        "totalCount": 215,
+        "totalCount": 228,
         "variants": {
-          "Variant": 213,
+          "Variant": 226,
           "variant": 2
         },
         "preferredVariant": "Variant",
         "confidence": 1
       },
       "confidence": {
-        "totalCount": 212,
+        "totalCount": 225,
         "variants": {
-          "confidence": 212
+          "confidence": 225
         },
         "preferredVariant": "confidence",
         "confidence": 1
@@ -915,10 +986,10 @@
         "confidence": 1
       },
       "console": {
-        "totalCount": 10,
+        "totalCount": 11,
         "variants": {
           "console": 4,
-          "Console": 6
+          "Console": 7
         },
         "preferredVariant": "Console",
         "confidence": 1
@@ -932,22 +1003,22 @@
         "confidence": 0.5
       },
       "write": {
-        "totalCount": 8,
+        "totalCount": 9,
         "variants": {
-          "Write": 6,
+          "Write": 7,
           "write": 2
         },
         "preferredVariant": "Write",
-        "confidence": 0.8
+        "confidence": 0.9
       },
       "line": {
-        "totalCount": 8,
+        "totalCount": 9,
         "variants": {
-          "Line": 6,
+          "Line": 7,
           "line": 2
         },
         "preferredVariant": "Line",
-        "confidence": 0.8
+        "confidence": 0.9
       },
       "teszt": {
         "totalCount": 15,
@@ -1344,8 +1415,8 @@
       "all": {
         "totalCount": 13,
         "variants": {
-          "all": 8,
-          "All": 5
+          "all": 9,
+          "All": 4
         },
         "preferredVariant": "all",
         "confidence": 1
@@ -1384,12 +1455,12 @@
         "confidence": 0.5
       },
       "namespace": {
-        "totalCount": 8,
+        "totalCount": 9,
         "variants": {
-          "namespace": 8
+          "namespace": 9
         },
         "preferredVariant": "namespace",
-        "confidence": 0.8
+        "confidence": 0.9
       },
       "public": {
         "totalCount": 14,
@@ -1521,12 +1592,12 @@
         "confidence": 0.5
       },
       "https": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
-          "https": 4
+          "https": 5
         },
         "preferredVariant": "https",
-        "confidence": 0.4
+        "confidence": 0.5
       },
       "tsx": {
         "totalCount": 4,
@@ -1607,6 +1678,57 @@
         },
         "preferredVariant": "readonly",
         "confidence": 0.7
+      },
+      "see": {
+        "totalCount": 4,
+        "variants": {
+          "see": 1,
+          "See": 3
+        },
+        "preferredVariant": "See",
+        "confidence": 0.4
+      },
+      "for": {
+        "totalCount": 4,
+        "variants": {
+          "for": 4
+        },
+        "preferredVariant": "for",
+        "confidence": 0.4
+      },
+      "more": {
+        "totalCount": 4,
+        "variants": {
+          "more": 4
+        },
+        "preferredVariant": "more",
+        "confidence": 0.4
+      },
+      "information": {
+        "totalCount": 4,
+        "variants": {
+          "information": 4
+        },
+        "preferredVariant": "information",
+        "confidence": 0.4
+      },
+      "hello": {
+        "totalCount": 4,
+        "variants": {
+          "hello": 1,
+          "Hello": 3
+        },
+        "preferredVariant": "Hello",
+        "confidence": 0.4
+      },
+      "world": {
+        "totalCount": 4,
+        "variants": {
+          "world": 1,
+          "World": 3
+        },
+        "preferredVariant": "World",
+        "confidence": 0.4
       }
     }
   }
