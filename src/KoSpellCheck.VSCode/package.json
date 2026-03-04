@@ -2,7 +2,7 @@
   "name": "kospellcheck",
   "displayName": "KoSpellCheck",
   "description": "Offline HU+EN code-aware spell checker for VS Code.",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "publisher": "kospellcheck",
   "license": "MIT",
   "engines": {
