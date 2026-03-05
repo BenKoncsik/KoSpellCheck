@@ -9,6 +9,14 @@ $LegacyVs2022VsixOut = Join-Path $Artifacts 'vsix/KoSpellCheck.vsix'
 $VsixStage = Join-Path $Artifacts 'vsix/staging'
 $VsCodeExtDir = Join-Path $Root 'src/KoSpellCheck.VSCode'
 
+[xml]$propsXml = Get-Content (Join-Path $Root 'Directory.Build.props')
+$versionNodes = @($propsXml.Project.PropertyGroup | Where-Object { $_.Version } | ForEach-Object { [string]$_.Version })
+$RepoVersion = $versionNodes | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Select-Object -First 1
+if ([string]::IsNullOrWhiteSpace($RepoVersion)) {
+  throw 'Unable to resolve repository version from Directory.Build.props.'
+}
+$Vs2022VersionedVsixOut = Join-Path $Artifacts ("vsix/KoSpellCheck.VS2022-{0}.vsix" -f $RepoVersion)
+
 function Test-RequiredAssets {
   $required = @(
     'tools/dictionaries/hu_HU/hu_HU.aff',
@@ -171,9 +179,12 @@ if (Test-Path $Vs2022VsixOut) {
 if (Test-Path $LegacyVs2022VsixOut) {
   Remove-Item -Force $LegacyVs2022VsixOut
 }
+Get-ChildItem -Path (Join-Path $Artifacts 'vsix/KoSpellCheck.VS2022-*.vsix') -ErrorAction SilentlyContinue | Remove-Item -Force
 
 Compress-Archive -Path (Join-Path $VsixStage '*') -DestinationPath $Vs2022VsixOut
+Copy-Item -LiteralPath $Vs2022VsixOut -Destination $Vs2022VersionedVsixOut -Force
 
 Write-Host '[pack] completed'
 Write-Host "[pack] VS Code:  $VsCodeAlias"
 Write-Host "[pack] VS2022:   $Vs2022VsixOut"
+Write-Host "[pack] VS2022 versioned: $Vs2022VersionedVsixOut"

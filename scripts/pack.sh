@@ -45,6 +45,16 @@ VS2022_VSIX_OUT="$ARTIFACTS/vsix/KoSpellCheck.VS2022.vsix"
 LEGACY_VS2022_VSIX_OUT="$ARTIFACTS/vsix/KoSpellCheck.vsix"
 VSIX_STAGE="$ARTIFACTS/vsix/staging"
 VSCODE_EXT_DIR="$ROOT/src/KoSpellCheck.VSCode"
+REPO_VERSION="$(
+  sed -n 's:.*<Version>\([^<]*\)</Version>.*:\1:p' "$ROOT/Directory.Build.props" \
+    | head -n 1 \
+    | tr -d '\r'
+)"
+if [[ -z "$REPO_VERSION" ]]; then
+  echo "[pack] unable to resolve repository version from Directory.Build.props" >&2
+  exit 1
+fi
+VS2022_VSIX_VERSIONED_OUT="$ARTIFACTS/vsix/KoSpellCheck.VS2022-${REPO_VERSION}.vsix"
 
 required_dictionary_files=(
   "tools/dictionaries/hu_HU/hu_HU.aff"
@@ -174,7 +184,7 @@ fi
 mkdir -p "$VSIX_STAGE/Resources/Dictionaries" "$VSIX_STAGE/Resources/Licenses"
 cp -R "$ROOT/src/KoSpellCheck.VS2022/Resources/Dictionaries/." "$VSIX_STAGE/Resources/Dictionaries/"
 cp -R "$ROOT/src/KoSpellCheck.VS2022/Resources/Licenses/." "$VSIX_STAGE/Resources/Licenses/"
-rm -f "$VS2022_VSIX_OUT" "$LEGACY_VS2022_VSIX_OUT"
+rm -f "$VS2022_VSIX_OUT" "$LEGACY_VS2022_VSIX_OUT" "$ARTIFACTS"/vsix/KoSpellCheck.VS2022-*.vsix
 pushd "$VSIX_STAGE" >/dev/null
 # Use zip first; fallback to 7z or PowerShell to create the VSIX archive.
 if command -v zip >/dev/null 2>&1; then
@@ -188,6 +198,8 @@ else
   ditto -c -k --sequesterRsrc --keepParent . "$VS2022_VSIX_OUT"
 fi
 popd >/dev/null
+cp "$VS2022_VSIX_OUT" "$VS2022_VSIX_VERSIONED_OUT"
 echo "[pack] completed"
 echo "[pack] VS Code:  $VSCODE_VSIX_ALIAS"
 echo "[pack] VS2022:   $VS2022_VSIX_OUT"
+echo "[pack] VS2022 versioned: $VS2022_VSIX_VERSIONED_OUT"
