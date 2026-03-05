@@ -1,8 +1,7 @@
 {
   "$schema": "http://json.schemastore.org/vsix-publish",
   "categories": [
-    "coding",
-    "productivity"
+    "coding"
   ],
   "identity": {
     "internalName": "KoSpellCheck.VS2022"
