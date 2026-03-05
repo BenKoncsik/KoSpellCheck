@@ -122,8 +122,16 @@ jobs:
           echo "token=${TOKEN}" >> "${GITHUB_OUTPUT}"
 
       - name: Publish to Visual Studio Marketplace
+        id: publish_vs_marketplace
+        continue-on-error: true
         uses: cezarypiatek/VsixPublisherAction@1.1
         with:
           extension-file: artifacts/vsix/KoSpellCheck.VS2022-${{ steps.version.outputs.version }}.vsix
           publish-manifest-file: src/KoSpellCheck.VS2022/publishManifest.json
           personal-access-code: ${{ steps.vs_marketplace_token.outputs.token }}
+
+      - name: Warn when Visual Studio Marketplace publish fails
+        if: steps.publish_vs_marketplace.outcome == 'failure'
+        shell: bash
+        run: |
+          echo "::warning::Visual Studio Marketplace publish failed. Most common cause: missing publisher registration for the manifest publisher."
