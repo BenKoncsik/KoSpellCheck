@@ -39,4 +39,35 @@ if (!allowedPattern.test(normalized)) {
   );
 }
 
+const publisher = manifest?.publisher;
+if (typeof publisher !== 'string' || publisher.trim().length === 0) {
+  fail(`publisher is missing in ${resolvedPath}`);
+}
+
+const publisherNormalized = publisher.trim();
+if (!allowedPattern.test(publisherNormalized)) {
+  fail(
+    `publisher '${publisherNormalized}' is invalid. Allowed: A-Z, a-z, 0-9, '-' and it must start with alphanumeric.`
+  );
+}
+
+const repoRoot = path.resolve(path.dirname(resolvedPath), '..', '..');
+const vscodePackagePath = path.join(repoRoot, 'src', 'KoSpellCheck.VSCode', 'package.json');
+if (fs.existsSync(vscodePackagePath)) {
+  try {
+    const vscodePackage = JSON.parse(fs.readFileSync(vscodePackagePath, 'utf8'));
+    const vscodePublisher = typeof vscodePackage?.publisher === 'string'
+      ? vscodePackage.publisher.trim()
+      : '';
+
+    if (vscodePublisher.length > 0 && vscodePublisher !== publisherNormalized) {
+      fail(
+        `publisher mismatch: VS2022 publish manifest uses '${publisherNormalized}', VS Code package uses '${vscodePublisher}'.`
+      );
+    }
+  } catch (error) {
+    fail(`invalid VS Code package.json (${vscodePackagePath}): ${String(error)}`);
+  }
+}
+
 console.log(`[validate-vs-publish-manifest] OK: ${resolvedPath}`);
