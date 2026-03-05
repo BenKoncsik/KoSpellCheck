@@ -53,6 +53,7 @@ if (!allowedPattern.test(publisherNormalized)) {
 
 const repoRoot = path.resolve(path.dirname(resolvedPath), '..', '..');
 const vscodePackagePath = path.join(repoRoot, 'src', 'KoSpellCheck.VSCode', 'package.json');
+const vsixManifestPath = path.join(path.dirname(resolvedPath), 'source.extension.vsixmanifest');
 if (fs.existsSync(vscodePackagePath)) {
   try {
     const vscodePackage = JSON.parse(fs.readFileSync(vscodePackagePath, 'utf8'));
@@ -70,4 +71,44 @@ if (fs.existsSync(vscodePackagePath)) {
   }
 }
 
+if (!fs.existsSync(vsixManifestPath)) {
+  fail(`VSIX manifest not found: ${vsixManifestPath}`);
+}
+
+const vsixManifestContent = fs.readFileSync(vsixManifestPath, 'utf8');
+const identityTagMatch = vsixManifestContent.match(/<Identity\b[^>]*>/i);
+if (!identityTagMatch) {
+  fail(`missing <Identity ...> element in ${vsixManifestPath}`);
+}
+
+const identityTag = identityTagMatch[0];
+const idMatch = identityTag.match(/\bId="([^"]+)"/i);
+const publisherMatch = identityTag.match(/\bPublisher="([^"]+)"/i);
+
+if (!idMatch || idMatch[1].trim().length === 0) {
+  fail(`missing Identity@Id in ${vsixManifestPath}`);
+}
+
+if (!publisherMatch || publisherMatch[1].trim().length === 0) {
+  fail(`missing Identity@Publisher in ${vsixManifestPath}`);
+}
+
+const vsixId = idMatch[1].trim();
+const vsixPublisher = publisherMatch[1].trim();
+if (vsixPublisher !== publisherNormalized) {
+  fail(
+    `publisher mismatch: VSIX manifest uses '${vsixPublisher}', publish manifest uses '${publisherNormalized}'.`
+  );
+}
+
+const expectedInternalName = vsixId.replace(/\./g, '-');
+if (normalized !== expectedInternalName) {
+  fail(
+    `internalName mismatch: publish manifest uses '${normalized}', expected '${expectedInternalName}' derived from VSIX Identity@Id '${vsixId}'.`
+  );
+}
+
+console.log(
+  `[validate-vs-publish-manifest] VSIX Identity: id='${vsixId}', publisher='${vsixPublisher}', internalName='${normalized}'`
+);
 console.log(`[validate-vs-publish-manifest] OK: ${resolvedPath}`);

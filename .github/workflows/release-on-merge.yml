@@ -78,6 +78,39 @@ jobs:
           extensionFile: artifacts/vscode/KoSpellCheck.VSCode-${{ steps.version.outputs.version }}.vsix
           registryUrl: https://marketplace.visualstudio.com
 
+      - name: VS publish preflight diagnostics
+        shell: bash
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const publishManifestPath = 'src/KoSpellCheck.VS2022/publishManifest.json';
+          const vsixManifestPath = 'src/KoSpellCheck.VS2022/source.extension.vsixmanifest';
+          const publishManifest = JSON.parse(fs.readFileSync(publishManifestPath, 'utf8'));
+          const internalName = (publishManifest?.identity?.internalName ?? '').trim();
+          const publishPublisher = (publishManifest?.publisher ?? '').trim();
+          const vsixManifestContent = fs.readFileSync(vsixManifestPath, 'utf8');
+          const identityTagMatch = vsixManifestContent.match(/<Identity\b[^>]*>/i);
+          const identityTag = identityTagMatch ? identityTagMatch[0] : '';
+          const vsixIdMatch = identityTag.match(/\bId="([^"]+)"/i);
+          const vsixPublisherMatch = identityTag.match(/\bPublisher="([^"]+)"/i);
+          const vsixId = vsixIdMatch ? vsixIdMatch[1].trim() : '';
+          const vsixPublisher = vsixPublisherMatch ? vsixPublisherMatch[1].trim() : '';
+          console.log(`[vs-publish-preflight] publishManifest.publisher=${publishPublisher}`);
+          console.log(`[vs-publish-preflight] publishManifest.identity.internalName=${internalName}`);
+          console.log(`[vs-publish-preflight] source.extension.vsixmanifest Identity@Id=${vsixId}`);
+          console.log(`[vs-publish-preflight] source.extension.vsixmanifest Identity@Publisher=${vsixPublisher}`);
+          NODE
+
+      - name: Validate VS publisher token presence
+        shell: bash
+        env:
+          VS_PUBLISHER_ACCESS_TOKEN: ${{ secrets.VS_PUBLISHER_ACCESS_TOKEN }}
+        run: |
+          if [ -z "${VS_PUBLISHER_ACCESS_TOKEN}" ]; then
+            echo "::error::Missing required secret VS_PUBLISHER_ACCESS_TOKEN for Visual Studio Marketplace publish."
+            exit 1
+          fi
+
       - name: Publish to Visual Studio Marketplace
         uses: cezarypiatek/VsixPublisherAction@1.1
         with:
