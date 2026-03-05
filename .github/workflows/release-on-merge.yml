@@ -38,6 +38,10 @@ jobs:
       - name: Restore NuGet packages
         run: dotnet restore src/KoSpellCheck.VS2022/KoSpellCheck.VS2022.csproj
 
+      - name: Validate VS publish manifest
+        shell: bash
+        run: node scripts/validate-vs-publish-manifest.mjs src/KoSpellCheck.VS2022/publishManifest.json
+
       - name: Get version from Directory.Build.props
         id: version
         shell: bash
