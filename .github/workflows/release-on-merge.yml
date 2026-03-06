@@ -74,7 +74,7 @@ jobs:
       - name: Publish to VS Code Marketplace
         uses: HaaLeo/publish-vscode-extension@v2
         with:
-          pat: ${{ secrets.VSCE_TOKEN }}
+          pat: ${{ secrets.VS_MARKETPLACE_PAT }}
           extensionFile: artifacts/vscode/KoSpellCheck.VSCode-${{ steps.version.outputs.version }}.vsix
           registryUrl: https://marketplace.visualstudio.com
 
@@ -101,37 +101,9 @@ jobs:
           console.log(`[vs-publish-preflight] source.extension.vsixmanifest Identity@Publisher=${vsixPublisher}`);
           NODE
 
-      - name: Resolve VS Marketplace token
-        id: vs_marketplace_token
-        shell: bash
-        env:
-          VSCE_TOKEN: ${{ secrets.VSCE_TOKEN }}
-          VS_PUBLISHER_ACCESS_TOKEN: ${{ secrets.VS_PUBLISHER_ACCESS_TOKEN }}
-        run: |
-          TOKEN="${VSCE_TOKEN:-${VS_PUBLISHER_ACCESS_TOKEN}}"
-          if [ -z "${TOKEN}" ]; then
-            echo "::error::Missing token. Set VSCE_TOKEN (preferred) or VS_PUBLISHER_ACCESS_TOKEN for Visual Studio Marketplace publish."
-            exit 1
-          fi
-          if [ -n "${VSCE_TOKEN}" ]; then
-            echo "[vs-publish-preflight] tokenSource=VSCE_TOKEN"
-          else
-            echo "[vs-publish-preflight] tokenSource=VS_PUBLISHER_ACCESS_TOKEN"
-          fi
-          echo "::add-mask::${TOKEN}"
-          echo "token=${TOKEN}" >> "${GITHUB_OUTPUT}"
-
       - name: Publish to Visual Studio Marketplace
-        id: publish_vs_marketplace
-        continue-on-error: true
         uses: cezarypiatek/VsixPublisherAction@1.1
         with:
           extension-file: artifacts/vsix/KoSpellCheck.VS2022-${{ steps.version.outputs.version }}.vsix
           publish-manifest-file: src/KoSpellCheck.VS2022/publishManifest.json
-          personal-access-code: ${{ steps.vs_marketplace_token.outputs.token }}
-
-      - name: Warn when Visual Studio Marketplace publish fails
-        if: steps.publish_vs_marketplace.outcome == 'failure'
-        shell: bash
-        run: |
-          echo "::warning::Visual Studio Marketplace publish failed. Most common cause: missing publisher registration for the manifest publisher."
+          personal-access-code: ${{ secrets.VS_MARKETPLACE_PAT }}
