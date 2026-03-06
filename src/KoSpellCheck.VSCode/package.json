@@ -3,7 +3,7 @@
   "displayName": "KoSpellCheck",
   "description": "Offline HU+EN code-aware spell checker for VS Code.",
   "version": "0.1.10",
-  "publisher": "kospellcheck",
+  "publisher": "KoSpellCheckV2",
   "license": "MIT",
   "engines": {
     "vscode": "^1.95.0"
