@@ -259,8 +259,8 @@ VSIX_MARKER_STRICT="false"
 if [[ "${OS:-}" == "Windows_NT" ]]; then
   echo "[pack] using VSSDK CreateVsixContainer (Marketplace-compatible VSIX v3)"
   dotnet msbuild "$ROOT/src/KoSpellCheck.VS2022/KoSpellCheck.VS2022.csproj" \
-    /t:CreateVsixContainer \
-    /p:Configuration=Release
+    -t:CreateVsixContainer \
+    -p:Configuration=Release
 
   GENERATED_VSIX="$(
     {
@@ -283,16 +283,16 @@ else
     echo "[pack] using Mono + VSSDK VsixUtil packaging (Marketplace-compatible VSIX v3)"
 
     dotnet msbuild "$ROOT/src/KoSpellCheck.VS2022/KoSpellCheck.VS2022.csproj" \
-      /t:Build \
-      /p:Configuration=Release \
-      /p:IntermediateOutputPath=obj/Release/netstandard2.0/ \
-      /p:OutDir=bin/Release/netstandard2.0/
+      -t:Build \
+      -p:Configuration=Release \
+      -p:IntermediateOutputPath=obj/Release/netstandard2.0/ \
+      -p:OutDir=bin/Release/netstandard2.0/
 
     dotnet msbuild "$ROOT/src/KoSpellCheck.VS2022/KoSpellCheck.VS2022.csproj" \
-      /t:GenerateFileManifest \
-      /p:Configuration=Release \
-      /p:IntermediateOutputPath=obj/Release/netstandard2.0/ \
-      /p:OutDir=bin/Release/netstandard2.0/
+      -t:GenerateFileManifest \
+      -p:Configuration=Release \
+      -p:IntermediateOutputPath=obj/Release/netstandard2.0/ \
+      -p:OutDir=bin/Release/netstandard2.0/
 
     ln -sfn "$VSSDK_SCHEMAS" "$ROOT/.tmp-vssdk-schemas"
 
