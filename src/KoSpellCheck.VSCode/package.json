@@ -2,7 +2,7 @@
   "name": "kospellcheck",
   "displayName": "KoSpellCheck",
   "description": "Offline HU+EN spell checker extension with code-aware tokenization and quick fix suggestions.",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "publisher": "KoSpellCheckV2",
   "license": "MIT",
   "engines": {
@@ -66,7 +66,11 @@
         },
         "kospellcheck.localTypoAcceleration.mode": {
           "type": "string",
-          "enum": ["off", "auto", "on"],
+          "enum": [
+            "off",
+            "auto",
+            "on"
+          ],
           "default": "auto",
           "markdownDescription": "Opcionális helyi elírás-gyorsító mód. `auto`: csak akkor használja, ha kompatibilis helyi runtime + eszköz elérhető. `on`: mindig próbálja, de ha nem elérhető, automatikus fallback van. `off`: teljesen kikapcsolja ezt az útvonalat."
         },
