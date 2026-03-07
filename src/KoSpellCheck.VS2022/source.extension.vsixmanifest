@@ -1,16 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011">
   <Metadata>
-    <Identity Id="KoSpellCheck.VS2022" Version="0.1.10" Language="en-US" Publisher="kospellcheck" />
+    <Identity Id="KoSpellCheck.VS2022" Version="0.1.10" Language="en-US" Publisher="KoSpellCheck_V2" />
+    <Author>KoSpellCheck_V2</Author>
     <DisplayName>KoSpellCheck (VS2022)</DisplayName>
     <Description xml:space="preserve">Offline HU+EN spell checker for C# identifiers with quick fixes.</Description>
     <Tags>spell;hunspell;hungarian;english</Tags>
   </Metadata>
   <Installation>
-    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,18.0)" />
-    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[17.0,18.0)" />
-    <InstallationTarget Id="Microsoft.VisualStudio.Enterprise" Version="[17.0,18.0)" />
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,18.0)">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[17.0,18.0)">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.Enterprise" Version="[17.0,18.0)">
+      <ProductArchitecture>amd64</ProductArchitecture>
+    </InstallationTarget>
   </Installation>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.0,18.0)" DisplayName="Visual Studio core editor" />
+  </Prerequisites>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="KoSpellCheck.VS2022.dll" />
   </Assets>

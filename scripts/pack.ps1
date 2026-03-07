@@ -86,6 +86,115 @@ function Sync-PackResources {
   Sync-ResourceTree -Source (Join-Path $Root 'tools/licenses') -Target (Join-Path $Root 'src/KoSpellCheck.VS2022/Resources/Licenses')
 }
 
+function Test-VsixContentTypes {
+  param(
+    [Parameter(Mandatory = $true)][string]$VsixPath
+  )
+
+  Add-Type -AssemblyName System.IO.Compression.FileSystem
+  $zip = [System.IO.Compression.ZipFile]::OpenRead($VsixPath)
+
+  try {
+    $contentTypesEntry = $zip.Entries | Where-Object { $_.FullName -eq '[Content_Types].xml' } | Select-Object -First 1
+    if (-not $contentTypesEntry) {
+      throw 'Generated VS2022 VSIX is invalid: [Content_Types].xml missing.'
+    }
+
+    $stream = $contentTypesEntry.Open()
+    $reader = [System.IO.StreamReader]::new($stream)
+    try {
+      [xml]$contentTypesXml = $reader.ReadToEnd()
+    }
+    finally {
+      $reader.Dispose()
+      $stream.Dispose()
+    }
+
+    $declaredExtensions = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+
+    foreach ($defaultNode in @($contentTypesXml.Types.Default)) {
+      $extension = [string]$defaultNode.Extension
+      if (-not [string]::IsNullOrWhiteSpace($extension)) {
+        $null = $declaredExtensions.Add($extension.TrimStart('.').ToLowerInvariant())
+      }
+    }
+
+    foreach ($overrideNode in @($contentTypesXml.Types.Override)) {
+      $partName = [string]$overrideNode.PartName
+      if ([string]::IsNullOrWhiteSpace($partName)) {
+        continue
+      }
+
+      $partFileName = [System.IO.Path]::GetFileName($partName.TrimStart('/'))
+      $overrideExtension = [System.IO.Path]::GetExtension($partFileName)
+      if (-not [string]::IsNullOrWhiteSpace($overrideExtension)) {
+        $null = $declaredExtensions.Add($overrideExtension.TrimStart('.').ToLowerInvariant())
+      }
+    }
+
+    $missingExtensions = New-Object System.Collections.Generic.List[string]
+    foreach ($entry in $zip.Entries) {
+      if ($entry.FullName.EndsWith('/')) {
+        continue
+      }
+
+      $entryExtension = [System.IO.Path]::GetExtension($entry.FullName).TrimStart('.').ToLowerInvariant()
+      if ([string]::IsNullOrWhiteSpace($entryExtension)) {
+        continue
+      }
+
+      if (-not $declaredExtensions.Contains($entryExtension)) {
+        $missingExtensions.Add($entryExtension)
+      }
+    }
+
+    $missingUnique = @($missingExtensions | Sort-Object -Unique)
+    if ($missingUnique.Count -gt 0) {
+      $formatted = ($missingUnique | ForEach-Object { ".$_" }) -join ', '
+      throw "Generated VS2022 VSIX is invalid: missing [Content_Types].xml mappings for extensions: $formatted"
+    }
+  }
+  finally {
+    $zip.Dispose()
+  }
+}
+
+function Test-VsixMarketplaceMarkers {
+  param(
+    [Parameter(Mandatory = $true)][string]$VsixPath
+  )
+
+  Add-Type -AssemblyName System.IO.Compression.FileSystem
+  $zip = [System.IO.Compression.ZipFile]::OpenRead($VsixPath)
+
+  try {
+    $entryNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($entry in $zip.Entries) {
+      $null = $entryNames.Add($entry.FullName)
+    }
+
+    $requiredEntries = @(
+      'manifest.json',
+      'catalog.json'
+    )
+
+    $missingEntries = @()
+    foreach ($required in $requiredEntries) {
+      if (-not $entryNames.Contains($required)) {
+        $missingEntries += $required
+      }
+    }
+
+    if ($missingEntries.Count -gt 0) {
+      $formatted = $missingEntries -join ', '
+      throw "Generated VS2022 VSIX is invalid for Visual Studio Marketplace: missing VSIX v3 marker files: $formatted"
+    }
+  }
+  finally {
+    $zip.Dispose()
+  }
+}
+
 Ensure-DictionaryAssets
 Sync-PackResources
 
@@ -149,30 +258,6 @@ $VsCodeAlias = Join-Path $Artifacts 'vscode/KoSpellCheck.VSCode.vsix'
 Copy-Item -LiteralPath $VsCodeOut -Destination $VsCodeAlias -Force
 
 Write-Host '[pack] vs2022 vsix'
-if (Test-Path $VsixStage) {
-  Remove-Item -Recurse -Force $VsixStage
-}
-New-Item -ItemType Directory -Force -Path $VsixStage | Out-Null
-
-Copy-Item -LiteralPath (Join-Path $Root 'src/KoSpellCheck.VS2022/source.extension.vsixmanifest') -Destination (Join-Path $VsixStage 'extension.vsixmanifest')
-Copy-Item -LiteralPath (Join-Path $Root 'src/KoSpellCheck.VS2022/[Content_Types].xml') -Destination (Join-Path $VsixStage '[Content_Types].xml')
-
-$VsBin = Join-Path $Root 'src/KoSpellCheck.VS2022/bin/Release/netstandard2.0'
-if (-not (Test-Path $VsBin)) {
-  throw "Expected build output missing: $VsBin"
-}
-
-Copy-Item (Join-Path $VsBin '*.dll') $VsixStage -Force
-$Pdbs = Get-ChildItem (Join-Path $VsBin '*.pdb') -ErrorAction SilentlyContinue
-if ($Pdbs) {
-  Copy-Item $Pdbs.FullName $VsixStage -Force
-}
-
-New-Item -ItemType Directory -Force -Path (Join-Path $VsixStage 'Resources/Dictionaries') | Out-Null
-New-Item -ItemType Directory -Force -Path (Join-Path $VsixStage 'Resources/Licenses') | Out-Null
-Copy-Item (Join-Path $Root 'src/KoSpellCheck.VS2022/Resources/Dictionaries/*') (Join-Path $VsixStage 'Resources/Dictionaries') -Recurse -Force
-Copy-Item (Join-Path $Root 'src/KoSpellCheck.VS2022/Resources/Licenses/*') (Join-Path $VsixStage 'Resources/Licenses') -Recurse -Force
-
 if (Test-Path $Vs2022VsixOut) {
   Remove-Item -Force $Vs2022VsixOut
 }
@@ -181,7 +266,20 @@ if (Test-Path $LegacyVs2022VsixOut) {
 }
 Get-ChildItem -Path (Join-Path $Artifacts 'vsix/KoSpellCheck.VS2022-*.vsix') -ErrorAction SilentlyContinue | Remove-Item -Force
 
-Compress-Archive -Path (Join-Path $VsixStage '*') -DestinationPath $Vs2022VsixOut
+$VsProject = Join-Path $Root 'src/KoSpellCheck.VS2022/KoSpellCheck.VS2022.csproj'
+dotnet msbuild $VsProject /t:CreateVsixContainer /p:Configuration=Release
+
+$GeneratedVsix = Get-ChildItem -Path (Join-Path $Root 'src/KoSpellCheck.VS2022/bin/Release') -Filter 'KoSpellCheck.VS2022.vsix' -Recurse |
+  Sort-Object -Property LastWriteTime -Descending |
+  Select-Object -First 1
+
+if (-not $GeneratedVsix) {
+  throw 'Expected VSSDK-generated VSIX not found under src/KoSpellCheck.VS2022/bin/Release.'
+}
+
+Copy-Item -LiteralPath $GeneratedVsix.FullName -Destination $Vs2022VsixOut -Force
+Test-VsixContentTypes -VsixPath $Vs2022VsixOut
+Test-VsixMarketplaceMarkers -VsixPath $Vs2022VsixOut
 Copy-Item -LiteralPath $Vs2022VsixOut -Destination $Vs2022VersionedVsixOut -Force
 
 Write-Host '[pack] completed'
