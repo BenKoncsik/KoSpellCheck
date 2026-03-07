@@ -17,6 +17,7 @@ artifacts/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+src/KoSpellCheck.VS2022/extension.vsixmanifest
 
 # Generated extension resource mirrors (copied from tools/ during pack)
 src/KoSpellCheck.VSCode/resources/dictionaries/

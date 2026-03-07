@@ -57,18 +57,52 @@ jobs:
           chmod +x scripts/pack.sh
           ./scripts/pack.sh
 
-      - name: Commit version bump and tag
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore(release): bump version to ${{ steps.version.outputs.version }}"
-          tagging_message: "v${{ steps.version.outputs.version }}"
-          push_options: "--force"
-          branch: ${{ github.ref }}
+      - name: Cleanup generated files
+        shell: bash
+        run: |
+          rm -f src/KoSpellCheck.VS2022/extension.vsixmanifest
+
+      - name: Commit release changes (if any)
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No tracked changes to commit."
+            exit 0
+          fi
+          git commit -m "chore(release): bump version to ${{ steps.version.outputs.version }}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
+
+      - name: Ensure release tag exists
+        id: ensure_tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="v${{ steps.version.outputs.version }}"
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "Tag already exists: $TAG"
+            echo "tag_name=$TAG" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git tag "$TAG"
+          if ! git push origin "refs/tags/$TAG"; then
+            if git ls-remote --tags origin "refs/tags/$TAG" | grep -q "refs/tags/$TAG$"; then
+              echo "Tag already exists on remote (race): $TAG"
+            else
+              echo "Failed to push tag $TAG" >&2
+              exit 1
+            fi
+          fi
+          echo "tag_name=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.version.outputs.version }}
+          tag_name: ${{ steps.ensure_tag.outputs.tag_name }}
           fail_on_unmatched_files: false
           files: |
             artifacts/vscode/KoSpellCheck.VSCode-${{ steps.version.outputs.version }}.vsix
