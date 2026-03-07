@@ -252,100 +252,117 @@ fi
 VSCODE_VSIX_ALIAS="$ARTIFACTS/vscode/KoSpellCheck.VSCode.vsix"
 cp "$VSCODE_VSIX_OUT" "$VSCODE_VSIX_ALIAS"
 
-echo "[pack] vs2022 vsix"
-rm -f "$VS2022_VSIX_OUT" "$LEGACY_VS2022_VSIX_OUT" "$ARTIFACTS"/vsix/KoSpellCheck.VS2022-*.vsix
-VSIX_MARKER_STRICT="false"
+VS2022_PACKED="false"
+if (
+  set -euo pipefail
+  echo "[pack] vs2022 vsix"
+  rm -f "$VS2022_VSIX_OUT" "$LEGACY_VS2022_VSIX_OUT" "$ARTIFACTS"/vsix/KoSpellCheck.VS2022-*.vsix
+  VSIX_MARKER_STRICT="false"
 
-if [[ "${OS:-}" == "Windows_NT" ]]; then
-  echo "[pack] using VSSDK CreateVsixContainer (Marketplace-compatible VSIX v3)"
-  dotnet msbuild "$ROOT/src/KoSpellCheck.VS2022/KoSpellCheck.VS2022.csproj" \
-    -t:CreateVsixContainer \
-    -p:Configuration=Release
-
-  GENERATED_VSIX="$(
-    {
-      find "$ROOT/src/KoSpellCheck.VS2022/bin/Release" -type f -name "KoSpellCheck.VS2022.vsix" -print0 \
-        | xargs -0 ls -1t 2>/dev/null || true
-    } \
-      | head -n 1
-  )"
-  if [[ -z "$GENERATED_VSIX" ]]; then
-    echo "[pack] expected VSSDK-generated VSIX not found under src/KoSpellCheck.VS2022/bin/Release" >&2
-    exit 1
-  fi
-  cp "$GENERATED_VSIX" "$VS2022_VSIX_OUT"
-  VSIX_MARKER_STRICT="true"
-else
-  VSIXUTIL="$HOME/.nuget/packages/microsoft.vssdk.buildtools/17.14.2120/tools/vssdk/bin/VsixUtil.exe"
-  VSSDK_SCHEMAS="$HOME/.nuget/packages/microsoft.vssdk.buildtools/17.14.2120/tools/vssdk/schemas"
-
-  if command -v mono >/dev/null 2>&1 && [[ -f "$VSIXUTIL" ]] && [[ -d "$VSSDK_SCHEMAS" ]]; then
-    echo "[pack] using Mono + VSSDK VsixUtil packaging (Marketplace-compatible VSIX v3)"
-
+  if [[ "${OS:-}" == "Windows_NT" ]]; then
+    echo "[pack] using VSSDK CreateVsixContainer (Marketplace-compatible VSIX v3)"
     dotnet msbuild "$ROOT/src/KoSpellCheck.VS2022/KoSpellCheck.VS2022.csproj" \
-      -t:Build \
-      -p:Configuration=Release \
-      -p:IntermediateOutputPath=obj/Release/netstandard2.0/ \
-      -p:OutDir=bin/Release/netstandard2.0/
+      -t:CreateVsixContainer \
+      -p:Configuration=Release
 
-    dotnet msbuild "$ROOT/src/KoSpellCheck.VS2022/KoSpellCheck.VS2022.csproj" \
-      -t:GenerateFileManifest \
-      -p:Configuration=Release \
-      -p:IntermediateOutputPath=obj/Release/netstandard2.0/ \
-      -p:OutDir=bin/Release/netstandard2.0/
-
-    ln -sfn "$VSSDK_SCHEMAS" "$ROOT/.tmp-vssdk-schemas"
-
-    pushd "$ROOT" >/dev/null
-    mono "$VSIXUTIL" package \
-      -sourceManifest src/KoSpellCheck.VS2022/obj/Release/netstandard2.0/extension.vsixmanifest \
-      -files src/KoSpellCheck.VS2022/obj/Release/netstandard2.0/files.json \
-      -outputPath artifacts/vsix/KoSpellCheck.VS2022.vsix \
-      -is64BitBuild \
-      -vsixSchemaPath .tmp-vssdk-schemas
-    popd >/dev/null
-    rm -f "$ROOT/.tmp-vssdk-schemas"
-
-    VSIX_MARKER_STRICT="true"
-  else
-    echo "[pack] non-Windows fallback packaging in use (manual ZIP)."
-    echo "[pack] warning: this VSIX may be rejected by Visual Studio Marketplace; install mono + Microsoft.VSSDK.BuildTools to enable VSIX v3 packaging."
-    rm -rf "$VSIX_STAGE"
-    mkdir -p "$VSIX_STAGE"
-    cp "$ROOT/src/KoSpellCheck.VS2022/source.extension.vsixmanifest" "$VSIX_STAGE/extension.vsixmanifest"
-    cp "$ROOT/src/KoSpellCheck.VS2022/[Content_Types].xml" "$VSIX_STAGE/[Content_Types].xml"
-    VS2022_BIN="$ROOT/src/KoSpellCheck.VS2022/bin/Release/netstandard2.0"
-    if [[ ! -d "$VS2022_BIN" ]]; then
-      echo "[pack] expected build output missing: $VS2022_BIN" >&2
+    GENERATED_VSIX="$(
+      {
+        find "$ROOT/src/KoSpellCheck.VS2022/bin/Release" -type f -name "KoSpellCheck.VS2022.vsix" -print0 \
+          | xargs -0 ls -1t 2>/dev/null || true
+      } \
+        | head -n 1
+    )"
+    if [[ -z "$GENERATED_VSIX" ]]; then
+      echo "[pack] expected VSSDK-generated VSIX not found under src/KoSpellCheck.VS2022/bin/Release" >&2
       exit 1
     fi
-    cp "$VS2022_BIN"/*.dll "$VSIX_STAGE/"
-    if compgen -G "$VS2022_BIN/*.pdb" > /dev/null; then
-      cp "$VS2022_BIN"/*.pdb "$VSIX_STAGE/"
-    fi
-    mkdir -p "$VSIX_STAGE/Resources/Dictionaries" "$VSIX_STAGE/Resources/Licenses"
-    cp -R "$ROOT/src/KoSpellCheck.VS2022/Resources/Dictionaries/." "$VSIX_STAGE/Resources/Dictionaries/"
-    cp -R "$ROOT/src/KoSpellCheck.VS2022/Resources/Licenses/." "$VSIX_STAGE/Resources/Licenses/"
-    pushd "$VSIX_STAGE" >/dev/null
-    # Use zip first; fallback to 7z or PowerShell to create the VSIX archive.
-    if command -v zip >/dev/null 2>&1; then
-      zip -rq "$VS2022_VSIX_OUT" .
-    elif command -v 7z >/dev/null 2>&1; then
-      7z a -tzip "$VS2022_VSIX_OUT" . >/dev/null
-    elif command -v powershell >/dev/null 2>&1; then
-      powershell -Command "Compress-Archive -Path * -DestinationPath \"${VS2022_VSIX_OUT}\" -Force"
+    cp "$GENERATED_VSIX" "$VS2022_VSIX_OUT"
+    VSIX_MARKER_STRICT="true"
+  else
+    VSIXUTIL="$HOME/.nuget/packages/microsoft.vssdk.buildtools/17.14.2120/tools/vssdk/bin/VsixUtil.exe"
+    VSSDK_SCHEMAS="$HOME/.nuget/packages/microsoft.vssdk.buildtools/17.14.2120/tools/vssdk/schemas"
+
+    if command -v mono >/dev/null 2>&1 && [[ -f "$VSIXUTIL" ]] && [[ -d "$VSSDK_SCHEMAS" ]]; then
+      echo "[pack] using Mono + VSSDK VsixUtil packaging (Marketplace-compatible VSIX v3)"
+
+      dotnet msbuild "$ROOT/src/KoSpellCheck.VS2022/KoSpellCheck.VS2022.csproj" \
+        -t:Build \
+        -p:Configuration=Release \
+        -p:IntermediateOutputPath=obj/Release/netstandard2.0/ \
+        -p:OutDir=bin/Release/netstandard2.0/
+
+      dotnet msbuild "$ROOT/src/KoSpellCheck.VS2022/KoSpellCheck.VS2022.csproj" \
+        -t:GenerateFileManifest \
+        -p:Configuration=Release \
+        -p:IntermediateOutputPath=obj/Release/netstandard2.0/ \
+        -p:OutDir=bin/Release/netstandard2.0/
+
+      ln -sfn "$VSSDK_SCHEMAS" "$ROOT/.tmp-vssdk-schemas"
+
+      pushd "$ROOT" >/dev/null
+      mono "$VSIXUTIL" package \
+        -sourceManifest src/KoSpellCheck.VS2022/obj/Release/netstandard2.0/extension.vsixmanifest \
+        -files src/KoSpellCheck.VS2022/obj/Release/netstandard2.0/files.json \
+        -outputPath artifacts/vsix/KoSpellCheck.VS2022.vsix \
+        -is64BitBuild \
+        -vsixSchemaPath .tmp-vssdk-schemas
+      popd >/dev/null
+      rm -f "$ROOT/.tmp-vssdk-schemas"
+
+      VSIX_MARKER_STRICT="true"
     else
-      # As a last resort, try the fallback `ditto` implementation defined above.
-      ditto -c -k --sequesterRsrc --keepParent . "$VS2022_VSIX_OUT"
+      echo "[pack] non-Windows fallback packaging in use (manual ZIP)."
+      echo "[pack] warning: this VSIX may be rejected by Visual Studio Marketplace; install mono + Microsoft.VSSDK.BuildTools to enable VSIX v3 packaging."
+      rm -rf "$VSIX_STAGE"
+      mkdir -p "$VSIX_STAGE"
+      cp "$ROOT/src/KoSpellCheck.VS2022/source.extension.vsixmanifest" "$VSIX_STAGE/extension.vsixmanifest"
+      cp "$ROOT/src/KoSpellCheck.VS2022/[Content_Types].xml" "$VSIX_STAGE/[Content_Types].xml"
+      VS2022_BIN="$ROOT/src/KoSpellCheck.VS2022/bin/Release/netstandard2.0"
+      if [[ ! -d "$VS2022_BIN" ]]; then
+        echo "[pack] expected build output missing: $VS2022_BIN" >&2
+        exit 1
+      fi
+      cp "$VS2022_BIN"/*.dll "$VSIX_STAGE/"
+      if compgen -G "$VS2022_BIN/*.pdb" > /dev/null; then
+        cp "$VS2022_BIN"/*.pdb "$VSIX_STAGE/"
+      fi
+      mkdir -p "$VSIX_STAGE/Resources/Dictionaries" "$VSIX_STAGE/Resources/Licenses"
+      cp -R "$ROOT/src/KoSpellCheck.VS2022/Resources/Dictionaries/." "$VSIX_STAGE/Resources/Dictionaries/"
+      cp -R "$ROOT/src/KoSpellCheck.VS2022/Resources/Licenses/." "$VSIX_STAGE/Resources/Licenses/"
+      pushd "$VSIX_STAGE" >/dev/null
+      # Use zip first; fallback to 7z or PowerShell to create the VSIX archive.
+      if command -v zip >/dev/null 2>&1; then
+        zip -rq "$VS2022_VSIX_OUT" .
+      elif command -v 7z >/dev/null 2>&1; then
+        7z a -tzip "$VS2022_VSIX_OUT" . >/dev/null
+      elif command -v powershell >/dev/null 2>&1; then
+        powershell -Command "Compress-Archive -Path * -DestinationPath \"${VS2022_VSIX_OUT}\" -Force"
+      else
+        # As a last resort, try the fallback `ditto` implementation defined above.
+        ditto -c -k --sequesterRsrc --keepParent . "$VS2022_VSIX_OUT"
+      fi
+      popd >/dev/null
     fi
-    popd >/dev/null
   fi
+
+  validate_vsix_content_types "$VS2022_VSIX_OUT"
+  validate_vsix_marketplace_markers "$VS2022_VSIX_OUT" "$VSIX_MARKER_STRICT"
+  cp "$VS2022_VSIX_OUT" "$VS2022_VSIX_VERSIONED_OUT"
+); then
+  VS2022_PACKED="true"
+elif [[ "${PACK_ALLOW_VS2022_FAILURE:-false}" == "true" ]]; then
+  echo "[pack] warning: VS2022 VSIX packaging failed, but continuing because PACK_ALLOW_VS2022_FAILURE=true." >&2
+  rm -f "$VS2022_VSIX_OUT" "$VS2022_VSIX_VERSIONED_OUT"
+else
+  echo "[pack] VS2022 VSIX packaging failed." >&2
+  exit 1
 fi
 
-validate_vsix_content_types "$VS2022_VSIX_OUT"
-validate_vsix_marketplace_markers "$VS2022_VSIX_OUT" "$VSIX_MARKER_STRICT"
-cp "$VS2022_VSIX_OUT" "$VS2022_VSIX_VERSIONED_OUT"
 echo "[pack] completed"
 echo "[pack] VS Code:  $VSCODE_VSIX_ALIAS"
-echo "[pack] VS2022:   $VS2022_VSIX_OUT"
-echo "[pack] VS2022 versioned: $VS2022_VSIX_VERSIONED_OUT"
+if [[ "$VS2022_PACKED" == "true" ]]; then
+  echo "[pack] VS2022:   $VS2022_VSIX_OUT"
+  echo "[pack] VS2022 versioned: $VS2022_VSIX_VERSIONED_OUT"
+else
+  echo "[pack] VS2022:   skipped"
+fi

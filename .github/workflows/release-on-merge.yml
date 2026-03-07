@@ -51,6 +51,8 @@ jobs:
 
       - name: Package extensions
         shell: bash
+        env:
+          PACK_ALLOW_VS2022_FAILURE: true
         run: |
           chmod +x scripts/pack.sh
           ./scripts/pack.sh
@@ -67,6 +69,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.version.outputs.version }}
+          fail_on_unmatched_files: false
           files: |
             artifacts/vscode/KoSpellCheck.VSCode-${{ steps.version.outputs.version }}.vsix
             artifacts/vsix/KoSpellCheck.VS2022-${{ steps.version.outputs.version }}.vsix
@@ -105,6 +108,7 @@ jobs:
 
       - name: Publish to Visual Studio Marketplace
         id: publish_vs2022
+        if: ${{ hashFiles(format('artifacts/vsix/KoSpellCheck.VS2022-{0}.vsix', steps.version.outputs.version)) != '' }}
         continue-on-error: true
         uses: cezarypiatek/VsixPublisherAction@1.1
         with:
