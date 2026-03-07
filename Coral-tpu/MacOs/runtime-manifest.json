@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "platform": "darwin",
   "arch": "arm64",
-  "runtimeVersion": "2026-03-07-macos-arm64-local-portable",
+  "runtimeVersion": "2026-03-07-macos-arm64-model-catalog-v3-native-tflitec",
   "files": [
     {
       "path": "lib/libedgetpu.1.dylib",
@@ -13,6 +13,65 @@
       "path": "lib/libusb-1.0.0.dylib",
       "url": "lib/libusb-1.0.0.dylib",
       "sha256": "bac4e966f9563e796c3b7655b52a9c476668934ee3e7160fddf27bf53d9e3c2d"
+    },
+    {
+      "path": "lib/libtensorflowlite_c.dylib",
+      "url": "lib/libtensorflowlite_c.dylib",
+      "sha256": "e77597b3710e43f58f1c37a9c8979a82901ed9f3a11de71e95f2154a4c9ce6d7"
+    },
+    {
+      "path": "bin/coral-typo-classifier",
+      "url": "bin/coral-typo-classifier",
+      "sha256": "1c568f9e6e3ba4560749cf75d7d733b172d0f978172f30faf2044714ffacf25f",
+      "executable": true
+    },
+    {
+      "path": "bin/coral-typo-classifier-native",
+      "url": "bin/coral-typo-classifier-native",
+      "sha256": "264413382b69cd0855553d20b74e3bf14b6b8f94b682c5cc49b1e39bce8c2956",
+      "executable": true
+    },
+    {
+      "path": "model/typo_classifier_edgetpu.tflite",
+      "url": "model/typo_classifier_edgetpu.tflite",
+      "sha256": "c18be1d6bc5add1745aa87e9aa1045d9b6c29e77bb42b028eb77425b8f226fd0"
+    },
+    {
+      "path": "Models/typo_classifier_edgetpu.tflite",
+      "url": "Models/typo_classifier_edgetpu.tflite",
+      "sha256": "c18be1d6bc5add1745aa87e9aa1045d9b6c29e77bb42b028eb77425b8f226fd0"
+    },
+    {
+      "path": "Models/typo_classifier_edgetpu.tflite.meta.json",
+      "url": "Models/typo_classifier_edgetpu.tflite.meta.json",
+      "sha256": "b4aa072fb6fe27e652b114b9609b21a974630044158b7681a784eb9e6feab8c9"
+    },
+    {
+      "path": "Models/typo_classifier_precision_edgetpu.tflite",
+      "url": "Models/typo_classifier_precision_edgetpu.tflite",
+      "sha256": "1388887c4d0f1bd42abe6482c35d8ed92adf7de9666d5a3455aec4febd902e0b"
+    },
+    {
+      "path": "Models/typo_classifier_precision_edgetpu.tflite.meta.json",
+      "url": "Models/typo_classifier_precision_edgetpu.tflite.meta.json",
+      "sha256": "bf0f80cf8603a94299484eff622e38ab92eef76316169179b8ec4d4badcd7a92"
+    }
+  ],
+  "models": [
+    {
+      "id": "typo_classifier_edgetpu_v1",
+      "displayName": "Typo Classifier - Balanced v1",
+      "path": "Models/typo_classifier_edgetpu.tflite",
+      "format": "edgetpu-tflite",
+      "description": "Alapértelmezett, kiegyensúlyozott typo gate modell.",
+      "default": true
+    },
+    {
+      "id": "typo_classifier_precision_edgetpu_v1",
+      "displayName": "Typo Classifier - Precision v1",
+      "path": "Models/typo_classifier_precision_edgetpu.tflite",
+      "format": "edgetpu-tflite",
+      "description": "Szűrősebb, kevesebb fals pozitívra hangolva."
     }
   ]
 }

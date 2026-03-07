@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "typo_classifier_edgetpu_v1",
+  "displayName": "Typo Classifier - Balanced v1",
+  "profile": {
+    "intercept": -0.08,
+    "distanceWeight": -1.02,
+    "similarityWeight": 2.75,
+    "identifierBoost": 0.24,
+    "literalBoost": 0.08,
+    "longTokenBoost": 0.09,
+    "shortTokenPenalty": -0.1,
+    "typoThreshold": 0.62,
+    "notTypoThreshold": 0.34
+  }
+}

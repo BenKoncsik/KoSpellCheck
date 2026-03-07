@@ -1,0 +1,13 @@
+TensorFlow Lite C prebuilt runtime (macOS arm64)
+
+Included artifact:
+- Coral-tpu/MacOs/lib/libtensorflowlite_c.dylib
+
+Upstream source used for packaging script default:
+- https://github.com/tphakala/tflite_c/releases
+- asset: tflite_c_v2.17.1_darwin_arm64.tar.gz
+
+Upstream project notes indicate binaries are built from TensorFlow Lite C API source.
+TensorFlow is licensed under Apache License 2.0.
+
+This file is an attribution note for runtime packaging provenance.

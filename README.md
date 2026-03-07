@@ -33,6 +33,9 @@ KoSpellCheck egy offline helyesírás-ellenőrző ökoszisztéma fejlesztői kö
 - Ha korábban elérhető volt, de kiesik, automatikus fallback történik.
 - Jelenlegi állapot: a runtime/model adapter pontok előkészítve vannak; tényleges Coral-backed modell csak akkor aktiválható, ha a runtime a buildben csomagolva elérhető.
 - Runtime forrás mappa a repóban: `Coral-tpu/MacOs`, `Coral-tpu/Linux`, `Coral-tpu/Windows` (manifest + fájlok).
+- macOS natív adapter váz forrás: `Coral-tpu/MacOs/native/coral_tpu_adapter.cc` (bináris: `Coral-tpu/MacOs/bin/coral-typo-classifier-native`).
+- Saját modell készítés CLI (txt alapján): `Coral-tpu/tools/koscoral-model-cli.mjs` (`./scripts/coral-model.sh` wrapper).
+- TensorFlow Lite C runtime sync script (macOS): `./scripts/sync-tflite-c-runtime.sh`.
 
 ## Repo szerkezet
 
@@ -59,6 +62,7 @@ KoSpellCheck egy offline helyesírás-ellenőrző ökoszisztéma fejlesztői kö
   - `tools/licenses/LICENSE_DICTIONARIES_EN.txt`
   - `tools/licenses/ATTRIBUTION_DICTIONARIES_EN_US.txt`
   - `tools/licenses/ATTRIBUTION_HU_MAGYARISPELL.txt`
+  - `tools/licenses/ATTRIBUTION_TFLITE_C_PREBUILT.txt`
   - `tools/licenses/LICENSE_MPL_2_0.txt`
   - `tools/licenses/LICENSE_LGPL_3_0.txt`
 

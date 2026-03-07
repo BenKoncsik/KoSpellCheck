@@ -1,0 +1,304 @@
+#!/usr/bin/env node
+'use strict';
+
+const fs = require('node:fs');
+const path = require('node:path');
+
+const DEFAULT_MODEL = {
+  id: 'runtime-default',
+  displayName: 'Runtime Default Typo Model',
+  profile: {
+    intercept: -0.1,
+    distanceWeight: -1.08,
+    similarityWeight: 2.7,
+    identifierBoost: 0.23,
+    literalBoost: 0.06,
+    longTokenBoost: 0.08,
+    shortTokenPenalty: -0.1,
+    typoThreshold: 0.62,
+    notTypoThreshold: 0.34
+  }
+};
+
+function parseArgs(argv) {
+  const result = {
+    health: false,
+    modelPath: undefined
+  };
+
+  for (let i = 0; i < argv.length; i += 1) {
+    const arg = argv[i];
+    if (arg === '--health') {
+      result.health = true;
+      continue;
+    }
+
+    if (arg === '--model' && i + 1 < argv.length) {
+      result.modelPath = argv[i + 1];
+      i += 1;
+      continue;
+    }
+  }
+
+  return result;
+}
+
+function readStdinUtf8() {
+  return fs.readFileSync(0, 'utf8');
+}
+
+function safeJsonParse(raw) {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return undefined;
+  }
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function sigmoid(value) {
+  return 1 / (1 + Math.exp(-value));
+}
+
+function normalize(value) {
+  return String(value || '')
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/\s+/g, '');
+}
+
+function looksDomainLike(token) {
+  if (!token || token.length <= 1) {
+    return true;
+  }
+
+  const hasDigit = /\d/u.test(token);
+  const hasUpper = /\p{Lu}/u.test(token);
+  const hasLower = /\p{Ll}/u.test(token);
+  if (token.includes('_') || token.includes('-')) {
+    return true;
+  }
+
+  if (hasDigit && hasUpper) {
+    return true;
+  }
+
+  return token.length >= 8 && hasUpper && hasLower && !token.includes(' ');
+}
+
+function boundedDamerauLevenshtein(left, right, maxDistance) {
+  if (Math.abs(left.length - right.length) > maxDistance) {
+    return maxDistance + 1;
+  }
+
+  const previousPrevious = new Array(right.length + 1).fill(0);
+  let previous = new Array(right.length + 1).fill(0);
+  let current = new Array(right.length + 1).fill(0);
+
+  for (let j = 0; j <= right.length; j += 1) {
+    previous[j] = j;
+  }
+
+  for (let i = 1; i <= left.length; i += 1) {
+    current[0] = i;
+    let minInRow = current[0];
+
+    for (let j = 1; j <= right.length; j += 1) {
+      const cost = left[i - 1] === right[j - 1] ? 0 : 1;
+      const deletion = previous[j] + 1;
+      const insertion = current[j - 1] + 1;
+      const substitution = previous[j - 1] + cost;
+
+      let value = Math.min(deletion, insertion, substitution);
+      if (
+        i > 1 &&
+        j > 1 &&
+        left[i - 1] === right[j - 2] &&
+        left[i - 2] === right[j - 1]
+      ) {
+        value = Math.min(value, previousPrevious[j - 2] + 1);
+      }
+
+      current[j] = value;
+      if (value < minInRow) {
+        minInRow = value;
+      }
+    }
+
+    if (minInRow > maxDistance) {
+      return maxDistance + 1;
+    }
+
+    for (let k = 0; k <= right.length; k += 1) {
+      previousPrevious[k] = previous[k];
+      previous[k] = current[k];
+    }
+
+    current = new Array(right.length + 1).fill(0);
+  }
+
+  return previous[right.length];
+}
+
+function modelMetaPath(modelPath) {
+  return `${modelPath}.meta.json`;
+}
+
+function parseNumber(value, fallback) {
+  const numberValue = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(numberValue)) {
+    return fallback;
+  }
+
+  return numberValue;
+}
+
+function loadModel(modelPath) {
+  if (!modelPath || !fs.existsSync(modelPath)) {
+    return DEFAULT_MODEL;
+  }
+
+  const metaPath = modelMetaPath(modelPath);
+  if (!fs.existsSync(metaPath)) {
+    return {
+      ...DEFAULT_MODEL,
+      id: path.basename(modelPath),
+      displayName: path.basename(modelPath)
+    };
+  }
+
+  const metaRaw = fs.readFileSync(metaPath, 'utf8');
+  const parsed = safeJsonParse(metaRaw);
+  if (!parsed || typeof parsed !== 'object') {
+    return {
+      ...DEFAULT_MODEL,
+      id: path.basename(modelPath),
+      displayName: path.basename(modelPath)
+    };
+  }
+
+  const profile = parsed.profile && typeof parsed.profile === 'object' ? parsed.profile : {};
+  const defaults = DEFAULT_MODEL.profile;
+
+  return {
+    id: typeof parsed.id === 'string' && parsed.id.trim().length > 0
+      ? parsed.id.trim()
+      : path.basename(modelPath),
+    displayName: typeof parsed.displayName === 'string' && parsed.displayName.trim().length > 0
+      ? parsed.displayName.trim()
+      : path.basename(modelPath),
+    profile: {
+      intercept: parseNumber(profile.intercept, defaults.intercept),
+      distanceWeight: parseNumber(profile.distanceWeight, defaults.distanceWeight),
+      similarityWeight: parseNumber(profile.similarityWeight, defaults.similarityWeight),
+      identifierBoost: parseNumber(profile.identifierBoost, defaults.identifierBoost),
+      literalBoost: parseNumber(profile.literalBoost, defaults.literalBoost),
+      longTokenBoost: parseNumber(profile.longTokenBoost, defaults.longTokenBoost),
+      shortTokenPenalty: parseNumber(profile.shortTokenPenalty, defaults.shortTokenPenalty),
+      typoThreshold: clamp(parseNumber(profile.typoThreshold, defaults.typoThreshold), 0.5, 0.98),
+      notTypoThreshold: clamp(parseNumber(profile.notTypoThreshold, defaults.notTypoThreshold), 0.02, 0.5)
+    }
+  };
+}
+
+function classify(payload) {
+  const token = String(payload.token || '').trim();
+  const suggestions = Array.isArray(payload.suggestions)
+    ? payload.suggestions.map((item) => String(item || '').trim()).filter(Boolean)
+    : [];
+  const topSuggestion = suggestions[0] || '';
+  const context = payload.context === 'literal' ? 'literal' : 'identifier';
+  const modelPath = typeof payload.modelPath === 'string' ? payload.modelPath : '';
+  const model = loadModel(modelPath);
+
+  const normalizedToken = normalize(token);
+  const normalizedSuggestion = normalize(topSuggestion);
+
+  if (!normalizedToken || normalizedToken.length < 2 || !normalizedSuggestion) {
+    return {
+      isTypo: false,
+      confidence: 0.5,
+      category: 'Uncertain',
+      backend: 'coral-process-model',
+      reason: `model=${model.id};insufficient-features`
+    };
+  }
+
+  const maxDistance = 4;
+  const distance = boundedDamerauLevenshtein(normalizedToken, normalizedSuggestion, maxDistance);
+  const maxLength = Math.max(normalizedToken.length, normalizedSuggestion.length);
+  const similarity = maxLength === 0 ? 1 : 1 - distance / maxLength;
+  const domainToken = looksDomainLike(token);
+
+  let score = model.profile.intercept;
+  score += model.profile.distanceWeight * distance;
+  score += model.profile.similarityWeight * similarity;
+  score += context === 'identifier' ? model.profile.identifierBoost : model.profile.literalBoost;
+  if (normalizedToken.length >= 9) {
+    score += model.profile.longTokenBoost;
+  }
+  if (normalizedToken.length <= 3) {
+    score += model.profile.shortTokenPenalty;
+  }
+  if (domainToken) {
+    score -= 0.14;
+  }
+
+  const typoProbability = clamp(sigmoid(score), 0, 1);
+  let category = 'Uncertain';
+  if (typoProbability >= model.profile.typoThreshold) {
+    category = context === 'identifier' ? 'IdentifierTypo' : 'TextTypo';
+  } else if (typoProbability <= model.profile.notTypoThreshold) {
+    category = 'NotTypo';
+  }
+
+  const confidence =
+    category === 'Uncertain'
+      ? clamp(0.45 + Math.abs(typoProbability - 0.5), 0.45, 0.69)
+      : clamp(Math.max(typoProbability, 1 - typoProbability), 0.55, 0.98);
+
+  return {
+    isTypo: category === 'IdentifierTypo' || category === 'TextTypo',
+    confidence,
+    category,
+    backend: 'coral-process-model',
+    reason: `model=${model.id};p=${typoProbability.toFixed(4)};distance=${distance};similarity=${similarity.toFixed(4)}`
+  };
+}
+
+function run() {
+  const args = parseArgs(process.argv.slice(2));
+  if (args.health) {
+    const model = loadModel(args.modelPath || '');
+    process.stdout.write(JSON.stringify({
+      backend: 'coral-process-model',
+      tpuInferenceActive: false,
+      detail: `model-adapter active (profile='${model.id}', tpu='inactive')`
+    }));
+    return;
+  }
+
+  const raw = readStdinUtf8().trim();
+  if (!raw) {
+    throw new Error('empty stdin payload');
+  }
+
+  const payload = safeJsonParse(raw);
+  if (!payload || typeof payload !== 'object') {
+    throw new Error('invalid JSON payload');
+  }
+
+  const output = classify(payload);
+  process.stdout.write(JSON.stringify(output));
+}
+
+try {
+  run();
+} catch (error) {
+  const message = error instanceof Error ? error.message : String(error);
+  process.stderr.write(`coral-typo-classifier error: ${message}\n`);
+  process.exitCode = 1;
+}

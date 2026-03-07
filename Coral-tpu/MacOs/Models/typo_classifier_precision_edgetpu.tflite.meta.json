@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "typo_classifier_precision_edgetpu_v1",
+  "displayName": "Typo Classifier - Precision v1",
+  "profile": {
+    "intercept": -0.16,
+    "distanceWeight": -1.18,
+    "similarityWeight": 3.15,
+    "identifierBoost": 0.17,
+    "literalBoost": 0.05,
+    "longTokenBoost": 0.03,
+    "shortTokenPenalty": -0.12,
+    "typoThreshold": 0.68,
+    "notTypoThreshold": 0.29
+  }
+}

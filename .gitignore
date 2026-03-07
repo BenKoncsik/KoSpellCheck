@@ -2,6 +2,9 @@
 **/bin/
 **/obj/
 artifacts/
+!Coral-tpu/MacOs/bin/
+!Coral-tpu/MacOs/bin/coral-typo-classifier
+!Coral-tpu/MacOs/bin/coral-typo-classifier-native
 
 # VS / VS Code
 .vs/
