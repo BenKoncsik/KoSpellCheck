@@ -6,7 +6,11 @@ import { loadConfig } from './config';
 import { SpellService } from './spellService';
 import { SpellIssue, TypoAccelerationMode, TypoClassificationResult } from './types';
 import { StyleLearningCoordinator } from './styleLearningCoordinator';
-import { LocalTypoAccelerationController } from './localTypoAcceleration';
+import {
+  InstalledRuntimeModel,
+  LocalTypoAccelerationController,
+  RuntimeDownloadProgress
+} from './localTypoAcceleration';
 
 const SOURCE = 'KoSpellCheck';
 
@@ -29,18 +33,209 @@ export function activate(context: vscode.ExtensionContext): void {
   const isDebugEnabled = (uri?: vscode.Uri): boolean =>
     vscode.workspace.getConfiguration('kospellcheck', uri).get<boolean>('debugLogging', false);
 
+  const isLocalTypoVerboseEnabled = (uri?: vscode.Uri): boolean =>
+    vscode.workspace
+      .getConfiguration('kospellcheck', uri)
+      .get<boolean>('localTypoAcceleration.verboseLogging', false);
+
   const log = (message: string, uri?: vscode.Uri, force = false): void => {
-    if (!force && !isDebugEnabled(uri)) {
+    const localTypoVerbose =
+      message.includes('local-typo-acceleration') && isLocalTypoVerboseEnabled(uri);
+    if (!force && !isDebugEnabled(uri) && !localTypoVerbose) {
       return;
     }
     output.appendLine(`[${new Date().toISOString()}] ${message}`);
   };
+  let runtimeStatusUpdateInFlight = false;
+  let lastRuntimeStatusText = '';
+  let availableModelsUpdateInFlight = false;
+  let lastAvailableModelsText = '';
+  let lastAvailableModelIds: string | undefined;
+  let manualDownloadToggleInProgress = false;
+
+  const updateRuntimeDownloadStatusSetting = async (statusText: string): Promise<void> => {
+    const normalized = statusText.trim();
+    if (!normalized || normalized === lastRuntimeStatusText) {
+      return;
+    }
+
+    lastRuntimeStatusText = normalized;
+    log(`local-typo-acceleration runtime-download status='${normalized}'`, undefined, false);
+
+    if (runtimeStatusUpdateInFlight) {
+      return;
+    }
+
+    runtimeStatusUpdateInFlight = true;
+    try {
+      await vscode.workspace
+        .getConfiguration('kospellcheck')
+        .update(
+          'localTypoAcceleration.runtimeDownloadStatus',
+          normalized,
+          vscode.ConfigurationTarget.Global
+        );
+    } catch (error) {
+      log(
+        `local-typo-acceleration runtime-download status update failed reason=${formatError(error)}`,
+        undefined,
+        true
+      );
+    } finally {
+      runtimeStatusUpdateInFlight = false;
+    }
+  };
+
+  const updateAvailableModelsSetting = async (models: InstalledRuntimeModel[]): Promise<void> => {
+    const sorted = models.slice().sort((left, right) => left.id.localeCompare(right.id));
+    const modelIds = sorted.map((item) => item.id).join('|');
+    if (lastAvailableModelIds !== undefined && modelIds === lastAvailableModelIds) {
+      return;
+    }
+
+    lastAvailableModelIds = modelIds;
+    const statusText = sorted.length === 0
+      ? 'Nincs telepített modell.'
+      : sorted
+          .map((item) =>
+            `${item.id}${item.isDefault ? ' [default]' : ''}${item.format ? ` (${item.format})` : ''}`
+          )
+          .join(', ');
+
+    if (statusText === lastAvailableModelsText) {
+      return;
+    }
+
+    lastAvailableModelsText = statusText;
+    log(`local-typo-acceleration models available='${statusText}'`, undefined, false);
+
+    if (availableModelsUpdateInFlight) {
+      return;
+    }
+
+    availableModelsUpdateInFlight = true;
+    try {
+      await vscode.workspace
+        .getConfiguration('kospellcheck')
+        .update(
+          'localTypoAcceleration.availableModels',
+          statusText,
+          vscode.ConfigurationTarget.Global
+        );
+    } catch (error) {
+      log(
+        `local-typo-acceleration availableModels update failed reason=${formatError(error)}`,
+        undefined,
+        true
+      );
+    } finally {
+      availableModelsUpdateInFlight = false;
+    }
+  };
+
+  const onRuntimeDownloadProgress = (progress: RuntimeDownloadProgress): void => {
+    const parts = [
+      `phase=${progress.phase}`,
+      `status='${progress.statusText}'`
+    ];
+    if (progress.filePath) {
+      parts.push(`file='${progress.filePath}'`);
+    }
+    if (typeof progress.fileIndex === 'number' && typeof progress.fileCount === 'number') {
+      parts.push(`item=${progress.fileIndex}/${progress.fileCount}`);
+    }
+    if (typeof progress.percent === 'number') {
+      parts.push(`percent=${progress.percent}`);
+    }
+
+    const force = progress.phase === 'failed';
+    log(`local-typo-acceleration runtime-download ${parts.join(' ')}`, undefined, force);
+    void updateRuntimeDownloadStatusSetting(progress.statusText);
+    if (progress.phase === 'success' || progress.phase === 'failed') {
+      void updateAvailableModelsSetting(typoAcceleration.listInstalledModels());
+    }
+  };
+
+  const tryTriggerManualRuntimeDownloadFromSetting = async (): Promise<void> => {
+    if (manualDownloadToggleInProgress) {
+      return;
+    }
+
+    const uri = vscode.window.activeTextEditor?.document.uri;
+    const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', uri);
+    const requested = workspaceConfig.get<boolean>(
+      'localTypoAcceleration.manualDownloadNow',
+      false
+    );
+    if (!requested) {
+      return;
+    }
+
+    manualDownloadToggleInProgress = true;
+    try {
+      const updates: Thenable<void>[] = [];
+      const inspected = workspaceConfig.inspect<boolean>('localTypoAcceleration.manualDownloadNow');
+      if (inspected?.workspaceFolderValue === true && uri) {
+        updates.push(
+          workspaceConfig.update(
+            'localTypoAcceleration.manualDownloadNow',
+            false,
+            vscode.ConfigurationTarget.WorkspaceFolder
+          )
+        );
+      }
+      if (inspected?.workspaceValue === true) {
+        updates.push(
+          workspaceConfig.update(
+            'localTypoAcceleration.manualDownloadNow',
+            false,
+            vscode.ConfigurationTarget.Workspace
+          )
+        );
+      }
+      if (inspected?.globalValue === true) {
+        updates.push(
+          workspaceConfig.update(
+            'localTypoAcceleration.manualDownloadNow',
+            false,
+            vscode.ConfigurationTarget.Global
+          )
+        );
+      }
+
+      if (updates.length === 0) {
+        const target =
+          uri && vscode.workspace.getWorkspaceFolder(uri)
+            ? vscode.ConfigurationTarget.Workspace
+            : vscode.ConfigurationTarget.Global;
+        updates.push(
+          workspaceConfig.update('localTypoAcceleration.manualDownloadNow', false, target)
+        );
+      }
+
+      await Promise.all(updates);
+    } catch (error) {
+      log(
+        `local-typo-acceleration manualDownloadNow reset failed reason=${formatError(error)}`,
+        uri,
+        true
+      );
+    } finally {
+      manualDownloadToggleInProgress = false;
+    }
+
+    await vscode.commands.executeCommand('kospellcheck.downloadLocalTypoRuntime');
+  };
+
   const styleLearning = new StyleLearningCoordinator(log);
   const typoAcceleration = new LocalTypoAccelerationController(
     context,
     context.extensionPath,
-    log
+    log,
+    onRuntimeDownloadProgress
   );
+  void updateRuntimeDownloadStatusSetting('Nincs aktív letöltés.');
+  void updateAvailableModelsSetting(typoAcceleration.listInstalledModels());
 
   log(`activate version=${context.extension.packageJSON.version ?? 'unknown'}`, undefined, true);
 
@@ -223,34 +418,75 @@ export function activate(context: vscode.ExtensionContext): void {
       const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', uri);
       const globalConfig = vscode.workspace.getConfiguration(undefined, uri);
       const mode = resolveTypoAccelerationModeFromSettings(workspaceConfig, globalConfig);
+      const selectedModel = resolveTypoAccelerationModelFromSettings(workspaceConfig, globalConfig);
       const availability = typoAcceleration.inspectAvailability(true);
+      const effectiveConfig = loadConfig();
+      effectiveConfig.localTypoAccelerationMode = mode;
+      effectiveConfig.localTypoAccelerationModel = selectedModel;
+      const backendStatus = typoAcceleration.inspectClassifierBackend(effectiveConfig);
+      const availableModels = typoAcceleration.listInstalledModels();
+      void updateAvailableModelsSetting(availableModels);
 
       const statusText = toHungarianAvailability(availability.status);
       const modeText = toHungarianMode(mode);
       const autoDownload = resolveTypoAccelerationAutoDownloadFromSettings(workspaceConfig, globalConfig);
+      const runtimeDownloadStatus = resolveRuntimeDownloadStatusFromSettings(workspaceConfig, globalConfig);
+      const modelLabel = backendStatus.selectedModelId
+        ? `${backendStatus.selectedModelDisplayName ?? backendStatus.selectedModelId} (${backendStatus.selectedModelId})`
+        : selectedModel;
+      const availableModelsText = availableModels.length > 0
+        ? availableModels
+            .map((item) => `${item.id}${item.isDefault ? ' [default]' : ''}`)
+            .join(', ')
+        : 'nincs telepített modell';
       const detail = availability.detail ? `\nRészlet: ${availability.detail}` : '';
+      const backendText = backendStatus.tpuInferenceActive
+        ? `Aktív (${backendStatus.backend})`
+        : `Nem aktív (${backendStatus.backend})`;
+      const backendDetail =
+        `\nKiválasztott modell: ${modelLabel}` +
+        `\nElérhető modellek: ${availableModelsText}` +
+        `\nTPU inferencia: ${backendText}` +
+        `\nBackend részlet: ${backendStatus.detail}`;
       const time = `\nEllenőrzés ideje: ${new Date(availability.detectedAtUtc).toLocaleString('hu-HU')}`;
       const message =
         `Helyi elírás-gyorsító állapot\n` +
         `Mód: ${modeText}\n` +
+        `Model beállítás: ${selectedModel}\n` +
         `Runtime auto-letöltés: ${autoDownload ? 'bekapcsolva' : 'kikapcsolva'}\n` +
+        `Runtime letöltési állapot: ${runtimeDownloadStatus}\n` +
         `Detektálás: ${statusText}` +
         detail +
+        backendDetail +
         time +
         '\n\nVáltás: off = kikapcsolva, auto = automatikus, on = mindig próbálja (ha nem elérhető, fallback).';
 
+      const selectDownloadNow = 'Runtime letöltés most';
+      const selectModel = 'Modell kiválasztás';
       const selectAuto = 'Mód: auto';
       const selectOn = 'Mód: on';
       const selectOff = 'Mód: off';
       const selection = await vscode.window.showInformationMessage(
         message,
         { modal: false },
+        selectDownloadNow,
+        selectModel,
         selectAuto,
         selectOn,
         selectOff
       );
 
       if (!selection) {
+        return;
+      }
+
+      if (selection === selectDownloadNow) {
+        await vscode.commands.executeCommand('kospellcheck.downloadLocalTypoRuntime');
+        return;
+      }
+
+      if (selection === selectModel) {
+        await vscode.commands.executeCommand('kospellcheck.pickLocalTypoModel');
         return;
       }
 
@@ -271,15 +507,64 @@ export function activate(context: vscode.ExtensionContext): void {
       const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', uri);
       const globalConfig = vscode.workspace.getConfiguration(undefined, uri);
       const mode = resolveTypoAccelerationModeFromSettings(workspaceConfig, globalConfig);
+      const model = resolveTypoAccelerationModelFromSettings(workspaceConfig, globalConfig);
       const autoDownload = resolveTypoAccelerationAutoDownloadFromSettings(workspaceConfig, globalConfig);
       const effectiveConfig = loadConfig();
       effectiveConfig.localTypoAccelerationMode = mode;
+      effectiveConfig.localTypoAccelerationModel = model;
       effectiveConfig.localTypoAccelerationAutoDownloadRuntime = autoDownload;
       effectiveConfig.localTypoAccelerationVerboseLogging = true;
+      void updateRuntimeDownloadStatusSetting('Runtime letöltés kézzel indítva...');
       typoAcceleration.requestRuntimeDownload(effectiveConfig, uri, true);
       vscode.window.showInformationMessage(
         'KoSpellCheck: runtime letöltés indítva (ha elérhető a platformhoz tartozó csomag a repo-ban).'
       );
+    }
+  );
+
+  const pickLocalTypoModelCommand = vscode.commands.registerCommand(
+    'kospellcheck.pickLocalTypoModel',
+    async () => {
+      const uri = vscode.window.activeTextEditor?.document.uri;
+      const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', uri);
+      const globalConfig = vscode.workspace.getConfiguration(undefined, uri);
+      const selected = resolveTypoAccelerationModelFromSettings(workspaceConfig, globalConfig);
+      const models = typoAcceleration.listInstalledModels();
+      void updateAvailableModelsSetting(models);
+
+      if (models.length === 0) {
+        vscode.window.showInformationMessage(
+          'KoSpellCheck: nincs telepített modell. Előbb töltsd le a runtime csomagot.'
+        );
+        return;
+      }
+
+      const quickPickItems: vscode.QuickPickItem[] = [
+        {
+          label: 'auto',
+          description: 'Alapértelmezett runtime modell',
+          detail: 'A runtime manifest default modelljét használja.'
+        },
+        ...models.map((item) => ({
+          label: item.id,
+          description: `${item.displayName}${item.isDefault ? ' [default]' : ''}`,
+          detail: `${item.relativePath}${item.format ? ` | ${item.format}` : ''}${item.description ? ` | ${item.description}` : ''}`
+        }))
+      ];
+
+      const picked = await vscode.window.showQuickPick(quickPickItems, {
+        title: 'KoSpellCheck: Local Typo model kiválasztása',
+        placeHolder: `Jelenlegi: ${selected}`
+      });
+      if (!picked) {
+        return;
+      }
+
+      const target = uri && vscode.workspace.getWorkspaceFolder(uri)
+        ? vscode.ConfigurationTarget.Workspace
+        : vscode.ConfigurationTarget.Global;
+      await workspaceConfig.update('localTypoAcceleration.model', picked.label, target);
+      vscode.window.showInformationMessage(`KoSpellCheck: localTypoAcceleration modell -> ${picked.label}`);
     }
   );
 
@@ -303,6 +588,7 @@ export function activate(context: vscode.ExtensionContext): void {
     const settingEnabled = workspaceConfig.get<boolean>('enabled', true);
     config.enabled = config.enabled && settingEnabled;
     config.localTypoAccelerationMode = resolveTypoAccelerationModeFromSettings(workspaceConfig, globalConfig);
+    config.localTypoAccelerationModel = resolveTypoAccelerationModelFromSettings(workspaceConfig, globalConfig);
     config.localTypoAccelerationShowDetectionPrompt = workspaceConfig.get<boolean>(
       'localTypoAcceleration.showDetectionPrompt',
       config.localTypoAccelerationShowDetectionPrompt
@@ -327,6 +613,8 @@ export function activate(context: vscode.ExtensionContext): void {
     if (typeof fallbackAutoDownload === 'boolean') {
       config.localTypoAccelerationAutoDownloadRuntime = fallbackAutoDownload;
     }
+
+    void updateAvailableModelsSetting(typoAcceleration.listInstalledModels());
 
     if (!config.enabled) {
       log(`skip check trigger=${trigger} reason=disabled`, document.uri);
@@ -426,6 +714,7 @@ export function activate(context: vscode.ExtensionContext): void {
     renameSymbolCommand,
     checkLocalTypoAccelerationStatusCommand,
     downloadLocalTypoRuntimeCommand,
+    pickLocalTypoModelCommand,
     vscode.workspace.onDidChangeTextDocument((event) => {
       const uri = event.document.uri.toString();
       const list = pendingFocusOffsets.get(uri) ?? [];
@@ -451,7 +740,26 @@ export function activate(context: vscode.ExtensionContext): void {
       styleLearning.scheduleAllWorkspaceRefreshes('workspace-folders-changed');
     }),
     vscode.workspace.onDidChangeConfiguration((event) => {
-      if (event.affectsConfiguration('kospellcheck')) {
+      if (event.affectsConfiguration('kospellcheck.localTypoAcceleration.manualDownloadNow')) {
+        void tryTriggerManualRuntimeDownloadFromSetting();
+      }
+
+      if (
+        event.affectsConfiguration('kospellcheck.localTypoAcceleration.model') ||
+        event.affectsConfiguration('kospellcheck.localTypoAcceleration.mode')
+      ) {
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+          scheduleDocumentCheck(editor.document, 'local-typo-config-changed');
+        }
+      }
+
+      if (
+        event.affectsConfiguration('kospellcheck') &&
+        !event.affectsConfiguration('kospellcheck.localTypoAcceleration.runtimeDownloadStatus') &&
+        !event.affectsConfiguration('kospellcheck.localTypoAcceleration.availableModels') &&
+        !event.affectsConfiguration('kospellcheck.localTypoAcceleration.manualDownloadNow')
+      ) {
         styleLearning.scheduleAllWorkspaceRefreshes('settings-changed', 250);
       }
     }),
@@ -475,6 +783,7 @@ export function activate(context: vscode.ExtensionContext): void {
     scheduleDocumentCheck(vscode.window.activeTextEditor.document, 'activation');
   }
 
+  void tryTriggerManualRuntimeDownloadFromSetting();
   styleLearning.scheduleAllWorkspaceRefreshes('startup');
 }
 
@@ -538,6 +847,23 @@ function resolveTypoAccelerationModeFromSettings(
   return 'auto';
 }
 
+function resolveTypoAccelerationModelFromSettings(
+  workspaceConfig: vscode.WorkspaceConfiguration,
+  globalConfig: vscode.WorkspaceConfiguration
+): string {
+  const workspaceModel = workspaceConfig.get<string>('localTypoAcceleration.model');
+  if (typeof workspaceModel === 'string' && workspaceModel.trim().length > 0) {
+    return workspaceModel.trim();
+  }
+
+  const compatibilityModel = globalConfig.get<string>('koSpellCheck.localTypoAcceleration.model');
+  if (typeof compatibilityModel === 'string' && compatibilityModel.trim().length > 0) {
+    return compatibilityModel.trim();
+  }
+
+  return 'auto';
+}
+
 function resolveTypoAccelerationAutoDownloadFromSettings(
   workspaceConfig: vscode.WorkspaceConfiguration,
   globalConfig: vscode.WorkspaceConfiguration
@@ -553,6 +879,23 @@ function resolveTypoAccelerationAutoDownloadFromSettings(
   }
 
   return true;
+}
+
+function resolveRuntimeDownloadStatusFromSettings(
+  workspaceConfig: vscode.WorkspaceConfiguration,
+  globalConfig: vscode.WorkspaceConfiguration
+): string {
+  const workspaceValue = workspaceConfig.get<string>('localTypoAcceleration.runtimeDownloadStatus');
+  if (typeof workspaceValue === 'string' && workspaceValue.trim().length > 0) {
+    return workspaceValue.trim();
+  }
+
+  const compatibilityValue = globalConfig.get<string>('koSpellCheck.localTypoAcceleration.runtimeDownloadStatus');
+  if (typeof compatibilityValue === 'string' && compatibilityValue.trim().length > 0) {
+    return compatibilityValue.trim();
+  }
+
+  return 'Nincs aktív letöltés';
 }
 
 function toHungarianMode(mode: TypoAccelerationMode): string {

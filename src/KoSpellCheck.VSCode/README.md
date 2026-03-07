@@ -29,9 +29,13 @@ Repository: https://github.com/BenKoncsik/KoSpellCheck
 ### Local Typo Acceleration settings (VS Code)
 
 - `kospellcheck.localTypoAcceleration.mode = off | auto | on`
+- `kospellcheck.localTypoAcceleration.model = auto | <modelId>`
 - `kospellcheck.localTypoAcceleration.showDetectionPrompt = true | false`
 - `kospellcheck.localTypoAcceleration.verboseLogging = false | true`
 - `kospellcheck.localTypoAcceleration.autoDownloadRuntime = true | false`
+- `kospellcheck.localTypoAcceleration.runtimeDownloadStatus` (információs, automatikusan frissül)
+- `kospellcheck.localTypoAcceleration.availableModels` (információs, automatikusan frissül)
+- `kospellcheck.localTypoAcceleration.manualDownloadNow = true | false` (kézi trigger)
 
 Notes:
 - Compatibility alias is also accepted: `koSpellCheck.localTypoAcceleration.*`
@@ -40,6 +44,19 @@ Notes:
 - If runtime/hardware is unavailable, KoSpellCheck keeps working with normal spell-check logic.
 - Állapot ellenőrzés parancsból: `KoSpellCheck: Local Typo Accelerator állapot` (Command Palette).
 - Manuális runtime letöltés parancsból: `KoSpellCheck: Local Typo Runtime letöltése`.
+- Modell kiválasztás parancsból: `KoSpellCheck: Local Typo model kiválasztása`.
+- A Settings oldalon a `runtimeDownloadStatus` mező mutatja, hol tart a letöltés.
+- A Settings oldalon az `availableModels` mező mutatja a telepített runtime modelleket.
+- A Settings oldalon a `manualDownloadNow=true` azonnal elindítja a letöltést, majd visszaáll `false`-ra.
+- A macOS runtime csomag modelleket a `Coral-tpu/MacOs/Models` mappából kínál (`runtime-manifest.json -> models`).
+- A runtime csomagnak tartalmaznia kell:
+  - `bin/coral-typo-classifier` vagy `bin/coral-typo-classifier-native`
+  - `lib/libtensorflowlite_c.dylib`
+  - legalább egy modellfájlt a manifest `models` listájából (például `Models/typo_classifier_edgetpu.tflite`)
+- Saját modell builder CLI:
+  - `./scripts/coral-model.sh build --input <text.txt> --model-id <id> --add-to-manifest`
+- TensorFlow Lite C runtime sync:
+  - `./scripts/sync-tflite-c-runtime.sh`
 - Runtime source path a repóban: `Coral-tpu/MacOs`, `Coral-tpu/Linux`, `Coral-tpu/Windows`.
 
 ## Magyar

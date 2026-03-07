@@ -1,10 +1,10 @@
 {
   "workspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples",
-  "fingerprint": "41844b66cd81f1fcba2c1d179bf92f1161198172b48b56726bf472d5940fdb6a",
+  "fingerprint": "8bc267cdd0a818e08f227d3d8955359576010862082b46a7fb6e28453e7c6276",
   "profile": {
     "workspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples",
-    "createdAtUtc": "2026-03-07T19:35:31.453Z",
-    "updatedAtUtc": "2026-03-07T19:35:31.469Z",
+    "createdAtUtc": "2026-03-07T20:45:46.012Z",
+    "updatedAtUtc": "2026-03-07T20:45:46.026Z",
     "tokenStats": {
       "workspaceroot": {
         "totalCount": 8,
@@ -24,21 +24,21 @@
         "preferredVariant": "createdAtUtc",
         "confidence": 0.6
       },
-      "2026-03-07t19": {
+      "2026-03-07t20": {
         "totalCount": 6,
         "variants": {
-          "2026-03-07T19": 4,
-          "2026-03-07t19": 2
+          "2026-03-07T20": 4,
+          "2026-03-07t20": 2
         },
-        "preferredVariant": "2026-03-07T19",
+        "preferredVariant": "2026-03-07T20",
         "confidence": 0.6
       },
-      "47.220z": {
+      "10.550z": {
         "totalCount": 1,
         "variants": {
-          "47.220Z": 1
+          "10.550Z": 1
         },
-        "preferredVariant": "47.220Z",
+        "preferredVariant": "10.550Z",
         "confidence": 0.1
       },
       "updatedatutc": {
@@ -50,12 +50,12 @@
         "preferredVariant": "updatedAtUtc",
         "confidence": 0.6
       },
-      "47.250z": {
+      "10.579z": {
         "totalCount": 1,
         "variants": {
-          "47.250Z": 1
+          "10.579Z": 1
         },
-        "preferredVariant": "47.250Z",
+        "preferredVariant": "10.579Z",
         "confidence": 0.1
       },
       "tokenstats": {
@@ -68,46 +68,343 @@
         "confidence": 0.6
       },
       "totalcount": {
-        "totalCount": 262,
+        "totalCount": 303,
         "variants": {
-          "totalCount": 260,
+          "totalCount": 301,
           "totalcount": 2
         },
         "preferredVariant": "totalCount",
         "confidence": 1
       },
       "preferredvariant": {
-        "totalCount": 262,
+        "totalCount": 303,
         "variants": {
-          "preferredVariant": 260,
+          "preferredVariant": 301,
           "preferredvariant": 2
         },
         "preferredVariant": "preferredVariant",
         "confidence": 1
       },
-      "27.485z": {
+      "12.547z": {
         "totalCount": 3,
         "variants": {
-          "27.485z": 1,
-          "27.485Z": 2
+          "12.547z": 1,
+          "12.547Z": 2
         },
-        "preferredVariant": "27.485Z",
+        "preferredVariant": "12.547Z",
         "confidence": 0.3
       },
-      "27.514z": {
+      "12.573z": {
         "totalCount": 3,
         "variants": {
-          "27.514z": 1,
-          "27.514Z": 2
+          "12.573z": 1,
+          "12.573Z": 2
         },
-        "preferredVariant": "27.514Z",
+        "preferredVariant": "12.573Z",
         "confidence": 0.3
+      },
+      "21.916z": {
+        "totalCount": 4,
+        "variants": {
+          "21.916z": 2,
+          "21.916Z": 2
+        },
+        "preferredVariant": "21.916z",
+        "confidence": 0.4
+      },
+      "21.928z": {
+        "totalCount": 4,
+        "variants": {
+          "21.928z": 2,
+          "21.928Z": 2
+        },
+        "preferredVariant": "21.928z",
+        "confidence": 0.4
+      },
+      "14.263z": {
+        "totalCount": 4,
+        "variants": {
+          "14.263z": 3,
+          "14.263Z": 1
+        },
+        "preferredVariant": "14.263z",
+        "confidence": 0.4
+      },
+      "14.273z": {
+        "totalCount": 4,
+        "variants": {
+          "14.273z": 3,
+          "14.273Z": 1
+        },
+        "preferredVariant": "14.273z",
+        "confidence": 0.4
+      },
+      "05.902z": {
+        "totalCount": 4,
+        "variants": {
+          "05.902z": 3,
+          "05.902Z": 1
+        },
+        "preferredVariant": "05.902z",
+        "confidence": 0.4
+      },
+      "05.918z": {
+        "totalCount": 4,
+        "variants": {
+          "05.918z": 3,
+          "05.918Z": 1
+        },
+        "preferredVariant": "05.918z",
+        "confidence": 0.4
+      },
+      "02.287z": {
+        "totalCount": 4,
+        "variants": {
+          "02.287z": 3,
+          "02.287Z": 1
+        },
+        "preferredVariant": "02.287z",
+        "confidence": 0.4
+      },
+      "02.299z": {
+        "totalCount": 4,
+        "variants": {
+          "02.299z": 3,
+          "02.299Z": 1
+        },
+        "preferredVariant": "02.299z",
+        "confidence": 0.4
+      },
+      "58.609z": {
+        "totalCount": 4,
+        "variants": {
+          "58.609z": 3,
+          "58.609Z": 1
+        },
+        "preferredVariant": "58.609z",
+        "confidence": 0.4
+      },
+      "58.629z": {
+        "totalCount": 4,
+        "variants": {
+          "58.629z": 3,
+          "58.629Z": 1
+        },
+        "preferredVariant": "58.629z",
+        "confidence": 0.4
+      },
+      "30.306z": {
+        "totalCount": 4,
+        "variants": {
+          "30.306z": 3,
+          "30.306Z": 1
+        },
+        "preferredVariant": "30.306z",
+        "confidence": 0.4
+      },
+      "30.318z": {
+        "totalCount": 4,
+        "variants": {
+          "30.318z": 3,
+          "30.318Z": 1
+        },
+        "preferredVariant": "30.318z",
+        "confidence": 0.4
+      },
+      "26.638z": {
+        "totalCount": 4,
+        "variants": {
+          "26.638z": 3,
+          "26.638Z": 1
+        },
+        "preferredVariant": "26.638z",
+        "confidence": 0.4
+      },
+      "26.663z": {
+        "totalCount": 4,
+        "variants": {
+          "26.663z": 3,
+          "26.663Z": 1
+        },
+        "preferredVariant": "26.663z",
+        "confidence": 0.4
+      },
+      "03.923z": {
+        "totalCount": 4,
+        "variants": {
+          "03.923z": 3,
+          "03.923Z": 1
+        },
+        "preferredVariant": "03.923z",
+        "confidence": 0.4
+      },
+      "04.810z": {
+        "totalCount": 4,
+        "variants": {
+          "04.810z": 3,
+          "04.810Z": 1
+        },
+        "preferredVariant": "04.810z",
+        "confidence": 0.4
+      },
+      "50.042z": {
+        "totalCount": 4,
+        "variants": {
+          "50.042z": 3,
+          "50.042Z": 1
+        },
+        "preferredVariant": "50.042z",
+        "confidence": 0.4
+      },
+      "50.071z": {
+        "totalCount": 4,
+        "variants": {
+          "50.071z": 3,
+          "50.071Z": 1
+        },
+        "preferredVariant": "50.071z",
+        "confidence": 0.4
+      },
+      "18.791z": {
+        "totalCount": 4,
+        "variants": {
+          "18.791z": 3,
+          "18.791Z": 1
+        },
+        "preferredVariant": "18.791z",
+        "confidence": 0.4
+      },
+      "18.818z": {
+        "totalCount": 4,
+        "variants": {
+          "18.818z": 3,
+          "18.818Z": 1
+        },
+        "preferredVariant": "18.818z",
+        "confidence": 0.4
+      },
+      "56.391z": {
+        "totalCount": 4,
+        "variants": {
+          "56.391z": 3,
+          "56.391Z": 1
+        },
+        "preferredVariant": "56.391z",
+        "confidence": 0.4
+      },
+      "56.407z": {
+        "totalCount": 4,
+        "variants": {
+          "56.407z": 3,
+          "56.407Z": 1
+        },
+        "preferredVariant": "56.407z",
+        "confidence": 0.4
+      },
+      "53.549z": {
+        "totalCount": 4,
+        "variants": {
+          "53.549z": 3,
+          "53.549Z": 1
+        },
+        "preferredVariant": "53.549z",
+        "confidence": 0.4
+      },
+      "53.574z": {
+        "totalCount": 4,
+        "variants": {
+          "53.574z": 3,
+          "53.574Z": 1
+        },
+        "preferredVariant": "53.574z",
+        "confidence": 0.4
+      },
+      "21.529z": {
+        "totalCount": 4,
+        "variants": {
+          "21.529z": 3,
+          "21.529Z": 1
+        },
+        "preferredVariant": "21.529z",
+        "confidence": 0.4
+      },
+      "21.572z": {
+        "totalCount": 4,
+        "variants": {
+          "21.572z": 3,
+          "21.572Z": 1
+        },
+        "preferredVariant": "21.572z",
+        "confidence": 0.4
+      },
+      "2026-03-07t19": {
+        "totalCount": 4,
+        "variants": {
+          "2026-03-07t19": 3,
+          "2026-03-07T19": 1
+        },
+        "preferredVariant": "2026-03-07t19",
+        "confidence": 0.4
+      },
+      "31.453z": {
+        "totalCount": 4,
+        "variants": {
+          "31.453z": 3,
+          "31.453Z": 1
+        },
+        "preferredVariant": "31.453z",
+        "confidence": 0.4
+      },
+      "31.469z": {
+        "totalCount": 4,
+        "variants": {
+          "31.469z": 3,
+          "31.469Z": 1
+        },
+        "preferredVariant": "31.469z",
+        "confidence": 0.4
+      },
+      "47.220z": {
+        "totalCount": 4,
+        "variants": {
+          "47.220z": 3,
+          "47.220Z": 1
+        },
+        "preferredVariant": "47.220z",
+        "confidence": 0.4
+      },
+      "47.250z": {
+        "totalCount": 4,
+        "variants": {
+          "47.250z": 3,
+          "47.250Z": 1
+        },
+        "preferredVariant": "47.250z",
+        "confidence": 0.4
+      },
+      "27.485z": {
+        "totalCount": 4,
+        "variants": {
+          "27.485z": 3,
+          "27.485Z": 1
+        },
+        "preferredVariant": "27.485z",
+        "confidence": 0.4
+      },
+      "27.514z": {
+        "totalCount": 4,
+        "variants": {
+          "27.514z": 3,
+          "27.514Z": 1
+        },
+        "preferredVariant": "27.514z",
+        "confidence": 0.4
       },
       "27.155z": {
         "totalCount": 4,
         "variants": {
-          "27.155z": 2,
-          "27.155Z": 2
+          "27.155z": 3,
+          "27.155Z": 1
         },
         "preferredVariant": "27.155z",
         "confidence": 0.4
@@ -115,8 +412,8 @@
       "27.303z": {
         "totalCount": 4,
         "variants": {
-          "27.303z": 2,
-          "27.303Z": 2
+          "27.303z": 3,
+          "27.303Z": 1
         },
         "preferredVariant": "27.303z",
         "confidence": 0.4
@@ -535,13 +832,13 @@
         "confidence": 0.8
       },
       "console.writeline": {
-        "totalCount": 7,
+        "totalCount": 8,
         "variants": {
           "console.writeline": 2,
-          "Console.WriteLine": 5
+          "Console.WriteLine": 6
         },
         "preferredVariant": "Console.WriteLine",
-        "confidence": 0.7
+        "confidence": 0.8
       },
       "tesztirasalmakorteview": {
         "totalCount": 6,
@@ -554,13 +851,13 @@
         "confidence": 0.6
       },
       "replaceviewmodel": {
-        "totalCount": 5,
+        "totalCount": 6,
         "variants": {
-          "ReplaceViewModel": 3,
+          "ReplaceViewModel": 4,
           "replaceviewmodel": 2
         },
         "preferredVariant": "ReplaceViewModel",
-        "confidence": 0.5
+        "confidence": 0.6
       },
       "rendermodelcard": {
         "totalCount": 5,
@@ -938,6 +1235,34 @@
         "preferredVariant": "verboseLogging",
         "confidence": 0.6
       },
+      "autodownloadruntime": {
+        "totalCount": 6,
+        "variants": {
+          "autoDownloadRuntime": 4,
+          "autodownloadruntime": 2
+        },
+        "preferredVariant": "autoDownloadRuntime",
+        "confidence": 0.6
+      },
+      "threadstart": {
+        "totalCount": 9,
+        "variants": {
+          "ThreadStart": 3,
+          "threadStart": 4,
+          "threadstart": 2
+        },
+        "preferredVariant": "threadStart",
+        "confidence": 0.9
+      },
+      "thread.start": {
+        "totalCount": 5,
+        "variants": {
+          "thread.start": 2,
+          "thread.Start": 3
+        },
+        "preferredVariant": "thread.Start",
+        "confidence": 0.5
+      },
       "workspace": {
         "totalCount": 9,
         "variants": {
@@ -1015,51 +1340,51 @@
         "confidence": 0.8
       },
       "total": {
-        "totalCount": 263,
+        "totalCount": 304,
         "variants": {
-          "total": 263
+          "total": 304
         },
         "preferredVariant": "total",
         "confidence": 1
       },
       "count": {
-        "totalCount": 264,
+        "totalCount": 305,
         "variants": {
-          "Count": 262,
+          "Count": 303,
           "count": 2
         },
         "preferredVariant": "Count",
         "confidence": 1
       },
       "variants": {
-        "totalCount": 261,
+        "totalCount": 302,
         "variants": {
-          "variants": 261
+          "variants": 302
         },
         "preferredVariant": "variants",
         "confidence": 1
       },
       "preferred": {
-        "totalCount": 263,
+        "totalCount": 304,
         "variants": {
-          "preferred": 263
+          "preferred": 304
         },
         "preferredVariant": "preferred",
         "confidence": 1
       },
       "variant": {
-        "totalCount": 264,
+        "totalCount": 305,
         "variants": {
-          "Variant": 262,
+          "Variant": 303,
           "variant": 2
         },
         "preferredVariant": "Variant",
         "confidence": 1
       },
       "confidence": {
-        "totalCount": 261,
+        "totalCount": 302,
         "variants": {
-          "confidence": 261
+          "confidence": 302
         },
         "preferredVariant": "confidence",
         "confidence": 1
@@ -1117,9 +1442,9 @@
         "confidence": 0.7
       },
       "model": {
-        "totalCount": 14,
+        "totalCount": 15,
         "variants": {
-          "Model": 11,
+          "Model": 12,
           "model": 3
         },
         "preferredVariant": "Model",
@@ -1194,10 +1519,10 @@
         "confidence": 1
       },
       "console": {
-        "totalCount": 11,
+        "totalCount": 12,
         "variants": {
           "console": 4,
-          "Console": 7
+          "Console": 8
         },
         "preferredVariant": "Console",
         "confidence": 1
@@ -1211,28 +1536,28 @@
         "confidence": 0.5
       },
       "write": {
-        "totalCount": 9,
+        "totalCount": 10,
         "variants": {
-          "Write": 7,
+          "Write": 8,
           "write": 2
         },
         "preferredVariant": "Write",
-        "confidence": 0.9
+        "confidence": 1
       },
       "line": {
-        "totalCount": 9,
+        "totalCount": 10,
         "variants": {
-          "Line": 7,
+          "Line": 8,
           "line": 2
         },
         "preferredVariant": "Line",
-        "confidence": 0.9
+        "confidence": 1
       },
       "teszt": {
-        "totalCount": 12,
+        "totalCount": 13,
         "variants": {
           "Teszt": 4,
-          "teszt": 8
+          "teszt": 9
         },
         "preferredVariant": "teszt",
         "confidence": 1
@@ -1266,22 +1591,22 @@
         "confidence": 0.8
       },
       "view": {
-        "totalCount": 10,
+        "totalCount": 11,
         "variants": {
-          "View": 8,
+          "View": 9,
           "view": 2
         },
         "preferredVariant": "View",
         "confidence": 1
       },
       "replace": {
-        "totalCount": 7,
+        "totalCount": 8,
         "variants": {
-          "Replace": 5,
+          "Replace": 6,
           "replace": 2
         },
         "preferredVariant": "Replace",
-        "confidence": 0.7
+        "confidence": 0.8
       },
       "render": {
         "totalCount": 6,
@@ -1630,12 +1955,12 @@
         "confidence": 1
       },
       "tezst": {
-        "totalCount": 9,
+        "totalCount": 11,
         "variants": {
-          "tezst": 9
+          "tezst": 11
         },
         "preferredVariant": "tezst",
-        "confidence": 0.9
+        "confidence": 1
       },
       "typo": {
         "totalCount": 8,
@@ -1698,10 +2023,54 @@
         "preferredVariant": "Logging",
         "confidence": 0.8
       },
-      "true": {
-        "totalCount": 12,
+      "auto": {
+        "totalCount": 9,
         "variants": {
-          "true": 12
+          "auto": 9
+        },
+        "preferredVariant": "auto",
+        "confidence": 0.9
+      },
+      "download": {
+        "totalCount": 8,
+        "variants": {
+          "Download": 6,
+          "download": 2
+        },
+        "preferredVariant": "Download",
+        "confidence": 0.8
+      },
+      "runtime": {
+        "totalCount": 8,
+        "variants": {
+          "Runtime": 6,
+          "runtime": 2
+        },
+        "preferredVariant": "Runtime",
+        "confidence": 0.8
+      },
+      "thread": {
+        "totalCount": 19,
+        "variants": {
+          "Thread": 6,
+          "thread": 13
+        },
+        "preferredVariant": "thread",
+        "confidence": 1
+      },
+      "start": {
+        "totalCount": 16,
+        "variants": {
+          "Start": 12,
+          "start": 4
+        },
+        "preferredVariant": "Start",
+        "confidence": 1
+      },
+      "true": {
+        "totalCount": 14,
+        "variants": {
+          "true": 14
         },
         "preferredVariant": "true",
         "confidence": 1
@@ -2007,14 +2376,6 @@
         "preferredVariant": "mode",
         "confidence": 0.5
       },
-      "auto": {
-        "totalCount": 5,
-        "variants": {
-          "auto": 5
-        },
-        "preferredVariant": "auto",
-        "confidence": 0.5
-      },
       "false": {
         "totalCount": 5,
         "variants": {
@@ -2038,6 +2399,14 @@
         },
         "preferredVariant": "teszt'",
         "confidence": 0.4
+      },
+      "new": {
+        "totalCount": 5,
+        "variants": {
+          "new": 5
+        },
+        "preferredVariant": "new",
+        "confidence": 0.5
       }
     }
   }

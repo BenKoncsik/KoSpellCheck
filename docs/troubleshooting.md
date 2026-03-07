@@ -44,4 +44,19 @@ Ez akkor történik, ha VS Code-ba nem a VS Code-os VSIX-et telepíted.
 - VS Code alatt kapcsold be a `kospellcheck.localTypoAcceleration.verboseLogging` opciót a részletes detektálási logokhoz.
 - VS Code Command Palette: `KoSpellCheck: Local Typo Accelerator állapot` parancs megmutatja az aktuális detektálási állapotot és engedi a `off/auto/on` váltást.
 - VS Code Command Palette: `KoSpellCheck: Local Typo Runtime letöltése` kézzel indítja a GitHub-os runtime letöltést.
+- VS Code Command Palette: `KoSpellCheck: Local Typo model kiválasztása` a telepített runtime modellek közül választ.
 - Ha az auto letöltés kell: `kospellcheck.localTypoAcceleration.autoDownloadRuntime = true`.
+- Letöltési állapot a Settingsben: `kospellcheck.localTypoAcceleration.runtimeDownloadStatus`.
+- Elérhető modellek a Settingsben: `kospellcheck.localTypoAcceleration.availableModels`.
+- Aktív modell: `kospellcheck.localTypoAcceleration.model` (`auto` vagy konkrét modell-ID).
+- Kézi letöltés Settingsből: `kospellcheck.localTypoAcceleration.manualDownloadNow = true` (a bővítmény visszaállítja `false`-ra indítás után).
+- Ellenőrizd az állapot parancsban a `TPU inferencia` sort:
+  - `Aktív` csak akkor lesz, ha az adapter ezt jelenti (`--health` alapján).
+  - ha az adapter vagy modell hiányzik, fallback `heuristic-local` backendre vált.
+  - ha `delegate init failed`, akkor tipikusan nincs aktív Coral USB eszköz vagy nincs hozzáférés.
+- Natív adapter health kézzel:
+  - `Coral-tpu/MacOs/bin/coral-typo-classifier-native --health --model Coral-tpu/MacOs/Models/typo_classifier_edgetpu.tflite`
+- TensorFlow Lite C runtime frissítése:
+  - `./scripts/sync-tflite-c-runtime.sh`
+- Saját modell építés:
+  - `./scripts/coral-model.sh build --input ./mintaszoveg.txt --model-id sajat_modell_v1 --add-to-manifest`

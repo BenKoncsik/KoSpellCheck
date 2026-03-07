@@ -35,6 +35,16 @@ interface RuntimeManifestFile {
   path: string;
   url: string;
   sha256?: string;
+  executable?: boolean;
+}
+
+interface RuntimeManifestModel {
+  id: string;
+  displayName?: string;
+  path: string;
+  format?: string;
+  description?: string;
+  default?: boolean;
 }
 
 interface RuntimeManifest {
@@ -43,6 +53,7 @@ interface RuntimeManifest {
   arch?: string;
   runtimeVersion?: string;
   files: RuntimeManifestFile[];
+  models?: RuntimeManifestModel[];
 }
 
 interface LocalRuntimeStatus {
@@ -51,21 +62,68 @@ interface LocalRuntimeStatus {
   runtimeRoot?: string;
 }
 
+export interface InstalledRuntimeModel {
+  id: string;
+  displayName: string;
+  description?: string;
+  format: string;
+  relativePath: string;
+  absolutePath: string;
+  isDefault: boolean;
+}
+
+export type RuntimeDownloadPhase = 'started' | 'manifest' | 'file' | 'success' | 'failed';
+
+export interface RuntimeDownloadProgress {
+  phase: RuntimeDownloadPhase;
+  statusText: string;
+  filePath?: string;
+  fileIndex?: number;
+  fileCount?: number;
+  percent?: number;
+}
+
+type RuntimeDownloadProgressHandler = (progress: RuntimeDownloadProgress) => void;
+
+export type TypoClassifierBackendKind = 'heuristic-local' | 'coral-process';
+
+export interface TypoClassifierBackendStatus {
+  backend: TypoClassifierBackendKind;
+  tpuInferenceActive: boolean;
+  detail: string;
+  runtimeRoot?: string;
+  adapterPath?: string;
+  modelPath?: string;
+  selectedModelId?: string;
+  selectedModelDisplayName?: string;
+  availableModels?: InstalledRuntimeModel[];
+}
+
 export class LocalTypoAccelerationController {
   private readonly runtimeProvisioner: GitHubRuntimeProvisioner;
   private readonly availabilityService: IAcceleratorAvailabilityService;
-  private readonly classifier: ILocalTypoClassifier;
+  private readonly heuristicClassifier: ILocalTypoClassifier;
   private readonly notificationService: IAcceleratorNotificationService;
   private readonly log: LogFn;
   private lastAvailability?: AcceleratorAvailabilityStatus;
   private lastPath?: 'off' | 'fallback' | 'accelerated';
   private lastStatusSignature?: string;
+  private lastBackendSignature?: string;
   private hadAcceleratorPath = false;
 
-  constructor(context: vscode.ExtensionContext, _extensionPath: string, log: LogFn) {
-    this.runtimeProvisioner = new GitHubRuntimeProvisioner(context, log);
+  constructor(
+    context: vscode.ExtensionContext,
+    _extensionPath: string,
+    log: LogFn,
+    onRuntimeDownloadProgress?: RuntimeDownloadProgressHandler
+  ) {
+    this.runtimeProvisioner = new GitHubRuntimeProvisioner(
+      context,
+      log,
+      onRuntimeDownloadProgress
+    );
     this.availabilityService = new CoralAcceleratorAvailabilityService(this.runtimeProvisioner);
-    this.classifier = new HeuristicLocalTypoClassifier();
+    this.heuristicClassifier = new HeuristicLocalTypoClassifier();
     this.notificationService = new VscodeAcceleratorNotificationService(context, log);
     this.log = log;
   }
@@ -80,6 +138,14 @@ export class LocalTypoAccelerationController {
 
   public inspectAvailability(forceRefresh = false): AcceleratorAvailabilityResult {
     return this.availabilityService.getAvailability(forceRefresh);
+  }
+
+  public inspectClassifierBackend(config?: KoSpellCheckConfig): TypoClassifierBackendStatus {
+    return this.resolveClassifierBackendStatus(config);
+  }
+
+  public listInstalledModels(): InstalledRuntimeModel[] {
+    return this.runtimeProvisioner.listInstalledModels();
   }
 
   public applyToIssues(
@@ -147,11 +213,19 @@ export class LocalTypoAccelerationController {
       return issues;
     }
 
-    this.log(
-      'local-typo-acceleration coral-communication status=active typo-classifier-backend=heuristic-local (Coral model adapter pending integration)',
-      document.uri,
-      false
-    );
+    const backendStatus = this.resolveClassifierBackendStatus(config);
+    this.logBackendStatus(backendStatus, config, document.uri);
+
+    if (backendStatus.backend !== 'coral-process') {
+      this.hadAcceleratorPath = false;
+      this.logPath('fallback', config, document.uri);
+      this.trace(
+        `local-typo-acceleration backend fallback active reason='${backendStatus.detail}'`,
+        config,
+        document.uri
+      );
+      return this.classifyIssues(document, issues, resolveContext, config, backendStatus);
+    }
 
     if (config.localTypoAccelerationMode === 'auto') {
       this.notificationService.notifyAutoModeDetection(
@@ -162,14 +236,15 @@ export class LocalTypoAccelerationController {
 
     this.hadAcceleratorPath = true;
     this.logPath('accelerated', config, document.uri);
-    return this.classifyIssues(document, issues, resolveContext, config);
+    return this.classifyIssues(document, issues, resolveContext, config, backendStatus);
   }
 
   private classifyIssues(
     document: vscode.TextDocument,
     issues: SpellIssue[],
     resolveContext: ContextResolver,
-    config: KoSpellCheckConfig
+    config: KoSpellCheckConfig,
+    backendStatus: TypoClassifierBackendStatus
   ): SpellIssue[] {
     const output: SpellIssue[] = [];
     let suppressed = 0;
@@ -187,11 +262,17 @@ export class LocalTypoAccelerationController {
         document.positionAt(issue.end)
       );
       const context = resolveContext(range);
-      const result = this.classifier.classify({
+      const request: TypoClassificationRequest = {
         token: issue.token,
         suggestions: issue.suggestions,
         context
-      });
+      };
+      const result = this.classifyRequestWithBestAvailableBackend(
+        request,
+        backendStatus,
+        config,
+        document.uri
+      );
 
       this.trace(
         `local-typo-acceleration classify token='${issue.token}' category=${result.category} confidence=${result.confidence.toFixed(2)} backend=${result.backend}`,
@@ -285,6 +366,330 @@ export class LocalTypoAccelerationController {
 
     this.log(message, uri);
   }
+
+  private resolveClassifierBackendStatus(config?: KoSpellCheckConfig): TypoClassifierBackendStatus {
+    const runtimeStatus = this.runtimeProvisioner.getRuntimeStatus();
+    if (!runtimeStatus.present || !runtimeStatus.runtimeRoot) {
+      return {
+        backend: 'heuristic-local',
+        tpuInferenceActive: false,
+        detail: `runtime missing: ${runtimeStatus.detail}`,
+        runtimeRoot: runtimeStatus.runtimeRoot
+      };
+    }
+
+    const availableModels = this.runtimeProvisioner.listInstalledModels();
+    if (availableModels.length === 0) {
+      return {
+        backend: 'heuristic-local',
+        tpuInferenceActive: false,
+        detail: `nem található használható modell a runtime-ban (${runtimeStatus.runtimeRoot})`,
+        runtimeRoot: runtimeStatus.runtimeRoot,
+        availableModels
+      };
+    }
+
+    const requestedModelId = sanitizeModelSelection(config?.localTypoAccelerationModel);
+    const selectedModel = chooseRuntimeModel(availableModels, requestedModelId);
+    if (!selectedModel) {
+      return {
+        backend: 'heuristic-local',
+        tpuInferenceActive: false,
+        detail: `nincs választható modell (${requestedModelId ?? 'auto'})`,
+        runtimeRoot: runtimeStatus.runtimeRoot,
+        availableModels
+      };
+    }
+
+    const adapterPath = this.pickAdapterPath(runtimeStatus.runtimeRoot);
+    if (!adapterPath) {
+      return {
+        backend: 'heuristic-local',
+        tpuInferenceActive: false,
+        detail:
+          `Coral adapter missing (` +
+          `${path.join(runtimeStatus.runtimeRoot, 'bin', 'coral-typo-classifier-native')} | ` +
+          `${path.join(runtimeStatus.runtimeRoot, 'bin', 'coral-typo-classifier')})`,
+        runtimeRoot: runtimeStatus.runtimeRoot,
+        selectedModelId: selectedModel.id,
+        selectedModelDisplayName: selectedModel.displayName,
+        modelPath: selectedModel.absolutePath,
+        availableModels
+      };
+    }
+
+    if (!isExecutableFile(adapterPath)) {
+      return {
+        backend: 'heuristic-local',
+        tpuInferenceActive: false,
+        detail: `Coral adapter nem futtatható (${adapterPath})`,
+        runtimeRoot: runtimeStatus.runtimeRoot,
+        adapterPath,
+        selectedModelId: selectedModel.id,
+        selectedModelDisplayName: selectedModel.displayName,
+        modelPath: selectedModel.absolutePath,
+        availableModels
+      };
+    }
+
+    if (!fs.existsSync(selectedModel.absolutePath)) {
+      return {
+        backend: 'heuristic-local',
+        tpuInferenceActive: false,
+        detail: `Kiválasztott modell hiányzik (${selectedModel.absolutePath})`,
+        runtimeRoot: runtimeStatus.runtimeRoot,
+        adapterPath,
+        modelPath: selectedModel.absolutePath,
+        selectedModelId: selectedModel.id,
+        selectedModelDisplayName: selectedModel.displayName,
+        availableModels
+      };
+    }
+
+    const health = this.inspectCoralAdapterHealth(
+      adapterPath,
+      runtimeStatus.runtimeRoot,
+      selectedModel.absolutePath,
+      config
+    );
+
+    return {
+      backend: 'coral-process',
+      tpuInferenceActive: health.tpuInferenceActive,
+      detail: health.detail,
+      runtimeRoot: runtimeStatus.runtimeRoot,
+      adapterPath,
+      modelPath: selectedModel.absolutePath,
+      selectedModelId: selectedModel.id,
+      selectedModelDisplayName: selectedModel.displayName,
+      availableModels
+    };
+  }
+
+  private pickAdapterPath(runtimeRoot: string): string | undefined {
+    const candidates = [
+      path.join(runtimeRoot, 'bin', 'coral-typo-classifier-native'),
+      path.join(runtimeRoot, 'bin', 'coral-typo-classifier')
+    ];
+    return candidates.find((candidate) => fs.existsSync(candidate));
+  }
+
+  private logBackendStatus(
+    backendStatus: TypoClassifierBackendStatus,
+    config: KoSpellCheckConfig,
+    uri: vscode.Uri
+  ): void {
+    const signature = [
+      backendStatus.backend,
+      backendStatus.tpuInferenceActive ? '1' : '0',
+      backendStatus.detail
+    ].join('|');
+    if (signature === this.lastBackendSignature && !config.localTypoAccelerationVerboseLogging) {
+      return;
+    }
+
+    this.lastBackendSignature = signature;
+    this.log(
+      `local-typo-acceleration coral-runtime status=active tpu-inference=${backendStatus.tpuInferenceActive ? 'active' : 'inactive'} typo-classifier-backend=${backendStatus.backend} model=${backendStatus.selectedModelId ?? 'n/a'} detail=${backendStatus.detail}`,
+      uri,
+      false
+    );
+  }
+
+  private inspectCoralAdapterHealth(
+    adapterPath: string,
+    runtimeRoot: string,
+    modelPath: string,
+    config?: KoSpellCheckConfig
+  ): { tpuInferenceActive: boolean; detail: string } {
+    const result = spawnSync(adapterPath, ['--health', '--model', modelPath], {
+      cwd: runtimeRoot,
+      encoding: 'utf8',
+      timeout: 1500,
+      maxBuffer: 1024 * 1024
+    });
+
+    if (result.error) {
+      const reason = `adapter health check spawn error: ${formatError(result.error)}`;
+      if (config?.localTypoAccelerationVerboseLogging) {
+        this.log(`local-typo-acceleration ${reason}`, undefined, false);
+      }
+      return {
+        tpuInferenceActive: false,
+        detail: `${reason}; model='${modelPath}'`
+      };
+    }
+
+    if (result.status !== 0) {
+      return {
+        tpuInferenceActive: false,
+        detail: `adapter health check failed (status=${result.status}) stderr='${(result.stderr ?? '').trim()}' model='${modelPath}'`
+      };
+    }
+
+    const stdout = (result.stdout ?? '').trim();
+    if (!stdout) {
+      return {
+        tpuInferenceActive: false,
+        detail: `adapter health check returned empty output; model='${modelPath}'`
+      };
+    }
+
+    try {
+      const parsed = JSON.parse(stdout) as Record<string, unknown>;
+      const tpuInferenceActive = Boolean(parsed.tpuInferenceActive);
+      const adapterDetail = typeof parsed.detail === 'string' && parsed.detail.trim().length > 0
+        ? parsed.detail.trim()
+        : 'adapter health check ok';
+      const backend = typeof parsed.backend === 'string' && parsed.backend.trim().length > 0
+        ? parsed.backend.trim()
+        : 'coral-process';
+      return {
+        tpuInferenceActive,
+        detail:
+          `adapter='${adapterPath}', model='${modelPath}', backend='${backend}', ` +
+          `tpuInferenceActive=${tpuInferenceActive ? 'true' : 'false'}, detail='${adapterDetail}'`
+      };
+    } catch (error) {
+      return {
+        tpuInferenceActive: false,
+        detail:
+          `adapter health JSON parse failed: ${formatError(error)} stdout='${stdout.slice(0, 220)}' model='${modelPath}'`
+      };
+    }
+  }
+
+  private classifyRequestWithBestAvailableBackend(
+    request: TypoClassificationRequest,
+    backendStatus: TypoClassifierBackendStatus,
+    config: KoSpellCheckConfig,
+    uri: vscode.Uri
+  ): TypoClassificationResult {
+    if (backendStatus.backend === 'coral-process') {
+      const result = this.tryClassifyWithCoralProcess(request, backendStatus, config, uri);
+      if (result) {
+        return result;
+      }
+    }
+
+    return this.heuristicClassifier.classify(request);
+  }
+
+  private tryClassifyWithCoralProcess(
+    request: TypoClassificationRequest,
+    backendStatus: TypoClassifierBackendStatus,
+    config: KoSpellCheckConfig,
+    uri: vscode.Uri
+  ): TypoClassificationResult | undefined {
+    if (!backendStatus.adapterPath || !backendStatus.modelPath || !backendStatus.runtimeRoot) {
+      return undefined;
+    }
+
+    const payload = JSON.stringify({
+      token: request.token,
+      suggestions: request.suggestions.map((item) => item.replacement),
+      context: request.context,
+      modelPath: backendStatus.modelPath,
+      modelId: backendStatus.selectedModelId ?? 'auto'
+    });
+
+    const adapterCandidates = resolveAdapterCandidates(
+      backendStatus.adapterPath,
+      backendStatus.runtimeRoot
+    );
+    for (const adapterPath of adapterCandidates) {
+      const result = this.tryClassifyWithAdapterExecutable(
+        adapterPath,
+        backendStatus.runtimeRoot,
+        payload,
+        config,
+        uri
+      );
+      if (result) {
+        return result;
+      }
+    }
+
+    return undefined;
+  }
+
+  private tryClassifyWithAdapterExecutable(
+    adapterPath: string,
+    runtimeRoot: string,
+    payload: string,
+    config: KoSpellCheckConfig,
+    uri: vscode.Uri
+  ): TypoClassificationResult | undefined {
+    const result = spawnSync(adapterPath, [], {
+      cwd: runtimeRoot,
+      encoding: 'utf8',
+      timeout: 1500,
+      maxBuffer: 1024 * 1024,
+      input: payload
+    });
+
+    if (result.error) {
+      this.trace(
+        `local-typo-acceleration coral-process adapter='${adapterPath}' fallback reason=spawn-error ${formatError(result.error)}`,
+        config,
+        uri
+      );
+      return undefined;
+    }
+
+    if (result.status !== 0) {
+      this.trace(
+        `local-typo-acceleration coral-process adapter='${adapterPath}' fallback reason=non-zero-exit status=${result.status} stderr='${(result.stderr ?? '').trim()}'`,
+        config,
+        uri
+      );
+      return undefined;
+    }
+
+    const stdout = (result.stdout ?? '').trim();
+    if (!stdout) {
+      this.trace(
+        `local-typo-acceleration coral-process adapter='${adapterPath}' fallback reason=empty-stdout`,
+        config,
+        uri
+      );
+      return undefined;
+    }
+
+    try {
+      const parsed = JSON.parse(stdout) as Record<string, unknown>;
+      const category = parseTypoCategory(parsed.category);
+      if (!category) {
+        this.trace(
+          `local-typo-acceleration coral-process adapter='${adapterPath}' fallback reason=invalid-category raw='${String(parsed.category ?? '')}'`,
+          config,
+          uri
+        );
+        return undefined;
+      }
+
+      const isTypo = typeof parsed.isTypo === 'boolean' ? parsed.isTypo : category !== 'NotTypo';
+      const confidence = clampNumber(parsed.confidence, 0, 1, 0.5);
+      const reason = typeof parsed.reason === 'string' ? parsed.reason : 'coral-process';
+
+      return {
+        isTypo,
+        confidence,
+        category,
+        backend: typeof parsed.backend === 'string' && parsed.backend.length > 0
+          ? parsed.backend
+          : 'coral-process',
+        reason
+      };
+    } catch (error) {
+      this.trace(
+        `local-typo-acceleration coral-process adapter='${adapterPath}' fallback reason=parse-error ${formatError(error)} stdout='${stdout.slice(0, 220)}'`,
+        config,
+        uri
+      );
+      return undefined;
+    }
+  }
 }
 
 class CoralAcceleratorAvailabilityService implements IAcceleratorAvailabilityService {
@@ -369,13 +774,19 @@ class GitHubRuntimeProvisioner {
   private readonly log: LogFn;
   private readonly installRoot: string;
   private readonly runtimeBaseUrl: string;
+  private readonly onProgress?: RuntimeDownloadProgressHandler;
   private downloadInFlight?: Promise<void>;
   private lastDownloadAttemptAt = 0;
 
-  constructor(context: vscode.ExtensionContext, log: LogFn) {
+  constructor(
+    context: vscode.ExtensionContext,
+    log: LogFn,
+    onProgress?: RuntimeDownloadProgressHandler
+  ) {
     this.log = log;
     this.installRoot = path.join(context.globalStorageUri.fsPath, 'coral-tpu-runtime');
     this.runtimeBaseUrl = DEFAULT_RUNTIME_BASE_URL;
+    this.onProgress = onProgress;
   }
 
   public getRuntimeStatus(): LocalRuntimeStatus {
@@ -388,6 +799,50 @@ class GitHubRuntimeProvisioner {
     }
 
     return this.getRuntimeStatusFor(folder, process.arch);
+  }
+
+  public listInstalledModels(): InstalledRuntimeModel[] {
+    const folder = platformFolderForCurrentPlatform();
+    if (!folder) {
+      return [];
+    }
+
+    const runtimeStatus = this.getRuntimeStatusFor(folder, process.arch);
+    if (!runtimeStatus.present || !runtimeStatus.runtimeRoot) {
+      return [];
+    }
+
+    let manifest: RuntimeManifest | undefined;
+    try {
+      manifest = this.readInstalledManifest(runtimeStatus.runtimeRoot);
+    } catch {
+      return [];
+    }
+    if (!manifest) {
+      return [];
+    }
+
+    const fromManifest = modelsFromManifest(manifest, runtimeStatus.runtimeRoot);
+    if (fromManifest.length > 0) {
+      return fromManifest;
+    }
+
+    const fallbackPath = path.join(runtimeStatus.runtimeRoot, 'model', 'typo_classifier_edgetpu.tflite');
+    if (!fs.existsSync(fallbackPath)) {
+      return [];
+    }
+
+    return [
+      {
+        id: 'typo_classifier_edgetpu',
+        displayName: 'Default EdgeTPU Typo Model',
+        description: 'Legacy fallback model entry from model/typo_classifier_edgetpu.tflite',
+        format: 'edgetpu-tflite',
+        relativePath: 'model/typo_classifier_edgetpu.tflite',
+        absolutePath: fallbackPath,
+        isDefault: true
+      }
+    ];
   }
 
   public ensureRuntimeDownloaded(
@@ -421,6 +876,10 @@ class GitHubRuntimeProvisioner {
     }
 
     this.lastDownloadAttemptAt = now;
+    this.emitProgress({
+      phase: 'started',
+      statusText: `Runtime letöltés indul (${folder}/${process.arch})`
+    });
     this.log(
       `local-typo-acceleration runtime-download start source=${this.runtimeBaseUrl}/${folder}/runtime-manifest.json platform=${process.platform} arch=${process.arch} force=${force}`,
       uri,
@@ -429,6 +888,10 @@ class GitHubRuntimeProvisioner {
 
     this.downloadInFlight = this.downloadRuntime(folder, process.arch)
       .then((runtimeRoot) => {
+        this.emitProgress({
+          phase: 'success',
+          statusText: `Runtime telepítve: ${runtimeRoot}`
+        });
         this.log(
           `local-typo-acceleration runtime-download success runtimeRoot='${runtimeRoot}'`,
           uri,
@@ -436,10 +899,14 @@ class GitHubRuntimeProvisioner {
         );
       })
       .catch((error) => {
+        this.emitProgress({
+          phase: 'failed',
+          statusText: `Runtime letöltési hiba: ${formatError(error)}`
+        });
         this.log(
           `local-typo-acceleration runtime-download failed reason=${formatError(error)}`,
           uri,
-          false
+          true
         );
       })
       .finally(() => {
@@ -452,12 +919,21 @@ class GitHubRuntimeProvisioner {
     for (const candidateArch of archCandidates) {
       const runtimeRoot = this.getRuntimeRoot(folder, candidateArch);
       const manifestPath = path.join(runtimeRoot, 'runtime-manifest.json');
-      if (!fs.existsSync(manifestPath)) {
+      let manifest: RuntimeManifest | undefined;
+      try {
+        manifest = this.readInstalledManifest(runtimeRoot);
+      } catch (error) {
+        return {
+          present: false,
+          detail: `runtime manifest olvasási hiba '${manifestPath}': ${formatError(error)}`
+        };
+      }
+
+      if (!manifest) {
         continue;
       }
 
       try {
-        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as RuntimeManifest;
         if (!Array.isArray(manifest.files) || manifest.files.length === 0) {
           return {
             present: false,
@@ -495,6 +971,16 @@ class GitHubRuntimeProvisioner {
     };
   }
 
+  private readInstalledManifest(runtimeRoot: string): RuntimeManifest | undefined {
+    const manifestPath = path.join(runtimeRoot, 'runtime-manifest.json');
+    if (!fs.existsSync(manifestPath)) {
+      return undefined;
+    }
+
+    const parsed = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as RuntimeManifest;
+    return parsed;
+  }
+
   private async downloadRuntime(folder: RuntimePlatformFolder, arch: string): Promise<string> {
     const manifestUrl = `${this.runtimeBaseUrl}/${folder}/runtime-manifest.json`;
     const rawManifest = await httpsGetBuffer(manifestUrl);
@@ -510,14 +996,67 @@ class GitHubRuntimeProvisioner {
       );
     }
 
+    this.emitProgress({
+      phase: 'manifest',
+      statusText: `Runtime manifest letöltve (${manifest.files.length} fájl)`,
+      fileCount: manifest.files.length
+    });
+
     const targetArch = manifest.arch && manifest.arch.length > 0 ? manifest.arch : arch;
     const runtimeRoot = this.getRuntimeRoot(folder, targetArch);
     fs.mkdirSync(runtimeRoot, { recursive: true });
 
-    for (const file of manifest.files) {
+    for (let index = 0; index < manifest.files.length; index += 1) {
+      const file = manifest.files[index];
       const relativePath = sanitizeRelativePath(file.path);
       const sourceUrl = resolveManifestFileUrl(manifestUrl, file.url);
-      const payload = await httpsGetBuffer(sourceUrl);
+      const fileNumber = index + 1;
+      const fileCount = manifest.files.length;
+      let lastProgressBucket = -1;
+
+      this.emitProgress({
+        phase: 'file',
+        statusText: `Runtime letöltés ${fileNumber}/${fileCount}: ${relativePath}`,
+        filePath: relativePath,
+        fileIndex: fileNumber,
+        fileCount
+      });
+
+      const payload = await httpsGetBuffer(sourceUrl, 0, (receivedBytes, totalBytes) => {
+        if (!totalBytes || totalBytes <= 0) {
+          return;
+        }
+
+        const percent = Math.max(
+          0,
+          Math.min(100, Math.floor((receivedBytes / totalBytes) * 100))
+        );
+        const bucket = percent === 100 ? 100 : Math.floor(percent / 10) * 10;
+        if (bucket === lastProgressBucket) {
+          return;
+        }
+
+        lastProgressBucket = bucket;
+        this.emitProgress({
+          phase: 'file',
+          statusText: `Runtime letöltés ${fileNumber}/${fileCount}: ${relativePath} (${percent}%)`,
+          filePath: relativePath,
+          fileIndex: fileNumber,
+          fileCount,
+          percent
+        });
+      });
+
+      if (lastProgressBucket < 100) {
+        this.emitProgress({
+          phase: 'file',
+          statusText: `Runtime letöltés ${fileNumber}/${fileCount}: ${relativePath} (100%)`,
+          filePath: relativePath,
+          fileIndex: fileNumber,
+          fileCount,
+          percent: 100
+        });
+      }
 
       if (file.sha256 && file.sha256.trim().length > 0) {
         const actualSha = sha256Hex(payload);
@@ -535,6 +1074,9 @@ class GitHubRuntimeProvisioner {
       const tmpPath = `${outputPath}.download`;
       fs.writeFileSync(tmpPath, payload);
       fs.renameSync(tmpPath, outputPath);
+      if (file.executable === true || isLikelyExecutableRuntimePath(relativePath)) {
+        fs.chmodSync(outputPath, 0o755);
+      }
     }
 
     const installedManifestPath = path.join(runtimeRoot, 'runtime-manifest.json');
@@ -549,6 +1091,18 @@ class GitHubRuntimeProvisioner {
 
   private getRuntimeRoot(folder: RuntimePlatformFolder, arch: string): string {
     return path.join(this.installRoot, folder, arch);
+  }
+
+  private emitProgress(progress: RuntimeDownloadProgress): void {
+    if (!this.onProgress) {
+      return;
+    }
+
+    try {
+      this.onProgress(progress);
+    } catch {
+      // progress callback must never break runtime provisioning
+    }
   }
 }
 
@@ -569,38 +1123,81 @@ function platformFolderForCurrentPlatform(): RuntimePlatformFolder | undefined {
 }
 
 function probeCoralOnMacOs(): { available: boolean; detail: string } {
-  const result = spawnSync('system_profiler', ['SPUSBDataType'], {
+  const systemProfiler = spawnSync('system_profiler', ['SPUSBDataType'], {
     encoding: 'utf8',
     timeout: 7000,
     maxBuffer: 10 * 1024 * 1024
   });
 
-  if (result.error) {
+  if (!systemProfiler.error && systemProfiler.status === 0) {
+    const output = `${systemProfiler.stdout ?? ''}\n${systemProfiler.stderr ?? ''}`;
+    if (/(coral|edge\s*tpu|global\s+unichip|google)/iu.test(output)) {
+      return {
+        available: true,
+        detail: 'Coral USB eszköz detektálva (system_profiler)'
+      };
+    }
+  }
+
+  const ioreg = spawnSync('ioreg', ['-p', 'IOUSB', '-l', '-w', '0'], {
+    encoding: 'utf8',
+    timeout: 7000,
+    maxBuffer: 10 * 1024 * 1024
+  });
+  if (!ioreg.error && ioreg.status === 0) {
+    const output = `${ioreg.stdout ?? ''}\n${ioreg.stderr ?? ''}`;
+    if (looksLikeCoralIoreg(output)) {
+      return {
+        available: true,
+        detail: 'Coral USB eszköz detektálva (ioreg, idVendor/idProduct)'
+      };
+    }
+  }
+
+  if (systemProfiler.error) {
     return {
       available: false,
-      detail: `system_profiler hiba: ${formatError(result.error)}`
+      detail: `Coral USB eszköz nem látható. system_profiler hiba: ${formatError(systemProfiler.error)}`
     };
   }
 
-  if (result.status !== 0) {
+  if (ioreg.error) {
     return {
       available: false,
-      detail: `system_profiler kilépési kód=${result.status}`
-    };
-  }
-
-  const output = `${result.stdout ?? ''}\n${result.stderr ?? ''}`;
-  if (/(coral|edge\s*tpu|global\s+unichip)/iu.test(output)) {
-    return {
-      available: true,
-      detail: 'Coral USB eszköz detektálva (system_profiler)'
+      detail: `Coral USB eszköz nem látható. ioreg hiba: ${formatError(ioreg.error)}`
     };
   }
 
   return {
     available: false,
-    detail: 'Coral USB eszköz nem látható a system_profiler kimenetben'
+    detail:
+      `Coral USB eszköz nem látható a system_profiler vagy ioreg kimenetben` +
+      ` (system_profiler status=${systemProfiler.status ?? 'n/a'}, ioreg status=${ioreg.status ?? 'n/a'})`
   };
+}
+
+function looksLikeCoralIoreg(output: string): boolean {
+  if (/(coral|edge\s*tpu|global\s+unichip)/iu.test(output)) {
+    return true;
+  }
+
+  const hasGucVendor = /"idVendor"\s*=\s*(6766|0x1a6e)/iu.test(output);
+  const hasGucProduct = /"idProduct"\s*=\s*(2202|0x089a)/iu.test(output);
+  if (hasGucVendor && hasGucProduct) {
+    return true;
+  }
+
+  const hasGoogleVendor = /"idVendor"\s*=\s*(6353|0x18d1)/iu.test(output);
+  const hasGoogleProduct = /"idProduct"\s*=\s*(37634|0x9302)/iu.test(output);
+  if (hasGoogleVendor && hasGoogleProduct) {
+    return true;
+  }
+
+  if (/"UsbDeviceSignature"\s*=\s*<(6e1a9a08|d1180293)/iu.test(output)) {
+    return true;
+  }
+
+  return false;
 }
 
 class HeuristicLocalTypoClassifier implements ILocalTypoClassifier {
@@ -769,9 +1366,135 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
+function clampNumber(
+  value: unknown,
+  min: number,
+  max: number,
+  fallback: number
+): number {
+  const numberValue = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(numberValue)) {
+    return fallback;
+  }
+
+  return clamp(numberValue, min, max);
+}
+
+function parseTypoCategory(value: unknown): TypoClassificationCategory | undefined {
+  if (value === 'IdentifierTypo' || value === 'TextTypo' || value === 'NotTypo' || value === 'Uncertain') {
+    return value;
+  }
+
+  return undefined;
+}
+
+function isExecutableFile(targetPath: string): boolean {
+  try {
+    fs.accessSync(targetPath, fs.constants.F_OK | fs.constants.X_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function topSuggestionText(suggestions: Suggestion[]): string {
   const top = suggestions[0]?.replacement?.trim();
   return top && top.length > 0 ? top : 'n/a';
+}
+
+function sanitizeModelSelection(value: string | undefined): string {
+  const normalized = (value ?? '').trim();
+  return normalized.length > 0 ? normalized : 'auto';
+}
+
+function chooseRuntimeModel(
+  models: InstalledRuntimeModel[],
+  requestedModelId: string
+): InstalledRuntimeModel | undefined {
+  if (models.length === 0) {
+    return undefined;
+  }
+
+  if (requestedModelId !== 'auto') {
+    const selected = models.find((item) => item.id === requestedModelId);
+    if (selected) {
+      return selected;
+    }
+  }
+
+  return models.find((item) => item.isDefault) ?? models[0];
+}
+
+function modelsFromManifest(manifest: RuntimeManifest, runtimeRoot: string): InstalledRuntimeModel[] {
+  if (!Array.isArray(manifest.models)) {
+    return [];
+  }
+
+  const output: InstalledRuntimeModel[] = [];
+  const usedIds = new Set<string>();
+  for (const model of manifest.models) {
+    try {
+      if (!model || typeof model.id !== 'string' || typeof model.path !== 'string') {
+        continue;
+      }
+
+      const id = model.id.trim();
+      if (!id || usedIds.has(id)) {
+        continue;
+      }
+
+      const relativePath = sanitizeRelativePath(model.path);
+      const absolutePath = path.join(runtimeRoot, relativePath);
+      if (!fs.existsSync(absolutePath)) {
+        continue;
+      }
+
+      usedIds.add(id);
+      output.push({
+        id,
+        displayName:
+          typeof model.displayName === 'string' && model.displayName.trim().length > 0
+            ? model.displayName.trim()
+            : id,
+        description:
+          typeof model.description === 'string' && model.description.trim().length > 0
+            ? model.description.trim()
+            : undefined,
+        format:
+          typeof model.format === 'string' && model.format.trim().length > 0
+            ? model.format.trim()
+            : 'edgetpu-tflite',
+        relativePath,
+        absolutePath,
+        isDefault: model.default === true
+      });
+    } catch {
+      continue;
+    }
+  }
+
+  if (output.length > 0 && !output.some((item) => item.isDefault)) {
+    output[0] = {
+      ...output[0],
+      isDefault: true
+    };
+  }
+
+  return output;
+}
+
+function isLikelyExecutableRuntimePath(relativePath: string): boolean {
+  return relativePath.startsWith('bin/') && !relativePath.endsWith('.json');
+}
+
+function resolveAdapterCandidates(primaryAdapterPath: string, runtimeRoot: string): string[] {
+  const candidates = [primaryAdapterPath];
+  const fallback = path.join(runtimeRoot, 'bin', 'coral-typo-classifier');
+  if (!candidates.includes(fallback) && fs.existsSync(fallback)) {
+    candidates.push(fallback);
+  }
+
+  return candidates;
 }
 
 function sanitizeRelativePath(inputPath: string): string {
@@ -795,7 +1518,11 @@ function sha256Hex(buffer: Buffer): string {
   return crypto.createHash('sha256').update(buffer).digest('hex');
 }
 
-function httpsGetBuffer(url: string, redirectDepth = 0): Promise<Buffer> {
+function httpsGetBuffer(
+  url: string,
+  redirectDepth = 0,
+  onProgress?: (receivedBytes: number, totalBytes?: number) => void
+): Promise<Buffer> {
   return new Promise<Buffer>((resolve, reject) => {
     if (redirectDepth > 5) {
       reject(new Error(`túl sok redirect: ${url}`));
@@ -820,7 +1547,7 @@ function httpsGetBuffer(url: string, redirectDepth = 0): Promise<Buffer> {
         if (statusCode >= 300 && statusCode < 400 && res.headers.location) {
           const redirected = new URL(res.headers.location, target).toString();
           res.resume();
-          void httpsGetBuffer(redirected, redirectDepth + 1).then(resolve, reject);
+          void httpsGetBuffer(redirected, redirectDepth + 1, onProgress).then(resolve, reject);
           return;
         }
 
@@ -838,7 +1565,20 @@ function httpsGetBuffer(url: string, redirectDepth = 0): Promise<Buffer> {
         }
 
         const chunks: Buffer[] = [];
-        res.on('data', (chunk) => chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)));
+        const totalBytes = parseContentLengthHeader(res.headers['content-length']);
+        let receivedBytes = 0;
+        if (onProgress) {
+          onProgress(0, totalBytes);
+        }
+
+        res.on('data', (chunk) => {
+          const chunkBuffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+          chunks.push(chunkBuffer);
+          receivedBytes += chunkBuffer.length;
+          if (onProgress) {
+            onProgress(receivedBytes, totalBytes);
+          }
+        });
         res.on('end', () => resolve(Buffer.concat(chunks)));
       }
     );
@@ -848,6 +1588,20 @@ function httpsGetBuffer(url: string, redirectDepth = 0): Promise<Buffer> {
     });
     req.on('error', reject);
   });
+}
+
+function parseContentLengthHeader(value: string | string[] | undefined): number | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const candidate = Array.isArray(value) ? value[0] : value;
+  const parsed = Number.parseInt(candidate, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return undefined;
+  }
+
+  return parsed;
 }
 
 function boundedDamerauLevenshtein(left: string, right: string, maxDistance: number): number {

@@ -30,6 +30,7 @@ A JSON felülírja az `.editorconfig` értékeit.
 - `kospellcheck_style_learning_min_token_length = 3`
 - `kospellcheck_style_learning_ignore_folders = bin,obj,node_modules,.git,.vs,artifacts`
 - `kospellcheck_local_typo_acceleration_mode = off|auto|on`
+- `kospellcheck_local_typo_acceleration_model = auto|<modelId>`
 - `kospellcheck_local_typo_acceleration_show_detection_prompt = true|false`
 - `kospellcheck_local_typo_acceleration_verbose_logging = true|false`
 - `kospellcheck_local_typo_acceleration_auto_download_runtime = true|false`
@@ -66,6 +67,7 @@ A JSON felülírja az `.editorconfig` értékeit.
   "styleLearningIgnoreFolders": ["bin", "obj", "node_modules", ".git", ".vs", "artifacts"],
   "localTypoAcceleration": {
     "mode": "auto",
+    "model": "auto",
     "showDetectionPrompt": true,
     "verboseLogging": false,
     "autoDownloadRuntime": true
@@ -96,5 +98,32 @@ Ha `treatAsHungarianWhenAsciiOnly = true`, akkor a HU szótárra történik ASCI
 - `mode = off`: soha nem próbál gyorsítót.
 - `mode = auto`: csak akkor használja, ha kompatibilis helyi runtime + eszköz elérhető.
 - `mode = on`: a felhasználó explicit kéri; ha nem elérhető, non-blocking fallback történik.
+- `model = auto|<modelId>`: kiválasztja a runtime manifestben elérhető modell-ID-t (vagy `auto` esetén a default modellt).
 - `autoDownloadRuntime = true`: runtime hiány esetén megpróbálja letölteni a platformhoz tartozó csomagot a KoSpellCheck repo `Coral-tpu/<Platform>` mappájából.
+- `runtimeDownloadStatus`: információs állapot mező (VS Code Settings), amely mutatja a letöltés aktuális fázisát/progress állapotát.
+- `availableModels`: információs állapot mező (VS Code Settings), a telepített runtime alapján elérhető modellek listájával.
+- `manualDownloadNow = true`: kézi letöltés trigger (VS Code Settings); a letöltés indítása után automatikusan `false`-ra áll vissza.
 - Ha gyorsító nem elérhető (vagy később kiesik), KoSpellCheck automatikusan a meglévő nem-gyorsított spell-check útvonalra áll vissza.
+- A runtime csomagnak tartalmaznia kell:
+  - `bin/coral-typo-classifier` vagy `bin/coral-typo-classifier-native`
+  - `lib/libtensorflowlite_c.dylib` (natív adapter tényleges TFLite C futáshoz)
+  - legalább egy modellfájlt a `runtime-manifest.json` `models` listájából (például `Models/typo_classifier_edgetpu.tflite`)
+
+### Saját modell készítés (CLI)
+
+Példa:
+
+```bash
+./scripts/coral-model.sh build \
+  --input ./samples/training.txt \
+  --model-id typo_classifier_custom_v1 \
+  --display-name \"Custom Typo Model v1\" \
+  --preset balanced \
+  --outdir Coral-tpu/MacOs/Models \
+  --manifest Coral-tpu/MacOs/runtime-manifest.json \
+  --add-to-manifest
+```
+
+Megjegyzés:
+- A CLI profile-backed `.tflite` csomagot generál a KoSpellCheck runtime flow-hoz.
+- Valódi EdgeTPU-compiled modellekhez külön (külső) tréning/compile pipeline szükséges.

@@ -20,5 +20,10 @@ public class ModelServce
         var tezst = "test";
         Console.WriteLine(tezst);
         teszt.All(c => c == 'teszt');
+        tezst = "teszt";
+        Console.WriteLine(tezst);
+        ThreadStart threadStart = new ThreadStart(ReplaceViewModel);
+        Thread thread = new Thread(threadStart);
+        thread.Start();
     }
 }

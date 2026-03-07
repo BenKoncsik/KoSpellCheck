@@ -73,6 +73,7 @@ export interface KoSpellCheckConfig {
   styleLearningMinTokenLength: number;
   styleLearningIgnoreFolders: string[];
   localTypoAccelerationMode: TypoAccelerationMode;
+  localTypoAccelerationModel: string;
   localTypoAccelerationShowDetectionPrompt: boolean;
   localTypoAccelerationVerboseLogging: boolean;
   localTypoAccelerationAutoDownloadRuntime: boolean;

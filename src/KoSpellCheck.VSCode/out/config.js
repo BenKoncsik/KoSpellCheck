@@ -35,6 +35,7 @@ const DEFAULT_CONFIG = {
     styleLearningMinTokenLength: 3,
     styleLearningIgnoreFolders: ['bin', 'obj', 'node_modules', '.git', '.vs', 'artifacts'],
     localTypoAccelerationMode: 'auto',
+    localTypoAccelerationModel: 'auto',
     localTypoAccelerationShowDetectionPrompt: true,
     localTypoAccelerationVerboseLogging: false,
     localTypoAccelerationAutoDownloadRuntime: true
@@ -143,6 +144,9 @@ function applyEditorConfig(config, content) {
             case 'kospellcheck_local_typo_acceleration_mode':
                 config.localTypoAccelerationMode = parseTypoAccelerationMode(value, config.localTypoAccelerationMode);
                 break;
+            case 'kospellcheck_local_typo_acceleration_model':
+                config.localTypoAccelerationModel = value || config.localTypoAccelerationModel;
+                break;
             case 'kospellcheck_local_typo_acceleration_show_detection_prompt':
                 config.localTypoAccelerationShowDetectionPrompt = parseBool(value, config.localTypoAccelerationShowDetectionPrompt);
                 break;
@@ -209,6 +213,11 @@ function applyJsonConfig(config, input) {
     const mode = localTypoAccelerationInput?.mode ?? input.localTypoAccelerationMode;
     if (typeof mode === 'string') {
         config.localTypoAccelerationMode = parseTypoAccelerationMode(mode, config.localTypoAccelerationMode);
+    }
+    const model = localTypoAccelerationInput?.model ??
+        input.localTypoAccelerationModel;
+    if (typeof model === 'string' && model.trim().length > 0) {
+        config.localTypoAccelerationModel = model.trim();
     }
     const showPrompt = localTypoAccelerationInput?.showDetectionPrompt ??
         input.localTypoAccelerationShowDetectionPrompt;
