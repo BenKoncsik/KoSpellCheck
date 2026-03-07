@@ -1,5 +1,11 @@
 {
   "enabled": true,
+  "localTypoAcceleration": {
+    "mode": "auto",
+    "showDetectionPrompt": true,
+    "verboseLogging": false,
+    "autoDownloadRuntime": true
+  },
   "projectDictionary": [
     "Config",
     "namespace"

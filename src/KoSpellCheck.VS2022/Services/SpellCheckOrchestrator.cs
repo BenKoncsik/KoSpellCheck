@@ -1,6 +1,7 @@
 using KoSpellCheck.Core.Diagnostics;
 using KoSpellCheck.Core.Engine;
 using KoSpellCheck.Core.Style;
+using KoSpellCheck.VS2022.Services.TypoAcceleration;
 using Microsoft.VisualStudio.Text;
 
 namespace KoSpellCheck.VS2022.Services;
@@ -15,6 +16,7 @@ internal sealed class SpellCheckOrchestrator : IDisposable
     private readonly DocumentTextExtractor _documentTextExtractor;
     private readonly TelemetryLogger _telemetryLogger;
     private readonly IProjectStyleProfileProvider _projectStyleProfileProvider;
+    private readonly TypoAccelerationCoordinator _typoAccelerationCoordinator;
     private readonly object _gate = new();
     private readonly SynchronizationContext? _uiContext;
 
@@ -31,7 +33,8 @@ internal sealed class SpellCheckOrchestrator : IDisposable
         DictionaryService dictionaryService,
         DocumentTextExtractor documentTextExtractor,
         TelemetryLogger telemetryLogger,
-        IProjectStyleProfileProvider projectStyleProfileProvider)
+        IProjectStyleProfileProvider projectStyleProfileProvider,
+        TypoAccelerationCoordinator typoAccelerationCoordinator)
     {
         _textBuffer = textBuffer;
         _configService = configService;
@@ -39,6 +42,7 @@ internal sealed class SpellCheckOrchestrator : IDisposable
         _documentTextExtractor = documentTextExtractor;
         _telemetryLogger = telemetryLogger;
         _projectStyleProfileProvider = projectStyleProfileProvider;
+        _typoAccelerationCoordinator = typoAccelerationCoordinator;
         _uiContext = SynchronizationContext.Current;
 
         _textBuffer.Changed += OnBufferChanged;
@@ -57,11 +61,19 @@ internal sealed class SpellCheckOrchestrator : IDisposable
         DictionaryService dictionaryService,
         DocumentTextExtractor documentTextExtractor,
         TelemetryLogger telemetryLogger,
-        IProjectStyleProfileProvider projectStyleProfileProvider)
+        IProjectStyleProfileProvider projectStyleProfileProvider,
+        TypoAccelerationCoordinator typoAccelerationCoordinator)
     {
         return textBuffer.Properties.GetOrCreateSingletonProperty(
             BufferPropertyKey,
-            () => new SpellCheckOrchestrator(textBuffer, configService, dictionaryService, documentTextExtractor, telemetryLogger, projectStyleProfileProvider));
+            () => new SpellCheckOrchestrator(
+                textBuffer,
+                configService,
+                dictionaryService,
+                documentTextExtractor,
+                telemetryLogger,
+                projectStyleProfileProvider,
+                typoAccelerationCoordinator));
     }
 
     public IReadOnlyList<SpellIssueSnapshot> GetIssues(ITextSnapshot snapshot)
@@ -218,7 +230,7 @@ internal sealed class SpellCheckOrchestrator : IDisposable
                 return;
             }
 
-            var mapped = MapDiagnostics(snapshot, diagnostics);
+            var mapped = _typoAccelerationCoordinator.MapDiagnostics(snapshot, diagnostics, settings);
             lock (_gate)
             {
                 if (_disposed || cancellationToken.IsCancellationRequested)
@@ -240,32 +252,6 @@ internal sealed class SpellCheckOrchestrator : IDisposable
         {
             _telemetryLogger.Error("Spell-check pipeline failed", ex);
         }
-    }
-
-    private static List<SpellIssue> MapDiagnostics(ITextSnapshot snapshot, IReadOnlyList<SpellDiagnostic> diagnostics)
-    {
-        var results = new List<SpellIssue>(diagnostics.Count);
-
-        foreach (var diagnostic in diagnostics)
-        {
-            var start = Math.Max(0, diagnostic.Range.Start);
-            var end = Math.Min(snapshot.Length, diagnostic.Range.End);
-            var length = end - start;
-            if (length <= 0)
-            {
-                continue;
-            }
-
-            var trackingSpan = snapshot.CreateTrackingSpan(start, length, SpanTrackingMode.EdgeInclusive);
-            results.Add(new SpellIssue(
-                trackingSpan,
-                diagnostic.Token,
-                diagnostic.Message,
-                diagnostic.Suggestions,
-                diagnostic.LanguageHint));
-        }
-
-        return results;
     }
 
     private void RaiseIssuesChanged()

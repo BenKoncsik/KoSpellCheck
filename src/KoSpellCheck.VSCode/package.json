@@ -17,7 +17,9 @@
     "onLanguage:csharp",
     "onLanguage:typescript",
     "onLanguage:javascript",
-    "onCommand:kospellcheck.addWordToProjectDictionary"
+    "onCommand:kospellcheck.addWordToProjectDictionary",
+    "onCommand:kospellcheck.checkLocalTypoAccelerationStatus",
+    "onCommand:kospellcheck.downloadLocalTypoRuntime"
   ],
   "main": "./out/extension.js",
   "files": [
@@ -34,6 +36,14 @@
       {
         "command": "kospellcheck.addWordToProjectDictionary",
         "title": "KoSpellCheck: Add word to project dictionary"
+      },
+      {
+        "command": "kospellcheck.checkLocalTypoAccelerationStatus",
+        "title": "KoSpellCheck: Local Typo Accelerator állapot"
+      },
+      {
+        "command": "kospellcheck.downloadLocalTypoRuntime",
+        "title": "KoSpellCheck: Local Typo Runtime letöltése"
       }
     ],
     "configuration": {
@@ -53,6 +63,27 @@
           "type": "boolean",
           "default": false,
           "description": "Enable verbose KoSpellCheck debug logs in Output panel."
+        },
+        "kospellcheck.localTypoAcceleration.mode": {
+          "type": "string",
+          "enum": ["off", "auto", "on"],
+          "default": "auto",
+          "markdownDescription": "Opcionális helyi elírás-gyorsító mód. `auto`: csak akkor használja, ha kompatibilis helyi runtime + eszköz elérhető. `on`: mindig próbálja, de ha nem elérhető, automatikus fallback van. `off`: teljesen kikapcsolja ezt az útvonalat."
+        },
+        "kospellcheck.localTypoAcceleration.showDetectionPrompt": {
+          "type": "boolean",
+          "default": true,
+          "description": "Egyszeri értesítést mutat, ha auto módban kompatibilis helyi gyorsító eszközt talál."
+        },
+        "kospellcheck.localTypoAcceleration.verboseLogging": {
+          "type": "boolean",
+          "default": false,
+          "description": "Részletes naplózás a helyi elírás-gyorsító detektálásáról és döntéseiről."
+        },
+        "kospellcheck.localTypoAcceleration.autoDownloadRuntime": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatikusan letölti a platformhoz tartozó Coral runtime csomagot a KoSpellCheck GitHub repóból (Coral-tpu/<Platform>) ha hiányzik."
         }
       }
     }

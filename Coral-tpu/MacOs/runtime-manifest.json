@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "platform": "darwin",
+  "arch": "arm64",
+  "runtimeVersion": "2026-03-07-macos-arm64-local-portable",
+  "files": [
+    {
+      "path": "lib/libedgetpu.1.dylib",
+      "url": "lib/libedgetpu.1.dylib",
+      "sha256": "ae48dc25aff489a45c0b38d36a23310b2b9f8e0a927f382b1e2a9f1d468dd0ce"
+    },
+    {
+      "path": "lib/libusb-1.0.0.dylib",
+      "url": "lib/libusb-1.0.0.dylib",
+      "sha256": "bac4e966f9563e796c3b7655b52a9c476668934ee3e7160fddf27bf53d9e3c2d"
+    }
+  ]
+}

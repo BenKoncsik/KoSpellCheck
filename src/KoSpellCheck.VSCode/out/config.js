@@ -33,7 +33,11 @@ const DEFAULT_CONFIG = {
     styleLearningFileExtensions: ['cs', 'ts', 'js', 'tsx', 'jsx', 'json', 'md'],
     styleLearningCachePath: '.kospellcheck/style-profile.json',
     styleLearningMinTokenLength: 3,
-    styleLearningIgnoreFolders: ['bin', 'obj', 'node_modules', '.git', '.vs', 'artifacts']
+    styleLearningIgnoreFolders: ['bin', 'obj', 'node_modules', '.git', '.vs', 'artifacts'],
+    localTypoAccelerationMode: 'auto',
+    localTypoAccelerationShowDetectionPrompt: true,
+    localTypoAccelerationVerboseLogging: false,
+    localTypoAccelerationAutoDownloadRuntime: true
 };
 function defaultConfig() {
     return JSON.parse(JSON.stringify(DEFAULT_CONFIG));
@@ -136,6 +140,18 @@ function applyEditorConfig(config, content) {
             case 'kospellcheck_style_learning_ignore_folders':
                 config.styleLearningIgnoreFolders = parseList(value);
                 break;
+            case 'kospellcheck_local_typo_acceleration_mode':
+                config.localTypoAccelerationMode = parseTypoAccelerationMode(value, config.localTypoAccelerationMode);
+                break;
+            case 'kospellcheck_local_typo_acceleration_show_detection_prompt':
+                config.localTypoAccelerationShowDetectionPrompt = parseBool(value, config.localTypoAccelerationShowDetectionPrompt);
+                break;
+            case 'kospellcheck_local_typo_acceleration_verbose_logging':
+                config.localTypoAccelerationVerboseLogging = parseBool(value, config.localTypoAccelerationVerboseLogging);
+                break;
+            case 'kospellcheck_local_typo_acceleration_auto_download_runtime':
+                config.localTypoAccelerationAutoDownloadRuntime = parseBool(value, config.localTypoAccelerationAutoDownloadRuntime);
+                break;
         }
     }
 }
@@ -189,6 +205,26 @@ function applyJsonConfig(config, input) {
     if (Array.isArray(input.styleLearningIgnoreFolders) && input.styleLearningIgnoreFolders.length > 0) {
         config.styleLearningIgnoreFolders = input.styleLearningIgnoreFolders;
     }
+    const localTypoAccelerationInput = input.localTypoAcceleration;
+    const mode = localTypoAccelerationInput?.mode ?? input.localTypoAccelerationMode;
+    if (typeof mode === 'string') {
+        config.localTypoAccelerationMode = parseTypoAccelerationMode(mode, config.localTypoAccelerationMode);
+    }
+    const showPrompt = localTypoAccelerationInput?.showDetectionPrompt ??
+        input.localTypoAccelerationShowDetectionPrompt;
+    if (typeof showPrompt === 'boolean') {
+        config.localTypoAccelerationShowDetectionPrompt = showPrompt;
+    }
+    const verbose = localTypoAccelerationInput?.verboseLogging ??
+        input.localTypoAccelerationVerboseLogging;
+    if (typeof verbose === 'boolean') {
+        config.localTypoAccelerationVerboseLogging = verbose;
+    }
+    const autoDownload = localTypoAccelerationInput?.autoDownloadRuntime ??
+        input.localTypoAccelerationAutoDownloadRuntime;
+    if (typeof autoDownload === 'boolean') {
+        config.localTypoAccelerationAutoDownloadRuntime = autoDownload;
+    }
 }
 function parseBool(value, fallback) {
     if (value.toLowerCase() === 'true')
@@ -221,6 +257,13 @@ function parsePreferTerms(value) {
 function parseIntOr(value, fallback) {
     const parsed = Number.parseInt(value, 10);
     return Number.isFinite(parsed) ? parsed : fallback;
+}
+function parseTypoAccelerationMode(value, fallback) {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'off' || normalized === 'auto' || normalized === 'on') {
+        return normalized;
+    }
+    return fallback;
 }
 function normalizeExtension(value) {
     return value.trim().replace(/^\./u, '').toLowerCase();

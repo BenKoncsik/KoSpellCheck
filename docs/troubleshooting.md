@@ -34,3 +34,14 @@ Ez akkor történik, ha VS Code-ba nem a VS Code-os VSIX-et telepíted.
 
 - Csökkentsd a `maxTokensPerDocument` értéket.
 - Növeld a debounce időt (VS Code extensionben).
+
+## Local typo acceleration nem aktiválódik
+
+- Ez a funkció opcionális; a KoSpellCheck nélküle is teljesen működik.
+- Ellenőrizd a `localTypoAcceleration.mode` értéket (`off|auto|on`).
+- Ha `auto` vagy `on`, de a runtime/hardver nem elérhető, automatikus fallback történik.
+- Nincs szükség külön Python/pip/Docker/CLI telepítésre; ha a szükséges helyi runtime nincs a buildben, a funkció biztonságosan kikapcsolva marad.
+- VS Code alatt kapcsold be a `kospellcheck.localTypoAcceleration.verboseLogging` opciót a részletes detektálási logokhoz.
+- VS Code Command Palette: `KoSpellCheck: Local Typo Accelerator állapot` parancs megmutatja az aktuális detektálási állapotot és engedi a `off/auto/on` váltást.
+- VS Code Command Palette: `KoSpellCheck: Local Typo Runtime letöltése` kézzel indítja a GitHub-os runtime letöltést.
+- Ha az auto letöltés kell: `kospellcheck.localTypoAcceleration.autoDownloadRuntime = true`.

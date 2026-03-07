@@ -1,5 +1,6 @@
 using KoSpellCheck.VS2022.Editor.Suggestions.Actions;
 using KoSpellCheck.VS2022.Services;
+using KoSpellCheck.Core.TypoAcceleration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -52,6 +53,7 @@ internal sealed class SpellSuggestedActionsSource : ISuggestedActionsSource
         var trackingSpan = range.Snapshot.CreateTrackingSpan(issue.Span, SpanTrackingMode.EdgeInclusive);
         var filePath = _configService.GetDocumentFilePath(_textBuffer);
         var issueContext = ClassifyIssueContext(range.Snapshot, issue);
+        var forceLiteralSuggestions = issue.TypoClassification?.Category == TypoClassificationCategory.TextTypo;
 
         foreach (var suggestion in issue.Suggestions
                      .Select(s => s.Replacement)
@@ -59,7 +61,9 @@ internal sealed class SpellSuggestedActionsSource : ISuggestedActionsSource
                      .Distinct(StringComparer.OrdinalIgnoreCase)
                      .Take(5))
         {
-            if (issueContext == IssueContextKind.Identifier && IsLikelyIdentifier(issue.Token))
+            if (issueContext == IssueContextKind.Identifier &&
+                !forceLiteralSuggestions &&
+                IsLikelyIdentifier(issue.Token))
             {
                 if (!IsLikelyIdentifier(suggestion))
                 {

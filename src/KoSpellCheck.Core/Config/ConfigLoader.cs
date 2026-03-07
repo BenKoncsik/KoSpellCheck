@@ -1,4 +1,5 @@
 using Newtonsoft.Json.Linq;
+using KoSpellCheck.Core.TypoAcceleration;
 
 namespace KoSpellCheck.Core.Config;
 
@@ -76,6 +77,23 @@ public static class ConfigLoader
             json.Value<string>("styleLearningCachePath") ?? config.StyleLearningCachePath;
         config.StyleLearningMinTokenLength =
             json.Value<int?>("styleLearningMinTokenLength") ?? config.StyleLearningMinTokenLength;
+
+        var localTypoAcceleration = json["localTypoAcceleration"] as JObject;
+        var modeValue = localTypoAcceleration?.Value<string>("mode")
+            ?? json.Value<string>("localTypoAccelerationMode");
+        if (TryParseTypoAccelerationMode(modeValue, out var mode))
+        {
+            config.LocalTypoAccelerationMode = mode;
+        }
+
+        config.LocalTypoAccelerationShowDetectionPrompt =
+            localTypoAcceleration?.Value<bool?>("showDetectionPrompt")
+            ?? json.Value<bool?>("localTypoAccelerationShowDetectionPrompt")
+            ?? config.LocalTypoAccelerationShowDetectionPrompt;
+        config.LocalTypoAccelerationVerboseLogging =
+            localTypoAcceleration?.Value<bool?>("verboseLogging")
+            ?? json.Value<bool?>("localTypoAccelerationVerboseLogging")
+            ?? config.LocalTypoAccelerationVerboseLogging;
 
         var ignoreWords = json["ignoreWords"]?.Values<string>()?.Where(v => !string.IsNullOrWhiteSpace(v));
         if (ignoreWords != null)
@@ -201,6 +219,17 @@ public static class ConfigLoader
             case "kospellcheck_style_learning_ignore_folders":
                 config.StyleLearningIgnoreFolders = ParseList(value);
                 break;
+            case "kospellcheck_local_typo_acceleration_mode":
+                config.LocalTypoAccelerationMode = ParseTypoAccelerationMode(value, config.LocalTypoAccelerationMode);
+                break;
+            case "kospellcheck_local_typo_acceleration_show_detection_prompt":
+                config.LocalTypoAccelerationShowDetectionPrompt =
+                    ParseBool(value, config.LocalTypoAccelerationShowDetectionPrompt);
+                break;
+            case "kospellcheck_local_typo_acceleration_verbose_logging":
+                config.LocalTypoAccelerationVerboseLogging =
+                    ParseBool(value, config.LocalTypoAccelerationVerboseLogging);
+                break;
         }
     }
 
@@ -246,5 +275,37 @@ public static class ConfigLoader
         }
 
         return map;
+    }
+
+    private static TypoAccelerationMode ParseTypoAccelerationMode(string value, TypoAccelerationMode fallback)
+    {
+        return TryParseTypoAccelerationMode(value, out var parsed)
+            ? parsed
+            : fallback;
+    }
+
+    private static bool TryParseTypoAccelerationMode(string? value, out TypoAccelerationMode mode)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            mode = TypoAccelerationMode.Auto;
+            return false;
+        }
+
+        switch (value.Trim().ToLowerInvariant())
+        {
+            case "off":
+                mode = TypoAccelerationMode.Off;
+                return true;
+            case "auto":
+                mode = TypoAccelerationMode.Auto;
+                return true;
+            case "on":
+                mode = TypoAccelerationMode.On;
+                return true;
+            default:
+                mode = TypoAccelerationMode.Auto;
+                return false;
+        }
     }
 }

@@ -15,12 +15,24 @@ KoSpellCheck egy offline helyesírás-ellenőrző ökoszisztéma fejlesztői kö
 - `preferTerms` szabályok (pl. `model -> modell` vagy fordítva)
 - Projekt-stílus tanulás (kapitalizáció/preferált alak) workspace szinten cache-elve
 - Magyar ASCII-fold támogatás (pl. `homerseklet` elfogadása `hőmérséklet` alapú szótár mellett)
+- Opcionális local typo acceleration capability layer (Google Coral/TPU detektálás + safe fallback)
 - Teljesen offline működés
 
 ## MVP scope megjegyzés
 
 - VS2022 oldalon az MVP Roslyn analyzer + code fix alapú (C# identifier fókusz), amely squiggle + lightbulb javítást ad.
 - A teljes Tools/Options UI panel a következő iterációban bővíthető.
+- A local typo acceleration jelenleg opcionális capability rétegként van bekötve; ha a kompatibilis lokális runtime/hardver hiányzik, automatikusan fallbackre áll.
+
+## Local Typo AI Accelerator (optional)
+
+- Kizárólag lokális klasszifikációs kapu (typo-vs-not-typo), nem LLM és nem cloud.
+- A végső javítási javaslatokat továbbra is a meglévő KoSpellCheck quick-fix logika adja.
+- Nincs kötelező külön telepítő, Python/pip/apt/brew/Docker lépés.
+- Ha kompatibilis gyorsító nincs jelen, a funkció non-blocking módon kikapcsolva marad.
+- Ha korábban elérhető volt, de kiesik, automatikus fallback történik.
+- Jelenlegi állapot: a runtime/model adapter pontok előkészítve vannak; tényleges Coral-backed modell csak akkor aktiválható, ha a runtime a buildben csomagolva elérhető.
+- Runtime forrás mappa a repóban: `Coral-tpu/MacOs`, `Coral-tpu/Linux`, `Coral-tpu/Windows` (manifest + fájlok).
 
 ## Repo szerkezet
 
@@ -107,6 +119,11 @@ kospellcheck_style_learning = true
     "model": "modell"
   },
   "styleLearningEnabled": true,
+  "localTypoAcceleration": {
+    "mode": "auto",
+    "showDetectionPrompt": true,
+    "verboseLogging": false
+  },
   "ignoreWords": ["Async", "SignalR", "STM32"],
   "projectDictionary": ["KoSpellCheck"],
   "suggestionsMax": 5

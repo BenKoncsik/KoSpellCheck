@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using KoSpellCheck.Core.TypoAcceleration;
 
 namespace KoSpellCheck.Core.Config;
 
@@ -54,6 +55,12 @@ public sealed class KoSpellCheckConfig
     public IList<string> StyleLearningIgnoreFolders { get; set; } =
         new List<string> { "bin", "obj", "node_modules", ".git", ".vs", "artifacts" };
 
+    public TypoAccelerationMode LocalTypoAccelerationMode { get; set; } = TypoAccelerationMode.Auto;
+
+    public bool LocalTypoAccelerationShowDetectionPrompt { get; set; } = true;
+
+    public bool LocalTypoAccelerationVerboseLogging { get; set; } = false;
+
     public bool IsLanguageEnabled(string languageCode)
     {
         return LanguagesEnabled.Any(l =>
@@ -85,6 +92,9 @@ public sealed class KoSpellCheckConfig
             StyleLearningCachePath = StyleLearningCachePath,
             StyleLearningMinTokenLength = StyleLearningMinTokenLength,
             StyleLearningIgnoreFolders = StyleLearningIgnoreFolders.ToList(),
+            LocalTypoAccelerationMode = LocalTypoAccelerationMode,
+            LocalTypoAccelerationShowDetectionPrompt = LocalTypoAccelerationShowDetectionPrompt,
+            LocalTypoAccelerationVerboseLogging = LocalTypoAccelerationVerboseLogging,
         };
     }
 

@@ -24,5 +24,11 @@
   "styleLearningFileExtensions": ["cs", "ts", "js", "tsx", "jsx", "json", "md"],
   "styleLearningCachePath": ".kospellcheck/style-profile.json",
   "styleLearningMinTokenLength": 3,
-  "styleLearningIgnoreFolders": ["bin", "obj", "node_modules", ".git", ".vs", "artifacts"]
+  "styleLearningIgnoreFolders": ["bin", "obj", "node_modules", ".git", ".vs", "artifacts"],
+  "localTypoAcceleration": {
+    "mode": "auto",
+    "showDetectionPrompt": true,
+    "verboseLogging": false,
+    "autoDownloadRuntime": true
+  }
 }

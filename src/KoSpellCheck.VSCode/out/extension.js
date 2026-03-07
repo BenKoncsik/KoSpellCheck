@@ -45,6 +45,7 @@ const engine_1 = require("./engine");
 const config_1 = require("./config");
 const spellService_1 = require("./spellService");
 const styleLearningCoordinator_1 = require("./styleLearningCoordinator");
+const localTypoAcceleration_1 = require("./localTypoAcceleration");
 const SOURCE = 'KoSpellCheck';
 function activate(context) {
     const diagnostics = vscode.languages.createDiagnosticCollection(SOURCE);
@@ -63,6 +64,7 @@ function activate(context) {
         output.appendLine(`[${new Date().toISOString()}] ${message}`);
     };
     const styleLearning = new styleLearningCoordinator_1.StyleLearningCoordinator(log);
+    const typoAcceleration = new localTypoAcceleration_1.LocalTypoAccelerationController(context, context.extensionPath, log);
     log(`activate version=${context.extension.packageJSON.version ?? 'unknown'}`, undefined, true);
     const codeActionProvider = vscode.languages.registerCodeActionsProvider([{ scheme: 'file' }], {
         provideCodeActions(document, range, codeActionContext) {
@@ -75,13 +77,17 @@ function activate(context) {
                     continue;
                 }
                 const contextKind = classifyDiagnosticContext(document, diagnostic.range);
+                const classification = info.classification;
                 for (const suggestion of info.suggestions.slice(0, 5)) {
                     if (contextKind === 'identifier' &&
+                        classification?.category !== 'TextTypo' &&
                         isLikelyIdentifier(info.token) &&
                         isLikelyIdentifier(suggestion)) {
                         const renameTarget = buildRenameTarget(document, diagnostic.range, suggestion);
                         const renameSymbol = new vscode.CodeAction(`Rename symbol to '${renameTarget}'`, vscode.CodeActionKind.QuickFix);
-                        renameSymbol.isPreferred = true;
+                        renameSymbol.isPreferred = classification
+                            ? classification.category === 'IdentifierTypo'
+                            : true;
                         renameSymbol.diagnostics = [diagnostic];
                         renameSymbol.command = {
                             command: 'kospellcheck.renameSymbolWithSuggestion',
@@ -178,6 +184,51 @@ function activate(context) {
         }
         await vscode.workspace.applyEdit(edit);
     });
+    const checkLocalTypoAccelerationStatusCommand = vscode.commands.registerCommand('kospellcheck.checkLocalTypoAccelerationStatus', async () => {
+        const uri = vscode.window.activeTextEditor?.document.uri;
+        const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', uri);
+        const globalConfig = vscode.workspace.getConfiguration(undefined, uri);
+        const mode = resolveTypoAccelerationModeFromSettings(workspaceConfig, globalConfig);
+        const availability = typoAcceleration.inspectAvailability(true);
+        const statusText = toHungarianAvailability(availability.status);
+        const modeText = toHungarianMode(mode);
+        const autoDownload = resolveTypoAccelerationAutoDownloadFromSettings(workspaceConfig, globalConfig);
+        const detail = availability.detail ? `\nRészlet: ${availability.detail}` : '';
+        const time = `\nEllenőrzés ideje: ${new Date(availability.detectedAtUtc).toLocaleString('hu-HU')}`;
+        const message = `Helyi elírás-gyorsító állapot\n` +
+            `Mód: ${modeText}\n` +
+            `Runtime auto-letöltés: ${autoDownload ? 'bekapcsolva' : 'kikapcsolva'}\n` +
+            `Detektálás: ${statusText}` +
+            detail +
+            time +
+            '\n\nVáltás: off = kikapcsolva, auto = automatikus, on = mindig próbálja (ha nem elérhető, fallback).';
+        const selectAuto = 'Mód: auto';
+        const selectOn = 'Mód: on';
+        const selectOff = 'Mód: off';
+        const selection = await vscode.window.showInformationMessage(message, { modal: false }, selectAuto, selectOn, selectOff);
+        if (!selection) {
+            return;
+        }
+        const target = uri && vscode.workspace.getWorkspaceFolder(uri)
+            ? vscode.ConfigurationTarget.Workspace
+            : vscode.ConfigurationTarget.Global;
+        const updatedMode = selection === selectOn ? 'on' : selection === selectOff ? 'off' : 'auto';
+        await workspaceConfig.update('localTypoAcceleration.mode', updatedMode, target);
+        vscode.window.showInformationMessage(`KoSpellCheck: localTypoAcceleration mód -> ${updatedMode}`);
+    });
+    const downloadLocalTypoRuntimeCommand = vscode.commands.registerCommand('kospellcheck.downloadLocalTypoRuntime', async () => {
+        const uri = vscode.window.activeTextEditor?.document.uri;
+        const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', uri);
+        const globalConfig = vscode.workspace.getConfiguration(undefined, uri);
+        const mode = resolveTypoAccelerationModeFromSettings(workspaceConfig, globalConfig);
+        const autoDownload = resolveTypoAccelerationAutoDownloadFromSettings(workspaceConfig, globalConfig);
+        const effectiveConfig = (0, config_1.loadConfig)();
+        effectiveConfig.localTypoAccelerationMode = mode;
+        effectiveConfig.localTypoAccelerationAutoDownloadRuntime = autoDownload;
+        effectiveConfig.localTypoAccelerationVerboseLogging = true;
+        typoAcceleration.requestRuntimeDownload(effectiveConfig, uri, true);
+        vscode.window.showInformationMessage('KoSpellCheck: runtime letöltés indítva (ha elérhető a platformhoz tartozó csomag a repo-ban).');
+    });
     const checkNow = (document, trigger) => {
         if (document.uri.scheme !== 'file') {
             log(`skip check trigger=${trigger} reason=non-file scheme=${document.uri.scheme}`, document.uri);
@@ -191,8 +242,26 @@ function activate(context) {
         const workspaceFolder = vscode.workspace.getWorkspaceFolder(document.uri);
         const workspaceRoot = workspaceFolder?.uri.fsPath;
         const config = (0, config_1.loadConfig)(workspaceFolder?.uri.fsPath);
-        const settingEnabled = vscode.workspace.getConfiguration('kospellcheck', document.uri).get('enabled', true);
+        const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', document.uri);
+        const globalConfig = vscode.workspace.getConfiguration(undefined, document.uri);
+        const settingEnabled = workspaceConfig.get('enabled', true);
         config.enabled = config.enabled && settingEnabled;
+        config.localTypoAccelerationMode = resolveTypoAccelerationModeFromSettings(workspaceConfig, globalConfig);
+        config.localTypoAccelerationShowDetectionPrompt = workspaceConfig.get('localTypoAcceleration.showDetectionPrompt', config.localTypoAccelerationShowDetectionPrompt);
+        const fallbackShowPrompt = globalConfig.get('koSpellCheck.localTypoAcceleration.showDetectionPrompt');
+        if (typeof fallbackShowPrompt === 'boolean') {
+            config.localTypoAccelerationShowDetectionPrompt = fallbackShowPrompt;
+        }
+        config.localTypoAccelerationVerboseLogging = workspaceConfig.get('localTypoAcceleration.verboseLogging', config.localTypoAccelerationVerboseLogging);
+        const fallbackVerbose = globalConfig.get('koSpellCheck.localTypoAcceleration.verboseLogging');
+        if (typeof fallbackVerbose === 'boolean') {
+            config.localTypoAccelerationVerboseLogging = fallbackVerbose;
+        }
+        config.localTypoAccelerationAutoDownloadRuntime = workspaceConfig.get('localTypoAcceleration.autoDownloadRuntime', config.localTypoAccelerationAutoDownloadRuntime);
+        const fallbackAutoDownload = globalConfig.get('koSpellCheck.localTypoAcceleration.autoDownloadRuntime');
+        if (typeof fallbackAutoDownload === 'boolean') {
+            config.localTypoAccelerationAutoDownloadRuntime = fallbackAutoDownload;
+        }
         if (!config.enabled) {
             log(`skip check trigger=${trigger} reason=disabled`, document.uri);
             diagnostics.delete(document.uri);
@@ -225,11 +294,12 @@ function activate(context) {
                 focusOffsets,
                 styleProfile: styleLearning.getProfile(workspaceRoot)
             });
-            const diagList = issuesToDiagnostics(document, issues, metadata);
+            const acceleratedIssues = typoAcceleration.applyToIssues(document, issues, config, (range) => classifyDiagnosticContext(document, range));
+            const diagList = issuesToDiagnostics(document, acceleratedIssues, metadata);
             diagnostics.set(document.uri, diagList);
             pendingFocusOffsets.delete(uri);
-            log(`check done trigger=${trigger} issues=${issues.length} diagnostics=${diagList.length} focusOffsets=${focusOffsets.length}`, document.uri);
-            for (const issue of issues.slice(0, 3)) {
+            log(`check done trigger=${trigger} issues=${acceleratedIssues.length} diagnostics=${diagList.length} focusOffsets=${focusOffsets.length}`, document.uri);
+            for (const issue of acceleratedIssues.slice(0, 3)) {
                 log(`issue token='${issue.token}' range=${issue.start}-${issue.end} message=${issue.message}`, document.uri);
             }
         }
@@ -257,7 +327,7 @@ function activate(context) {
         }, debounceMs));
         log(`schedule check reason=${reason} debounceMs=${debounceMs}`, document.uri);
     };
-    context.subscriptions.push(diagnostics, output, styleLearning, codeActionProvider, addWordCommand, renameSymbolCommand, vscode.workspace.onDidChangeTextDocument((event) => {
+    context.subscriptions.push(diagnostics, output, styleLearning, codeActionProvider, addWordCommand, renameSymbolCommand, checkLocalTypoAccelerationStatusCommand, downloadLocalTypoRuntimeCommand, vscode.workspace.onDidChangeTextDocument((event) => {
         const uri = event.document.uri.toString();
         const list = pendingFocusOffsets.get(uri) ?? [];
         for (const change of event.contentChanges) {
@@ -307,19 +377,74 @@ function issuesToDiagnostics(document, issues, metadata) {
     const output = [];
     for (const issue of issues) {
         const range = new vscode.Range(document.positionAt(issue.start), document.positionAt(issue.end));
-        const severity = issue.type === 'preference'
+        const severity = issue.typoClassification?.category === 'Uncertain'
             ? vscode.DiagnosticSeverity.Information
-            : vscode.DiagnosticSeverity.Warning;
+            : issue.type === 'preference'
+                ? vscode.DiagnosticSeverity.Information
+                : vscode.DiagnosticSeverity.Warning;
         const diagnostic = new vscode.Diagnostic(range, issue.message, severity);
         diagnostic.source = SOURCE;
         const key = diagnosticKey(document.uri, range, issue.message);
         metadata.set(key, {
             token: issue.token,
-            suggestions: issue.suggestions.map((s) => s.replacement)
+            suggestions: issue.suggestions.map((s) => s.replacement),
+            classification: issue.typoClassification
         });
         output.push(diagnostic);
     }
     return output;
+}
+function isTypoAccelerationMode(value) {
+    return value === 'off' || value === 'auto' || value === 'on';
+}
+function resolveTypoAccelerationModeFromSettings(workspaceConfig, globalConfig) {
+    const workspaceMode = workspaceConfig.get('localTypoAcceleration.mode');
+    if (isTypoAccelerationMode(workspaceMode)) {
+        return workspaceMode;
+    }
+    const compatibilityMode = globalConfig.get('koSpellCheck.localTypoAcceleration.mode');
+    if (isTypoAccelerationMode(compatibilityMode)) {
+        return compatibilityMode;
+    }
+    return 'auto';
+}
+function resolveTypoAccelerationAutoDownloadFromSettings(workspaceConfig, globalConfig) {
+    const workspaceValue = workspaceConfig.get('localTypoAcceleration.autoDownloadRuntime');
+    if (typeof workspaceValue === 'boolean') {
+        return workspaceValue;
+    }
+    const compatibilityValue = globalConfig.get('koSpellCheck.localTypoAcceleration.autoDownloadRuntime');
+    if (typeof compatibilityValue === 'boolean') {
+        return compatibilityValue;
+    }
+    return true;
+}
+function toHungarianMode(mode) {
+    switch (mode) {
+        case 'off':
+            return 'Kikapcsolva (off)';
+        case 'on':
+            return 'Bekapcsolva (on)';
+        case 'auto':
+        default:
+            return 'Automatikus (auto)';
+    }
+}
+function toHungarianAvailability(status) {
+    switch (status) {
+        case 'Available':
+            return 'Elérhető';
+        case 'Unavailable':
+            return 'Nem elérhető';
+        case 'UnavailableMissingRuntime':
+            return 'Nem elérhető (hiányzó helyi runtime)';
+        case 'UnavailableUnsupportedPlatform':
+            return 'Nem elérhető (nem támogatott platform)';
+        case 'Error':
+            return 'Hiba történt detektálás közben';
+        default:
+            return status;
+    }
 }
 function diagnosticKey(uri, range, message) {
     return `${uri.toString()}|${range.start.line}:${range.start.character}-${range.end.line}:${range.end.character}|${message}`;

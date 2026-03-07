@@ -29,6 +29,10 @@ A JSON felülírja az `.editorconfig` értékeit.
 - `kospellcheck_style_learning_cache_path = .kospellcheck/style-profile.json`
 - `kospellcheck_style_learning_min_token_length = 3`
 - `kospellcheck_style_learning_ignore_folders = bin,obj,node_modules,.git,.vs,artifacts`
+- `kospellcheck_local_typo_acceleration_mode = off|auto|on`
+- `kospellcheck_local_typo_acceleration_show_detection_prompt = true|false`
+- `kospellcheck_local_typo_acceleration_verbose_logging = true|false`
+- `kospellcheck_local_typo_acceleration_auto_download_runtime = true|false`
 
 ## `kospellcheck.json` séma (MVP)
 
@@ -59,7 +63,13 @@ A JSON felülírja az `.editorconfig` értékeit.
   "styleLearningFileExtensions": ["cs", "ts", "js", "tsx", "jsx", "json", "md"],
   "styleLearningCachePath": ".kospellcheck/style-profile.json",
   "styleLearningMinTokenLength": 3,
-  "styleLearningIgnoreFolders": ["bin", "obj", "node_modules", ".git", ".vs", "artifacts"]
+  "styleLearningIgnoreFolders": ["bin", "obj", "node_modules", ".git", ".vs", "artifacts"],
+  "localTypoAcceleration": {
+    "mode": "auto",
+    "showDetectionPrompt": true,
+    "verboseLogging": false,
+    "autoDownloadRuntime": true
+  }
 }
 ```
 
@@ -78,3 +88,13 @@ Ha `treatAsHungarianWhenAsciiOnly = true`, akkor a HU szótárra történik ASCI
 - A profil cache alapból: `.kospellcheck/style-profile.json`.
 - A tanulás csak rangsorolást végez a javaslatokra, nem ad új szót a dictionaryhez.
 - `preferTerms` mindig felülírja a tanult stílust.
+
+## Local Typo Acceleration (optional)
+
+- A gyorsító útvonal teljesen opcionális, alapértelmezetten safe fallback módban fut (`auto`).
+- A klasszifikáció mindig lokális; nincs cloud feltöltés.
+- `mode = off`: soha nem próbál gyorsítót.
+- `mode = auto`: csak akkor használja, ha kompatibilis helyi runtime + eszköz elérhető.
+- `mode = on`: a felhasználó explicit kéri; ha nem elérhető, non-blocking fallback történik.
+- `autoDownloadRuntime = true`: runtime hiány esetén megpróbálja letölteni a platformhoz tartozó csomagot a KoSpellCheck repo `Coral-tpu/<Platform>` mappájából.
+- Ha gyorsító nem elérhető (vagy később kiesik), KoSpellCheck automatikusan a meglévő nem-gyorsított spell-check útvonalra áll vissza.

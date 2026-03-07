@@ -1,3 +1,55 @@
+export type TypoAccelerationMode = 'off' | 'auto' | 'on';
+
+export type AcceleratorAvailabilityStatus =
+  | 'Available'
+  | 'Unavailable'
+  | 'UnavailableMissingRuntime'
+  | 'UnavailableUnsupportedPlatform'
+  | 'Error';
+
+export type TypoClassificationCategory =
+  | 'IdentifierTypo'
+  | 'TextTypo'
+  | 'NotTypo'
+  | 'Uncertain';
+
+export interface TypoClassificationResult {
+  isTypo: boolean;
+  confidence: number;
+  category: TypoClassificationCategory;
+  backend: string;
+  reason?: string;
+}
+
+export interface TypoClassificationRequest {
+  token: string;
+  suggestions: Suggestion[];
+  context: 'identifier' | 'literal';
+}
+
+export interface AcceleratorAvailabilityResult {
+  status: AcceleratorAvailabilityStatus;
+  provider: string;
+  detail?: string;
+  detectedAtUtc: string;
+}
+
+export interface ILocalTypoClassifier {
+  classify(request: TypoClassificationRequest): TypoClassificationResult;
+}
+
+export interface IAcceleratorAvailabilityService {
+  getAvailability(forceRefresh?: boolean): AcceleratorAvailabilityResult;
+}
+
+export interface IAcceleratorNotificationService {
+  notifyAutoModeDetection(
+    mode: TypoAccelerationMode,
+    showPrompt: boolean
+  ): void;
+  notifyOnModeUnavailable(status: AcceleratorAvailabilityStatus): void;
+}
+
 export interface KoSpellCheckConfig {
   enabled: boolean;
   languages: string[];
@@ -20,6 +72,10 @@ export interface KoSpellCheckConfig {
   styleLearningCachePath: string;
   styleLearningMinTokenLength: number;
   styleLearningIgnoreFolders: string[];
+  localTypoAccelerationMode: TypoAccelerationMode;
+  localTypoAccelerationShowDetectionPrompt: boolean;
+  localTypoAccelerationVerboseLogging: boolean;
+  localTypoAccelerationAutoDownloadRuntime: boolean;
 }
 
 export interface TokenSpan {
@@ -42,6 +98,7 @@ export interface SpellIssue {
   message: string;
   languageHint?: string;
   suggestions: Suggestion[];
+  typoClassification?: TypoClassificationResult;
 }
 
 export interface TokenStyleStats {

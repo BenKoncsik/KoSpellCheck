@@ -17,8 +17,8 @@ public class ModelServce
     public void TesztIrasAlmaKorteView()
     {
         ReplaceViewModel();
-        var teszt = "teszt";
-        Console.WriteLine(teszt);
-        teszt.All(c => c == 't');
+        var tezst = "test";
+        Console.WriteLine(tezst);
+        teszt.All(c => c == 'teszt');
     }
 }

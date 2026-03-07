@@ -14,7 +14,8 @@
 3. Composite dictionary ellenőrzés (HU + EN + project dictionary + ignore list).
 4. preferTerms szabályok ráillesztése.
 5. Project style ranking (`ProjectStyleProfile` + `ProjectStyleRanker`) a javaslatok sorrendjére.
-6. Diagnostic lista + javaslatok visszaadása.
+6. (Opcionális) local typo acceleration gate: typo-vs-not-typo klasszifikáció, kizárólag lokálisan.
+7. Diagnostic lista + javaslatok visszaadása.
 
 ## Performance
 
@@ -30,6 +31,19 @@
 - A profil kulcsa normalizált token (`lowercase + unicode normalize + ASCII-fold`), a variánsok eredeti alakban tárolódnak.
 - `ProjectStyleRanker` csak a javaslatok sorrendjét módosítja (nem változtatja a dictionary elfogadási logikát).
 - `preferTerms` override pontszáma magasabb, mint az automatikus stílus tanulás.
+
+## Local Typo Acceleration réteg (optional)
+
+- Absztrakciók: `ILocalTypoClassifier`, `IAcceleratorAvailabilityService`, `IAcceleratorNotificationService`.
+- A gyorsító réteg csak kapuzásra használható (typo / not-typo / uncertain kategorizálás).
+- A tényleges quick-fix javaslatok továbbra is a meglévő KoSpellCheck logikából jönnek.
+- Detektálás izolált, best-effort és nem-fatal, stabil állapotokkal:
+  - `Available`
+  - `Unavailable`
+  - `UnavailableMissingRuntime`
+  - `UnavailableUnsupportedPlatform`
+  - `Error`
+- Ha gyorsító kiesik, automatikus fallback történik a normál spell-check útvonalra.
 
 ## Language modules
 

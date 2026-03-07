@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { KoSpellCheckConfig } from './types';
+import { KoSpellCheckConfig, TypoAccelerationMode } from './types';
 
 const DEFAULT_CONFIG: KoSpellCheckConfig = {
   enabled: true,
@@ -27,7 +27,11 @@ const DEFAULT_CONFIG: KoSpellCheckConfig = {
   styleLearningFileExtensions: ['cs', 'ts', 'js', 'tsx', 'jsx', 'json', 'md'],
   styleLearningCachePath: '.kospellcheck/style-profile.json',
   styleLearningMinTokenLength: 3,
-  styleLearningIgnoreFolders: ['bin', 'obj', 'node_modules', '.git', '.vs', 'artifacts']
+  styleLearningIgnoreFolders: ['bin', 'obj', 'node_modules', '.git', '.vs', 'artifacts'],
+  localTypoAccelerationMode: 'auto',
+  localTypoAccelerationShowDetectionPrompt: true,
+  localTypoAccelerationVerboseLogging: false,
+  localTypoAccelerationAutoDownloadRuntime: true
 };
 
 export function defaultConfig(): KoSpellCheckConfig {
@@ -139,6 +143,30 @@ function applyEditorConfig(config: KoSpellCheckConfig, content: string): void {
       case 'kospellcheck_style_learning_ignore_folders':
         config.styleLearningIgnoreFolders = parseList(value);
         break;
+      case 'kospellcheck_local_typo_acceleration_mode':
+        config.localTypoAccelerationMode = parseTypoAccelerationMode(
+          value,
+          config.localTypoAccelerationMode
+        );
+        break;
+      case 'kospellcheck_local_typo_acceleration_show_detection_prompt':
+        config.localTypoAccelerationShowDetectionPrompt = parseBool(
+          value,
+          config.localTypoAccelerationShowDetectionPrompt
+        );
+        break;
+      case 'kospellcheck_local_typo_acceleration_verbose_logging':
+        config.localTypoAccelerationVerboseLogging = parseBool(
+          value,
+          config.localTypoAccelerationVerboseLogging
+        );
+        break;
+      case 'kospellcheck_local_typo_acceleration_auto_download_runtime':
+        config.localTypoAccelerationAutoDownloadRuntime = parseBool(
+          value,
+          config.localTypoAccelerationAutoDownloadRuntime
+        );
+        break;
     }
   }
 }
@@ -179,6 +207,35 @@ function applyJsonConfig(config: KoSpellCheckConfig, input: Partial<KoSpellCheck
   if (Array.isArray(input.styleLearningIgnoreFolders) && input.styleLearningIgnoreFolders.length > 0) {
     config.styleLearningIgnoreFolders = input.styleLearningIgnoreFolders;
   }
+
+  const localTypoAccelerationInput = (input as Record<string, unknown>).localTypoAcceleration as
+    | Record<string, unknown>
+    | undefined;
+  const mode = localTypoAccelerationInput?.mode ?? (input as Record<string, unknown>).localTypoAccelerationMode;
+  if (typeof mode === 'string') {
+    config.localTypoAccelerationMode = parseTypoAccelerationMode(mode, config.localTypoAccelerationMode);
+  }
+
+  const showPrompt =
+    localTypoAccelerationInput?.showDetectionPrompt ??
+    (input as Record<string, unknown>).localTypoAccelerationShowDetectionPrompt;
+  if (typeof showPrompt === 'boolean') {
+    config.localTypoAccelerationShowDetectionPrompt = showPrompt;
+  }
+
+  const verbose =
+    localTypoAccelerationInput?.verboseLogging ??
+    (input as Record<string, unknown>).localTypoAccelerationVerboseLogging;
+  if (typeof verbose === 'boolean') {
+    config.localTypoAccelerationVerboseLogging = verbose;
+  }
+
+  const autoDownload =
+    localTypoAccelerationInput?.autoDownloadRuntime ??
+    (input as Record<string, unknown>).localTypoAccelerationAutoDownloadRuntime;
+  if (typeof autoDownload === 'boolean') {
+    config.localTypoAccelerationAutoDownloadRuntime = autoDownload;
+  }
 }
 
 function parseBool(value: string, fallback: boolean): boolean {
@@ -213,6 +270,18 @@ function parsePreferTerms(value: string): Record<string, string> {
 function parseIntOr(value: string, fallback: number): number {
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function parseTypoAccelerationMode(
+  value: string,
+  fallback: TypoAccelerationMode
+): TypoAccelerationMode {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'off' || normalized === 'auto' || normalized === 'on') {
+    return normalized;
+  }
+
+  return fallback;
 }
 
 function normalizeExtension(value: string): string {

@@ -1,4 +1,5 @@
 using KoSpellCheck.Core.Diagnostics;
+using KoSpellCheck.Core.TypoAcceleration;
 using Microsoft.VisualStudio.Text;
 
 namespace KoSpellCheck.VS2022.Services;
@@ -10,13 +11,15 @@ internal sealed class SpellIssue
         string token,
         string message,
         IReadOnlyList<Suggestion> suggestions,
-        string? languageHint)
+        string? languageHint,
+        TypoClassificationResult? typoClassification)
     {
         TrackingSpan = trackingSpan;
         Token = token;
         Message = message;
         Suggestions = suggestions;
         LanguageHint = languageHint;
+        TypoClassification = typoClassification;
     }
 
     public ITrackingSpan TrackingSpan { get; }
@@ -28,6 +31,8 @@ internal sealed class SpellIssue
     public IReadOnlyList<Suggestion> Suggestions { get; }
 
     public string? LanguageHint { get; }
+
+    public TypoClassificationResult? TypoClassification { get; }
 }
 
 internal sealed class SpellIssueSnapshot
@@ -39,6 +44,7 @@ internal sealed class SpellIssueSnapshot
         Message = issue.Message;
         Suggestions = issue.Suggestions;
         LanguageHint = issue.LanguageHint;
+        TypoClassification = issue.TypoClassification;
     }
 
     public SnapshotSpan Span { get; }
@@ -50,4 +56,6 @@ internal sealed class SpellIssueSnapshot
     public IReadOnlyList<Suggestion> Suggestions { get; }
 
     public string? LanguageHint { get; }
+
+    public TypoClassificationResult? TypoClassification { get; }
 }
