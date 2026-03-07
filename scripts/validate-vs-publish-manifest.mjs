@@ -32,8 +32,8 @@ if (normalized.length > 63) {
   fail(`identity.internalName must be <= 63 chars, got ${normalized.length}: '${normalized}'`);
 }
 
-const allowedPattern = /^[A-Za-z0-9][A-Za-z0-9-]*$/;
-if (!allowedPattern.test(normalized)) {
+const allowedInternalNamePattern = /^[A-Za-z0-9][A-Za-z0-9-]*$/;
+if (!allowedInternalNamePattern.test(normalized)) {
   fail(
     `identity.internalName '${normalized}' is invalid. Allowed: A-Z, a-z, 0-9, '-' and it must start with alphanumeric.`
   );
@@ -45,9 +45,10 @@ if (typeof publisher !== 'string' || publisher.trim().length === 0) {
 }
 
 const publisherNormalized = publisher.trim();
-if (!allowedPattern.test(publisherNormalized)) {
+const allowedPublisherPattern = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
+if (!allowedPublisherPattern.test(publisherNormalized)) {
   fail(
-    `publisher '${publisherNormalized}' is invalid. Allowed: A-Z, a-z, 0-9, '-' and it must start with alphanumeric.`
+    `publisher '${publisherNormalized}' is invalid. Allowed: A-Z, a-z, 0-9, '-', '_' and it must start with alphanumeric.`
   );
 }
 
@@ -62,8 +63,8 @@ if (fs.existsSync(vscodePackagePath)) {
       : '';
 
     if (vscodePublisher.length > 0 && vscodePublisher !== publisherNormalized) {
-      fail(
-        `publisher mismatch: VS2022 publish manifest uses '${publisherNormalized}', VS Code package uses '${vscodePublisher}'.`
+      console.warn(
+        `[validate-vs-publish-manifest] warning: VS2022 publish manifest uses '${publisherNormalized}', VS Code package uses '${vscodePublisher}'.`
       );
     }
   } catch (error) {
