@@ -127,6 +127,11 @@ sync_pack_resources() {
 validate_vsix_content_types() {
   local vsix_path="$1"
 
+  if [[ ! -f "$vsix_path" ]]; then
+    echo "[pack] generated VS2022 VSIX is missing: $vsix_path" >&2
+    return 1
+  fi
+
   if ! command -v unzip >/dev/null 2>&1; then
     echo "[pack] warning: unzip not found, skipping VS2022 VSIX content-type validation."
     return 0
@@ -176,6 +181,11 @@ validate_vsix_content_types() {
 validate_vsix_marketplace_markers() {
   local vsix_path="$1"
   local strict_mode="${2:-false}"
+
+  if [[ ! -f "$vsix_path" ]]; then
+    echo "[pack] generated VS2022 VSIX is missing: $vsix_path" >&2
+    return 1
+  fi
 
   if ! command -v unzip >/dev/null 2>&1; then
     echo "[pack] warning: unzip not found, skipping VS2022 VSIX marker validation."
@@ -253,7 +263,8 @@ VSCODE_VSIX_ALIAS="$ARTIFACTS/vscode/KoSpellCheck.VSCode.vsix"
 cp "$VSCODE_VSIX_OUT" "$VSCODE_VSIX_ALIAS"
 
 VS2022_PACKED="false"
-if (
+set +e
+(
   set -euo pipefail
   echo "[pack] vs2022 vsix"
   rm -f "$VS2022_VSIX_OUT" "$LEGACY_VS2022_VSIX_OUT" "$ARTIFACTS"/vsix/KoSpellCheck.VS2022-*.vsix
@@ -265,14 +276,13 @@ if (
       -t:CreateVsixContainer \
       -p:Configuration=Release
 
-    GENERATED_VSIX="$(
-      {
-        find "$ROOT/src/KoSpellCheck.VS2022/bin/Release" -type f -name "KoSpellCheck.VS2022.vsix" -print0 \
-          | xargs -0 ls -1t 2>/dev/null || true
-      } \
-        | head -n 1
-    )"
-    if [[ -z "$GENERATED_VSIX" ]]; then
+    mapfile -d '' VSIX_CANDIDATES < <(find "$ROOT/src/KoSpellCheck.VS2022/bin/Release" -type f -name "KoSpellCheck.VS2022.vsix" -print0)
+    if [[ ${#VSIX_CANDIDATES[@]} -eq 0 ]]; then
+      echo "[pack] expected VSSDK-generated VSIX not found under src/KoSpellCheck.VS2022/bin/Release" >&2
+      exit 1
+    fi
+    GENERATED_VSIX="$(ls -1t "${VSIX_CANDIDATES[@]}" | head -n 1)"
+    if [[ -z "$GENERATED_VSIX" || ! -f "$GENERATED_VSIX" ]]; then
       echo "[pack] expected VSSDK-generated VSIX not found under src/KoSpellCheck.VS2022/bin/Release" >&2
       exit 1
     fi
@@ -348,7 +358,11 @@ if (
   validate_vsix_content_types "$VS2022_VSIX_OUT"
   validate_vsix_marketplace_markers "$VS2022_VSIX_OUT" "$VSIX_MARKER_STRICT"
   cp "$VS2022_VSIX_OUT" "$VS2022_VSIX_VERSIONED_OUT"
-); then
+)
+VS2022_PACK_STATUS=$?
+set -e
+
+if [[ "$VS2022_PACK_STATUS" -eq 0 ]]; then
   VS2022_PACKED="true"
 elif [[ "${PACK_ALLOW_VS2022_FAILURE:-false}" == "true" ]]; then
   echo "[pack] warning: VS2022 VSIX packaging failed, but continuing because PACK_ALLOW_VS2022_FAILURE=true." >&2
