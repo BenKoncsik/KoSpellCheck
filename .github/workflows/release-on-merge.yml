@@ -42,12 +42,14 @@ jobs:
         shell: bash
         run: node scripts/validate-vs-publish-manifest.mjs src/KoSpellCheck.VS2022/publishManifest.json
 
-      - name: Get version from Directory.Build.props
+      - name: Bump release version (patch)
         id: version
         shell: bash
         run: |
-          VERSION=$(grep -o "<Version>[^<]*</Version>" Directory.Build.props | head -n 1 | sed -e 's/<Version>//' -e 's#</Version>##')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          set -euo pipefail
+          chmod +x scripts/bump-version.sh
+          VERSION="$(./scripts/bump-version.sh patch)"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Package extensions
         shell: bash
@@ -154,8 +156,23 @@ jobs:
         if: always()
         shell: bash
         run: |
+          VS2022_VSIX="artifacts/vsix/KoSpellCheck.VS2022-${{ steps.version.outputs.version }}.vsix"
+          VS2022_ARTIFACT_EXISTS="false"
+          if [[ -f "$VS2022_VSIX" ]]; then
+            VS2022_ARTIFACT_EXISTS="true"
+          fi
+
           echo "VS Code marketplace publish outcome: ${{ steps.publish_vscode.outcome }}"
           echo "Visual Studio marketplace publish outcome: ${{ steps.publish_vs2022.outcome }}"
-          if [[ "${{ steps.publish_vscode.outcome }}" != "success" || "${{ steps.publish_vs2022.outcome }}" != "success" ]]; then
-            echo "::warning::One or more marketplace publish steps failed, but git tag and GitHub release were still created."
+
+          if [[ "$VS2022_ARTIFACT_EXISTS" != "true" ]]; then
+            echo "::warning::VS2022 artifact is missing ($VS2022_VSIX), so Visual Studio Marketplace publish was skipped."
+          fi
+
+          if [[ "${{ steps.publish_vscode.outcome }}" != "success" ]]; then
+            echo "::warning::VS Code Marketplace publish failed, but git tag and GitHub release were still created."
+          fi
+
+          if [[ "$VS2022_ARTIFACT_EXISTS" == "true" && "${{ steps.publish_vs2022.outcome }}" != "success" ]]; then
+            echo "::warning::Visual Studio Marketplace publish failed, but git tag and GitHub release were still created."
           fi
