@@ -187,10 +187,11 @@ class SpellService {
             }
         }
         const tokenHints = detectTokenLanguageHints(token);
+        const tokenAsciiOnly = (0, normalization_1.isAsciiOnly)(normalized);
         return entries
             .map((entry) => ({
             ...entry,
-            dynamicScore: scoreSuggestionDynamic(entry, tokenHints, languageBestDistance, normalized.length)
+            dynamicScore: scoreSuggestionDynamic(entry, tokenHints, languageBestDistance, normalized.length, normalized, tokenAsciiOnly)
         }))
             .sort((a, b) => {
             if (a.dynamicScore !== b.dynamicScore) {
@@ -615,8 +616,9 @@ function detectTokenLanguageHints(token) {
         /(view|model|service|controller|manager|request|response)/u.test(lower);
     return { likelyHungarian, likelyEnglish };
 }
-function scoreSuggestionDynamic(entry, tokenHints, languageBestDistance, tokenLength) {
+function scoreSuggestionDynamic(entry, tokenHints, languageBestDistance, tokenLength, normalizedToken, tokenAsciiOnly) {
     let score = entry.suggestion.confidence;
+    const neutralAsciiToken = tokenAsciiOnly && !tokenHints.likelyHungarian;
     if (entry.language) {
         const bestForLang = languageBestDistance.get(entry.language);
         if (bestForLang !== undefined) {
@@ -634,11 +636,34 @@ function scoreSuggestionDynamic(entry, tokenHints, languageBestDistance, tokenLe
     if (entry.language === 'en' && tokenHints.likelyEnglish) {
         score += 0.05;
     }
+    if (neutralAsciiToken && entry.language === 'en' && (0, normalization_1.isAsciiOnly)(entry.normalizedReplacement)) {
+        score += 0.12;
+    }
+    if (neutralAsciiToken && entry.suggestion.sourceDictionary === 'hu-heuristic') {
+        score -= 0.12;
+    }
     if (/\s/u.test(entry.suggestion.replacement) && tokenLength < 8) {
         score -= 0.2;
+    }
+    if (entry.normalizedReplacement.length > normalizedToken.length &&
+        entry.normalizedReplacement.length - normalizedToken.length <= 2 &&
+        isSubsequence(normalizedToken, entry.normalizedReplacement)) {
+        score += 0.05;
     }
     score += Math.max(0, 4 - entry.distance) * 0.02;
     score -= Math.min(4, entry.lengthDelta) * 0.01;
     return score;
+}
+function isSubsequence(needle, haystack) {
+    if (!needle || needle.length >= haystack.length) {
+        return false;
+    }
+    let needleIndex = 0;
+    for (let i = 0; i < haystack.length && needleIndex < needle.length; i++) {
+        if (haystack[i] === needle[needleIndex]) {
+            needleIndex += 1;
+        }
+    }
+    return needleIndex === needle.length;
 }
 //# sourceMappingURL=spellService.js.map

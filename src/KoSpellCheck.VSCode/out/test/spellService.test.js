@@ -53,6 +53,18 @@ const spellService_1 = require("../spellService");
     const suggestions = service.suggest('Viwe', config).map((x) => x.replacement);
     node_assert_1.default.equal(suggestions[0], 'View');
 });
+(0, node_test_1.default)('mixed hu+en mode prefers english insertion corrections for neutral ascii tokens', () => {
+    const extensionPath = node_path_1.default.resolve(__dirname, '..', '..');
+    const service = new spellService_1.SpellService(extensionPath);
+    const config = (0, config_1.defaultConfig)();
+    config.languages = ['hu', 'en'];
+    config.suggestionsMax = 6;
+    service.ensureInitialized();
+    const chekSuggestions = service.suggest('Chek', config).map((x) => x.replacement);
+    const servceSuggestions = service.suggest('Servce', config).map((x) => x.replacement);
+    node_assert_1.default.equal(chekSuggestions[0], 'Check');
+    node_assert_1.default.equal(servceSuggestions[0], 'Service');
+});
 (0, node_test_1.default)('mixed hu+en mode keeps hungarian-first ranking for hungarian-looking stems', () => {
     const extensionPath = node_path_1.default.resolve(__dirname, '..', '..');
     const service = new spellService_1.SpellService(extensionPath);

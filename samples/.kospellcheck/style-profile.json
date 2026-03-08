@@ -1,10 +1,10 @@
 {
   "workspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples",
-  "fingerprint": "5d387fdbe989ddce84beb4f6975f3f7e821e67b46a0f9a0320d6f4dabe37f2b2",
+  "fingerprint": "f3ecbb1e12a95f0822ab56e42775f1acdbbf4a0577b908e5bbf913569d2e0d5f",
   "profile": {
     "workspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples",
-    "createdAtUtc": "2026-03-08T08:19:20.296Z",
-    "updatedAtUtc": "2026-03-08T08:19:20.314Z",
+    "createdAtUtc": "2026-03-08T12:32:36.139Z",
+    "updatedAtUtc": "2026-03-08T12:32:36.167Z",
     "tokenStats": {
       "workspaceroot": {
         "totalCount": 8,
@@ -24,21 +24,20 @@
         "preferredVariant": "createdAtUtc",
         "confidence": 0.6
       },
-      "2026-03-08t08": {
-        "totalCount": 6,
+      "2026-03-08t12": {
+        "totalCount": 2,
         "variants": {
-          "2026-03-08T08": 4,
-          "2026-03-08t08": 2
+          "2026-03-08T12": 2
         },
-        "preferredVariant": "2026-03-08T08",
-        "confidence": 0.6
+        "preferredVariant": "2026-03-08T12",
+        "confidence": 0.2
       },
-      "11.327z": {
+      "06.170z": {
         "totalCount": 1,
         "variants": {
-          "11.327Z": 1
+          "06.170Z": 1
         },
-        "preferredVariant": "11.327Z",
+        "preferredVariant": "06.170Z",
         "confidence": 0.1
       },
       "updatedatutc": {
@@ -50,12 +49,12 @@
         "preferredVariant": "updatedAtUtc",
         "confidence": 0.6
       },
-      "11.430z": {
+      "07.724z": {
         "totalCount": 1,
         "variants": {
-          "11.430Z": 1
+          "07.724Z": 1
         },
-        "preferredVariant": "11.430Z",
+        "preferredVariant": "07.724Z",
         "confidence": 0.1
       },
       "tokenstats": {
@@ -68,46 +67,91 @@
         "confidence": 0.6
       },
       "totalcount": {
-        "totalCount": 332,
+        "totalCount": 336,
         "variants": {
-          "totalCount": 330,
+          "totalCount": 334,
           "totalcount": 2
         },
         "preferredVariant": "totalCount",
         "confidence": 1
       },
       "preferredvariant": {
-        "totalCount": 332,
+        "totalCount": 336,
         "variants": {
-          "preferredVariant": 330,
+          "preferredVariant": 334,
           "preferredvariant": 2
         },
         "preferredVariant": "preferredVariant",
         "confidence": 1
       },
-      "47.763z": {
+      "2026-03-08t08": {
+        "totalCount": 4,
+        "variants": {
+          "2026-03-08t08": 2,
+          "2026-03-08T08": 2
+        },
+        "preferredVariant": "2026-03-08t08",
+        "confidence": 0.4
+      },
+      "20.296z": {
         "totalCount": 3,
         "variants": {
-          "47.763z": 1,
-          "47.763Z": 2
+          "20.296z": 1,
+          "20.296Z": 2
         },
-        "preferredVariant": "47.763Z",
+        "preferredVariant": "20.296Z",
         "confidence": 0.3
       },
-      "47.788z": {
+      "20.314z": {
         "totalCount": 3,
         "variants": {
-          "47.788z": 1,
-          "47.788Z": 2
+          "20.314z": 1,
+          "20.314Z": 2
         },
-        "preferredVariant": "47.788Z",
+        "preferredVariant": "20.314Z",
         "confidence": 0.3
+      },
+      "11.327z": {
+        "totalCount": 4,
+        "variants": {
+          "11.327z": 2,
+          "11.327Z": 2
+        },
+        "preferredVariant": "11.327z",
+        "confidence": 0.4
+      },
+      "11.430z": {
+        "totalCount": 4,
+        "variants": {
+          "11.430z": 2,
+          "11.430Z": 2
+        },
+        "preferredVariant": "11.430z",
+        "confidence": 0.4
+      },
+      "47.763z": {
+        "totalCount": 4,
+        "variants": {
+          "47.763z": 3,
+          "47.763Z": 1
+        },
+        "preferredVariant": "47.763z",
+        "confidence": 0.4
+      },
+      "47.788z": {
+        "totalCount": 4,
+        "variants": {
+          "47.788z": 3,
+          "47.788Z": 1
+        },
+        "preferredVariant": "47.788z",
+        "confidence": 0.4
       },
       "01.099z": {
         "totalCount": 4,
         "variants": {
-          "01.099z": 2,
-          "01.099Z": 2
+          "01.099z": 3,
+          "01.099Z": 1
         },
         "preferredVariant": "01.099z",
         "confidence": 0.4
@@ -115,8 +159,8 @@
       "01.126z": {
         "totalCount": 4,
         "variants": {
-          "01.126z": 2,
-          "01.126Z": 2
+          "01.126z": 3,
+          "01.126Z": 1
         },
         "preferredVariant": "01.126z",
         "confidence": 0.4
@@ -1601,51 +1645,51 @@
         "confidence": 0.8
       },
       "total": {
-        "totalCount": 333,
+        "totalCount": 337,
         "variants": {
-          "total": 333
+          "total": 337
         },
         "preferredVariant": "total",
         "confidence": 1
       },
       "count": {
-        "totalCount": 334,
+        "totalCount": 338,
         "variants": {
-          "Count": 332,
+          "Count": 336,
           "count": 2
         },
         "preferredVariant": "Count",
         "confidence": 1
       },
       "variants": {
-        "totalCount": 331,
+        "totalCount": 335,
         "variants": {
-          "variants": 331
+          "variants": 335
         },
         "preferredVariant": "variants",
         "confidence": 1
       },
       "preferred": {
-        "totalCount": 333,
+        "totalCount": 337,
         "variants": {
-          "preferred": 333
+          "preferred": 337
         },
         "preferredVariant": "preferred",
         "confidence": 1
       },
       "variant": {
-        "totalCount": 334,
+        "totalCount": 338,
         "variants": {
-          "Variant": 332,
+          "Variant": 336,
           "variant": 2
         },
         "preferredVariant": "Variant",
         "confidence": 1
       },
       "confidence": {
-        "totalCount": 331,
+        "totalCount": 335,
         "variants": {
-          "confidence": 331
+          "confidence": 335
         },
         "preferredVariant": "confidence",
         "confidence": 1

@@ -69,6 +69,22 @@ test('english transposition correction is prioritized in mixed language mode', (
   assert.equal(suggestions[0], 'View');
 });
 
+test('mixed hu+en mode prefers english insertion corrections for neutral ascii tokens', () => {
+  const extensionPath = path.resolve(__dirname, '..', '..');
+  const service = new SpellService(extensionPath);
+  const config = defaultConfig();
+  config.languages = ['hu', 'en'];
+  config.suggestionsMax = 6;
+
+  service.ensureInitialized();
+
+  const chekSuggestions = service.suggest('Chek', config).map((x) => x.replacement);
+  const servceSuggestions = service.suggest('Servce', config).map((x) => x.replacement);
+
+  assert.equal(chekSuggestions[0], 'Check');
+  assert.equal(servceSuggestions[0], 'Service');
+});
+
 test('mixed hu+en mode keeps hungarian-first ranking for hungarian-looking stems', () => {
   const extensionPath = path.resolve(__dirname, '..', '..');
   const service = new SpellService(extensionPath);

@@ -255,6 +255,7 @@ export class SpellService {
     }
 
     const tokenHints = detectTokenLanguageHints(token);
+    const tokenAsciiOnly = isAsciiOnly(normalized);
     return entries
       .map((entry) => ({
         ...entry,
@@ -262,7 +263,9 @@ export class SpellService {
           entry,
           tokenHints,
           languageBestDistance,
-          normalized.length
+          normalized.length,
+          normalized,
+          tokenAsciiOnly
         )
       }))
       .sort((a, b) => {
@@ -827,9 +830,12 @@ function scoreSuggestionDynamic(
   },
   tokenHints: { likelyHungarian: boolean; likelyEnglish: boolean },
   languageBestDistance: Map<'hu' | 'en', number>,
-  tokenLength: number
+  tokenLength: number,
+  normalizedToken: string,
+  tokenAsciiOnly: boolean
 ): number {
   let score = entry.suggestion.confidence;
+  const neutralAsciiToken = tokenAsciiOnly && !tokenHints.likelyHungarian;
 
   if (entry.language) {
     const bestForLang = languageBestDistance.get(entry.language);
@@ -851,12 +857,43 @@ function scoreSuggestionDynamic(
     score += 0.05;
   }
 
+  if (neutralAsciiToken && entry.language === 'en' && isAsciiOnly(entry.normalizedReplacement)) {
+    score += 0.12;
+  }
+
+  if (neutralAsciiToken && entry.suggestion.sourceDictionary === 'hu-heuristic') {
+    score -= 0.12;
+  }
+
   if (/\s/u.test(entry.suggestion.replacement) && tokenLength < 8) {
     score -= 0.2;
+  }
+
+  if (
+    entry.normalizedReplacement.length > normalizedToken.length &&
+    entry.normalizedReplacement.length - normalizedToken.length <= 2 &&
+    isSubsequence(normalizedToken, entry.normalizedReplacement)
+  ) {
+    score += 0.05;
   }
 
   score += Math.max(0, 4 - entry.distance) * 0.02;
   score -= Math.min(4, entry.lengthDelta) * 0.01;
 
   return score;
+}
+
+function isSubsequence(needle: string, haystack: string): boolean {
+  if (!needle || needle.length >= haystack.length) {
+    return false;
+  }
+
+  let needleIndex = 0;
+  for (let i = 0; i < haystack.length && needleIndex < needle.length; i++) {
+    if (haystack[i] === needle[needleIndex]) {
+      needleIndex += 1;
+    }
+  }
+
+  return needleIndex === needle.length;
 }
