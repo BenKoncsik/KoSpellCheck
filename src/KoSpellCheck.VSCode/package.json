@@ -2,7 +2,7 @@
   "name": "kospellcheck",
   "displayName": "KoSpellCheck",
   "description": "Offline HU+EN spell checker extension with code-aware tokenization and quick fix suggestions.",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "publisher": "KoSpellCheckV2",
   "license": "MIT",
   "engines": {
