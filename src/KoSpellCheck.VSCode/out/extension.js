@@ -341,8 +341,14 @@ function activate(context) {
         const backendText = backendStatus.tpuInferenceActive
             ? `Aktív (${backendStatus.backend})`
             : `Nem aktív (${backendStatus.backend})`;
+        const tfliteRuntimeText = toLoadedNotLoadedText(backendStatus.tfliteRuntimeLoaded);
+        const modelLoadableText = toModelLoadableText(backendStatus.modelLoadable);
+        const modelPlaceholderText = toModelPlaceholderText(backendStatus.modelPlaceholder);
         const backendDetail = `\nKiválasztott modell: ${modelLabel}` +
             `\nElérhető modellek: ${availableModelsText}` +
+            `\nModel betölthető: ${modelLoadableText}` +
+            `\nModel placeholder: ${modelPlaceholderText}` +
+            `\nTFLite C runtime: ${tfliteRuntimeText}` +
             `\nTPU inferencia: ${backendText}` +
             `\nBackend részlet: ${backendStatus.detail}`;
         const time = `\nEllenőrzés ideje: ${new Date(availability.detectedAtUtc).toLocaleString('hu-HU')}`;
@@ -686,6 +692,33 @@ function toHungarianAvailability(status) {
         default:
             return status;
     }
+}
+function toLoadedNotLoadedText(value) {
+    if (value === true) {
+        return 'loaded';
+    }
+    if (value === false) {
+        return 'not loaded';
+    }
+    return 'unknown';
+}
+function toModelLoadableText(value) {
+    if (value === true) {
+        return 'igen';
+    }
+    if (value === false) {
+        return 'nem';
+    }
+    return 'ismeretlen';
+}
+function toModelPlaceholderText(value) {
+    if (value === true) {
+        return 'igen (helykitöltő modell, nem futtatható TPU inferenciára)';
+    }
+    if (value === false) {
+        return 'nem';
+    }
+    return 'ismeretlen';
 }
 function diagnosticKey(uri, range, message) {
     return `${uri.toString()}|${range.start.line}:${range.start.character}-${range.end.line}:${range.end.character}|${message}`;

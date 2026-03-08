@@ -45,6 +45,8 @@ const node_path_1 = __importDefault(require("node:path"));
 const vscode = __importStar(require("vscode"));
 const DETECTION_CACHE_TTL_MS = 60_000;
 const DOWNLOAD_RETRY_INTERVAL_MS = 5 * 60 * 1000;
+const CORAL_HEALTH_CHECK_TIMEOUT_MS = 7_000;
+const CORAL_CLASSIFY_TIMEOUT_MS = 7_000;
 const PROVIDER_ID = 'google-coral-edgetpu';
 const LINUX_ACCELERATOR_PATHS = ['/dev/apex_0', '/dev/apex_1'];
 const DEFAULT_RUNTIME_BASE_URL = 'https://raw.githubusercontent.com/BenKoncsik/KoSpellCheck/main/Coral-tpu';
@@ -116,11 +118,14 @@ class LocalTypoAccelerationController {
             this.trace(`local-typo-acceleration backend fallback active reason='${backendStatus.detail}'`, config, document.uri);
             return this.classifyIssues(document, issues, resolveContext, config, backendStatus);
         }
-        if (config.localTypoAccelerationMode === 'auto') {
+        if (config.localTypoAccelerationMode === 'auto' && backendStatus.tpuInferenceActive) {
             this.notificationService.notifyAutoModeDetection(config.localTypoAccelerationMode, config.localTypoAccelerationShowDetectionPrompt);
         }
-        this.hadAcceleratorPath = true;
-        this.logPath('accelerated', config, document.uri);
+        this.hadAcceleratorPath = backendStatus.tpuInferenceActive;
+        this.logPath(backendStatus.tpuInferenceActive ? 'accelerated' : 'fallback', config, document.uri);
+        if (!backendStatus.tpuInferenceActive) {
+            this.trace(`local-typo-acceleration local model fallback active reason='${backendStatus.detail}'`, config, document.uri);
+        }
         return this.classifyIssues(document, issues, resolveContext, config, backendStatus);
     }
     classifyIssues(document, issues, resolveContext, config, backendStatus) {
@@ -262,10 +267,32 @@ class LocalTypoAccelerationController {
             };
         }
         const health = this.inspectCoralAdapterHealth(adapterPath, runtimeStatus.runtimeRoot, selectedModel.absolutePath, config);
+        const canUseLocalModel = health.modelLoadable === true && health.tfliteRuntimeLoaded !== false;
+        if (!health.tpuInferenceActive && !canUseLocalModel) {
+            return {
+                backend: 'heuristic-local',
+                tpuInferenceActive: false,
+                tfliteRuntimeLoaded: health.tfliteRuntimeLoaded,
+                modelLoadable: health.modelLoadable,
+                modelPlaceholder: health.modelPlaceholder,
+                detail: `Coral runtime detected, but no usable TPU or TFLite model path is active: ${health.detail}`,
+                runtimeRoot: runtimeStatus.runtimeRoot,
+                adapterPath,
+                modelPath: selectedModel.absolutePath,
+                selectedModelId: selectedModel.id,
+                selectedModelDisplayName: selectedModel.displayName,
+                availableModels
+            };
+        }
         return {
             backend: 'coral-process',
             tpuInferenceActive: health.tpuInferenceActive,
-            detail: health.detail,
+            tfliteRuntimeLoaded: health.tfliteRuntimeLoaded,
+            modelLoadable: health.modelLoadable,
+            modelPlaceholder: health.modelPlaceholder,
+            detail: health.tpuInferenceActive
+                ? health.detail
+                : `TPU inference inactive; using local TFLite model: ${health.detail}`,
             runtimeRoot: runtimeStatus.runtimeRoot,
             adapterPath,
             modelPath: selectedModel.absolutePath,
@@ -285,19 +312,49 @@ class LocalTypoAccelerationController {
         const signature = [
             backendStatus.backend,
             backendStatus.tpuInferenceActive ? '1' : '0',
+            backendStatus.tfliteRuntimeLoaded === undefined
+                ? 'u'
+                : (backendStatus.tfliteRuntimeLoaded ? '1' : '0'),
+            backendStatus.modelLoadable === undefined
+                ? 'u'
+                : (backendStatus.modelLoadable ? '1' : '0'),
+            backendStatus.modelPlaceholder === undefined
+                ? 'u'
+                : (backendStatus.modelPlaceholder ? '1' : '0'),
             backendStatus.detail
         ].join('|');
         if (signature === this.lastBackendSignature && !config.localTypoAccelerationVerboseLogging) {
             return;
         }
         this.lastBackendSignature = signature;
-        this.log(`local-typo-acceleration coral-runtime status=active tpu-inference=${backendStatus.tpuInferenceActive ? 'active' : 'inactive'} typo-classifier-backend=${backendStatus.backend} model=${backendStatus.selectedModelId ?? 'n/a'} detail=${backendStatus.detail}`, uri, false);
+        const coralRuntimeState = backendStatus.backend === 'coral-process' ? 'active' : 'inactive';
+        this.log(`local-typo-acceleration coral-runtime status=${coralRuntimeState} tpu-inference=${backendStatus.tpuInferenceActive ? 'active' : 'inactive'} model-loadable=${backendStatus.modelLoadable === undefined ? 'unknown' : (backendStatus.modelLoadable ? 'yes' : 'no')} model-placeholder=${backendStatus.modelPlaceholder === undefined ? 'unknown' : (backendStatus.modelPlaceholder ? 'yes' : 'no')} tflite-runtime=${backendStatus.tfliteRuntimeLoaded === undefined ? 'unknown' : (backendStatus.tfliteRuntimeLoaded ? 'loaded' : 'not-loaded')} typo-classifier-backend=${backendStatus.backend} model=${backendStatus.selectedModelId ?? 'n/a'} detail=${backendStatus.detail}`, uri, false);
     }
     inspectCoralAdapterHealth(adapterPath, runtimeRoot, modelPath, config) {
+        const candidates = resolveAdapterCandidates(adapterPath, runtimeRoot);
+        let lastFailure;
+        for (const candidate of candidates) {
+            const attempt = this.inspectSingleAdapterHealth(candidate, runtimeRoot, modelPath, config);
+            const isSpawnError = attempt.detail.includes('spawn error');
+            const isParseError = attempt.detail.includes('JSON parse failed');
+            if (!isSpawnError && !isParseError) {
+                return attempt;
+            }
+            lastFailure = attempt;
+        }
+        return (lastFailure ?? {
+            tpuInferenceActive: false,
+            tfliteRuntimeLoaded: false,
+            modelLoadable: false,
+            modelPlaceholder: false,
+            detail: `adapter health check failed for all candidates model='${modelPath}'`
+        });
+    }
+    inspectSingleAdapterHealth(adapterPath, runtimeRoot, modelPath, config) {
         const result = (0, node_child_process_1.spawnSync)(adapterPath, ['--health', '--model', modelPath], {
             cwd: runtimeRoot,
             encoding: 'utf8',
-            timeout: 1500,
+            timeout: CORAL_HEALTH_CHECK_TIMEOUT_MS,
             maxBuffer: 1024 * 1024
         });
         if (result.error) {
@@ -307,20 +364,30 @@ class LocalTypoAccelerationController {
             }
             return {
                 tpuInferenceActive: false,
-                detail: `${reason}; model='${modelPath}'`
+                tfliteRuntimeLoaded: false,
+                modelLoadable: false,
+                modelPlaceholder: false,
+                detail: `${reason}; adapter='${adapterPath}'; model='${modelPath}'`
             };
         }
         if (result.status !== 0) {
             return {
                 tpuInferenceActive: false,
-                detail: `adapter health check failed (status=${result.status}) stderr='${(result.stderr ?? '').trim()}' model='${modelPath}'`
+                tfliteRuntimeLoaded: false,
+                modelLoadable: false,
+                modelPlaceholder: false,
+                detail: `adapter health check failed adapter='${adapterPath}' (status=${result.status}) ` +
+                    `stderr='${(result.stderr ?? '').trim()}' model='${modelPath}'`
             };
         }
         const stdout = (result.stdout ?? '').trim();
         if (!stdout) {
             return {
                 tpuInferenceActive: false,
-                detail: `adapter health check returned empty output; model='${modelPath}'`
+                tfliteRuntimeLoaded: false,
+                modelLoadable: false,
+                modelPlaceholder: false,
+                detail: `adapter health check returned empty output adapter='${adapterPath}' model='${modelPath}'`
             };
         }
         try {
@@ -329,19 +396,32 @@ class LocalTypoAccelerationController {
             const adapterDetail = typeof parsed.detail === 'string' && parsed.detail.trim().length > 0
                 ? parsed.detail.trim()
                 : 'adapter health check ok';
+            const inferredTfliteLoaded = inferTfliteRuntimeLoaded(parsed, adapterDetail);
+            const inferredModelLoadable = inferModelLoadable(parsed, adapterDetail);
+            const inferredModelPlaceholder = inferModelPlaceholder(parsed, adapterDetail);
             const backend = typeof parsed.backend === 'string' && parsed.backend.trim().length > 0
                 ? parsed.backend.trim()
                 : 'coral-process';
             return {
                 tpuInferenceActive,
+                tfliteRuntimeLoaded: inferredTfliteLoaded,
+                modelLoadable: inferredModelLoadable,
+                modelPlaceholder: inferredModelPlaceholder,
                 detail: `adapter='${adapterPath}', model='${modelPath}', backend='${backend}', ` +
-                    `tpuInferenceActive=${tpuInferenceActive ? 'true' : 'false'}, detail='${adapterDetail}'`
+                    `tpuInferenceActive=${tpuInferenceActive ? 'true' : 'false'}, ` +
+                    `modelLoadable=${typeof inferredModelLoadable === 'boolean' ? (inferredModelLoadable ? 'true' : 'false') : 'unknown'}, ` +
+                    `modelPlaceholder=${typeof inferredModelPlaceholder === 'boolean' ? (inferredModelPlaceholder ? 'true' : 'false') : 'unknown'}, ` +
+                    `tfliteRuntimeLoaded=${typeof inferredTfliteLoaded === 'boolean' ? (inferredTfliteLoaded ? 'true' : 'false') : 'unknown'}, ` +
+                    `detail='${adapterDetail}'`
             };
         }
         catch (error) {
             return {
                 tpuInferenceActive: false,
-                detail: `adapter health JSON parse failed: ${formatError(error)} stdout='${stdout.slice(0, 220)}' model='${modelPath}'`
+                tfliteRuntimeLoaded: false,
+                modelLoadable: false,
+                modelPlaceholder: false,
+                detail: `adapter health JSON parse failed adapter='${adapterPath}': ${formatError(error)} stdout='${stdout.slice(0, 220)}' model='${modelPath}'`
             };
         }
     }
@@ -378,7 +458,7 @@ class LocalTypoAccelerationController {
         const result = (0, node_child_process_1.spawnSync)(adapterPath, [], {
             cwd: runtimeRoot,
             encoding: 'utf8',
-            timeout: 1500,
+            timeout: CORAL_CLASSIFY_TIMEOUT_MS,
             maxBuffer: 1024 * 1024,
             input: payload
         });
@@ -1043,6 +1123,39 @@ function resolveAdapterCandidates(primaryAdapterPath, runtimeRoot) {
         candidates.push(fallback);
     }
     return candidates;
+}
+function inferTfliteRuntimeLoaded(parsed, detail) {
+    if (typeof parsed.tfliteRuntimeLoaded === 'boolean') {
+        return parsed.tfliteRuntimeLoaded;
+    }
+    if (/tensorflowlite_c\s+loaded/iu.test(detail)) {
+        return true;
+    }
+    if (/tensorflowlite_c\s+library\s+not\s+found/iu.test(detail)) {
+        return false;
+    }
+    return undefined;
+}
+function inferModelLoadable(parsed, detail) {
+    if (typeof parsed.modelLoadable === 'boolean') {
+        return parsed.modelLoadable;
+    }
+    if (/model\s+load\s+ok/iu.test(detail)) {
+        return true;
+    }
+    if (/model\s+load\s+failed/iu.test(detail)) {
+        return false;
+    }
+    return undefined;
+}
+function inferModelPlaceholder(parsed, detail) {
+    if (typeof parsed.modelPlaceholder === 'boolean') {
+        return parsed.modelPlaceholder;
+    }
+    if (/model\s+placeholder\s+detected/iu.test(detail)) {
+        return true;
+    }
+    return undefined;
 }
 function sanitizeRelativePath(inputPath) {
     const normalized = inputPath.replace(/\\/gu, '/').trim();

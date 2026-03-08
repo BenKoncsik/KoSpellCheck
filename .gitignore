@@ -22,6 +22,15 @@ yarn-debug.log*
 yarn-error.log*
 src/KoSpellCheck.VS2022/extension.vsixmanifest
 
+# Python / model training
+.venv*/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
 # Generated extension resource mirrors (copied from tools/ during pack)
 src/KoSpellCheck.VSCode/resources/dictionaries/
 src/KoSpellCheck.VSCode/resources/licenses/

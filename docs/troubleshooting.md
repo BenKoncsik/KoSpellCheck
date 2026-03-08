@@ -53,10 +53,17 @@ Ez akkor történik, ha VS Code-ba nem a VS Code-os VSIX-et telepíted.
 - Ellenőrizd az állapot parancsban a `TPU inferencia` sort:
   - `Aktív` csak akkor lesz, ha az adapter ezt jelenti (`--health` alapján).
   - ha az adapter vagy modell hiányzik, fallback `heuristic-local` backendre vált.
-  - ha `delegate init failed`, akkor tipikusan nincs aktív Coral USB eszköz vagy nincs hozzáférés.
+  - ha `delegate init failed`, akkor tipikusan nincs aktív Coral USB eszköz vagy a régi adapter build csak `delegateType=0`-t próbál. Friss runtime letöltés szükséges.
+- Ugyanitt külön sorban látszik: `TFLite C runtime: loaded/not loaded/unknown`.
+- Ugyanitt külön sorban látszik: `Model betölthető: igen/nem/ismeretlen`.
+- Ugyanitt külön sorban látszik: `Model placeholder`.
+  - normál esetben most már `nem`. Ha mégis `igen`, akkor egy régi placeholder modell maradt a runtime-ban.
+- Ha `TFLite C runtime = loaded` és `Model betölthető = igen`, de `TPU inferencia = inaktív`, akkor a valódi int8 TFLite modell CPU fallback úton már használható.
+- Ha a részletes logban `edge tpu compile pending` vagy `edgeTpuCompiled=no` látszik, akkor a modell valós és betölthető, de még nincs EdgeTPU compilerrel lefordítva, ezért a Coral hardverre nem offloadolható.
 - Natív adapter health kézzel:
   - `Coral-tpu/MacOs/bin/coral-typo-classifier-native --health --model Coral-tpu/MacOs/Models/typo_classifier_edgetpu.tflite`
 - TensorFlow Lite C runtime frissítése:
   - `./scripts/sync-tflite-c-runtime.sh`
 - Saját modell építés:
-  - `./scripts/coral-model.sh build --input ./mintaszoveg.txt --model-id sajat_modell_v1 --add-to-manifest`
+  - `./scripts/coral-model.sh build --input ./mintaszoveg.txt --model-id sajat_modell_v1 --file-name sajat_modell --add-to-manifest`
+  - ez valódi, kvantált int8 `.tflite` modellt készít; EdgeTPU használathoz opcionálisan külön `--compile-edgetpu` futtatás kell, ha a compiler elérhető.

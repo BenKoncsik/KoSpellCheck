@@ -276,6 +276,8 @@ function run() {
     process.stdout.write(JSON.stringify({
       backend: 'coral-process-model',
       tpuInferenceActive: false,
+      tfliteRuntimeLoaded: false,
+      modelLoadable: true,
       detail: `model-adapter active (profile='${model.id}', tpu='inactive')`
     }));
     return;

@@ -29,7 +29,7 @@ Example manifest:
       "id": "typo_classifier_edgetpu_v1",
       "displayName": "Typo Classifier - Balanced v1",
       "path": "Models/typo_classifier_edgetpu.tflite",
-      "format": "edgetpu-tflite",
+      "format": "edgetpu-ready-int8",
       "default": true
     }
   ]
@@ -112,8 +112,8 @@ Example (`txt` -> `.tflite` + `.meta.json` + manifest update):
 ```
 
 Important:
-- The CLI creates a KoSpellCheck profile-backed `.tflite` package for this runtime flow.
-- True EdgeTPU-compiled model binaries still require a dedicated external training/compile pipeline.
+- The CLI now creates a real, quantized int8 TensorFlow Lite FlatBuffer model for this runtime flow.
+- The produced model is EdgeTPU-friendly, but actual Coral offload still requires an additional EdgeTPU compiler step.
 
 Important:
 - This runtime package is optional and only used by the local typo acceleration capability.

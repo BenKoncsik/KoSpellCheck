@@ -443,9 +443,15 @@ export function activate(context: vscode.ExtensionContext): void {
       const backendText = backendStatus.tpuInferenceActive
         ? `Aktív (${backendStatus.backend})`
         : `Nem aktív (${backendStatus.backend})`;
+      const tfliteRuntimeText = toLoadedNotLoadedText(backendStatus.tfliteRuntimeLoaded);
+      const modelLoadableText = toModelLoadableText(backendStatus.modelLoadable);
+      const modelPlaceholderText = toModelPlaceholderText(backendStatus.modelPlaceholder);
       const backendDetail =
         `\nKiválasztott modell: ${modelLabel}` +
         `\nElérhető modellek: ${availableModelsText}` +
+        `\nModel betölthető: ${modelLoadableText}` +
+        `\nModel placeholder: ${modelPlaceholderText}` +
+        `\nTFLite C runtime: ${tfliteRuntimeText}` +
         `\nTPU inferencia: ${backendText}` +
         `\nBackend részlet: ${backendStatus.detail}`;
       const time = `\nEllenőrzés ideje: ${new Date(availability.detectedAtUtc).toLocaleString('hu-HU')}`;
@@ -925,6 +931,42 @@ function toHungarianAvailability(status: string): string {
     default:
       return status;
   }
+}
+
+function toLoadedNotLoadedText(value: boolean | undefined): string {
+  if (value === true) {
+    return 'loaded';
+  }
+
+  if (value === false) {
+    return 'not loaded';
+  }
+
+  return 'unknown';
+}
+
+function toModelLoadableText(value: boolean | undefined): string {
+  if (value === true) {
+    return 'igen';
+  }
+
+  if (value === false) {
+    return 'nem';
+  }
+
+  return 'ismeretlen';
+}
+
+function toModelPlaceholderText(value: boolean | undefined): string {
+  if (value === true) {
+    return 'igen (helykitöltő modell, nem futtatható TPU inferenciára)';
+  }
+
+  if (value === false) {
+    return 'nem';
+  }
+
+  return 'ismeretlen';
 }
 
 function diagnosticKey(uri: vscode.Uri, range: vscode.Range, message: string): string {

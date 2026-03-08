@@ -1,16 +1,64 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "typo_classifier_edgetpu_v1",
   "displayName": "Typo Classifier - Balanced v1",
-  "profile": {
-    "intercept": -0.08,
-    "distanceWeight": -1.02,
-    "similarityWeight": 2.75,
-    "identifierBoost": 0.24,
-    "literalBoost": 0.08,
-    "longTokenBoost": 0.09,
-    "shortTokenPenalty": -0.1,
-    "typoThreshold": 0.62,
-    "notTypoThreshold": 0.34
+  "description": "Valodi int8 TFLite typo gate modell magyar es angol szotar + projektkorpusz alapjan, EdgeTPU-friendly architekturaval.",
+  "preset": "balanced",
+  "createdAtUtc": "2026-03-08T09:28:32.735742Z",
+  "languages": [
+    "hu",
+    "en"
+  ],
+  "labels": [
+    "IdentifierTypo",
+    "TextTypo",
+    "NotTypo"
+  ],
+  "inputFeatureNames": [
+    "distance",
+    "similarity",
+    "identifier_context",
+    "literal_context",
+    "long_token",
+    "short_token",
+    "looks_domain_like",
+    "has_suggestion",
+    "token_has_non_ascii",
+    "suggestion_has_non_ascii",
+    "same_first_char",
+    "same_last_char",
+    "accents_only_difference",
+    "normalized_length_delta"
+  ],
+  "inputFeatureCount": 14,
+  "quantization": {
+    "inputType": "int8",
+    "outputType": "int8"
+  },
+  "uncertainTop1Threshold": 0.6,
+  "uncertainMarginThreshold": 0.1,
+  "edgeTpuCompilerReady": true,
+  "edgeTpuCompiled": false,
+  "edgeTpuCompilerDetail": null,
+  "sources": {
+    "dictionaryRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/tools/dictionaries",
+    "dictionaryCounts": {
+      "hu": 16000,
+      "en": 16000
+    },
+    "extraInputFile": "/private/tmp/kospellcheck_huen_corpus.txt",
+    "extraInputTokenCount": 27189
+  },
+  "training": {
+    "exampleCount": 638876,
+    "classDistribution": {
+      "IdentifierTypo": 293576,
+      "NotTypo": 199940,
+      "TextTypo": 145360
+    },
+    "epochsCompleted": 7,
+    "validationAccuracy": 0.9993426203727722,
+    "validationLoss": 0.0038340797182172537,
+    "seed": 1337
   }
 }

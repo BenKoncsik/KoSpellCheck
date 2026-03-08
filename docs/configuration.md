@@ -107,7 +107,7 @@ Ha `treatAsHungarianWhenAsciiOnly = true`, akkor a HU szótárra történik ASCI
 - A runtime csomagnak tartalmaznia kell:
   - `bin/coral-typo-classifier` vagy `bin/coral-typo-classifier-native`
   - `lib/libtensorflowlite_c.dylib` (natív adapter tényleges TFLite C futáshoz)
-  - legalább egy modellfájlt a `runtime-manifest.json` `models` listájából (például `Models/typo_classifier_edgetpu.tflite`)
+  - legalább egy valódi kvantált int8 modellfájlt a `runtime-manifest.json` `models` listájából (például `Models/typo_classifier_edgetpu.tflite`)
 
 ### Saját modell készítés (CLI)
 
@@ -118,6 +118,7 @@ Példa:
   --input ./samples/training.txt \
   --model-id typo_classifier_custom_v1 \
   --display-name \"Custom Typo Model v1\" \
+  --file-name typo_classifier_custom \
   --preset balanced \
   --outdir Coral-tpu/MacOs/Models \
   --manifest Coral-tpu/MacOs/runtime-manifest.json \

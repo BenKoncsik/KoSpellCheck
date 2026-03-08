@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "platform": "darwin",
   "arch": "arm64",
-  "runtimeVersion": "2026-03-07-macos-arm64-model-catalog-v3-native-tflitec",
+  "runtimeVersion": "2026-03-08-macos-arm64-real-int8-models-cpu-fallback",
   "files": [
     {
       "path": "lib/libedgetpu.1.dylib",
@@ -22,39 +22,39 @@
     {
       "path": "bin/coral-typo-classifier",
       "url": "bin/coral-typo-classifier",
-      "sha256": "1c568f9e6e3ba4560749cf75d7d733b172d0f978172f30faf2044714ffacf25f",
+      "sha256": "3d1a9ec57d14b17da1094e1a23c1701c304281dd1e2b3daab46636be67318921",
       "executable": true
     },
     {
       "path": "bin/coral-typo-classifier-native",
       "url": "bin/coral-typo-classifier-native",
-      "sha256": "264413382b69cd0855553d20b74e3bf14b6b8f94b682c5cc49b1e39bce8c2956",
+      "sha256": "0dde91c253111b571799c21f0f5e002b9820c2b0f14c3b3dbb997b5f63075cee",
       "executable": true
     },
     {
       "path": "model/typo_classifier_edgetpu.tflite",
       "url": "model/typo_classifier_edgetpu.tflite",
-      "sha256": "c18be1d6bc5add1745aa87e9aa1045d9b6c29e77bb42b028eb77425b8f226fd0"
+      "sha256": "a2f26029d72cbd4ca073fd4db0ca75be9deda26e926f59bc1ec6e8fb4e3326b7"
     },
     {
       "path": "Models/typo_classifier_edgetpu.tflite",
       "url": "Models/typo_classifier_edgetpu.tflite",
-      "sha256": "c18be1d6bc5add1745aa87e9aa1045d9b6c29e77bb42b028eb77425b8f226fd0"
+      "sha256": "a2f26029d72cbd4ca073fd4db0ca75be9deda26e926f59bc1ec6e8fb4e3326b7"
     },
     {
       "path": "Models/typo_classifier_edgetpu.tflite.meta.json",
       "url": "Models/typo_classifier_edgetpu.tflite.meta.json",
-      "sha256": "b4aa072fb6fe27e652b114b9609b21a974630044158b7681a784eb9e6feab8c9"
+      "sha256": "94be5a9bb6890faa79e85564bf9a26e4c967d4e13df8c79c912573eb703ffa00"
     },
     {
       "path": "Models/typo_classifier_precision_edgetpu.tflite",
       "url": "Models/typo_classifier_precision_edgetpu.tflite",
-      "sha256": "1388887c4d0f1bd42abe6482c35d8ed92adf7de9666d5a3455aec4febd902e0b"
+      "sha256": "508544c30d1a9406f45eb2ec69b229b0d95319dc7f80eee610e26a9d907b28c6"
     },
     {
       "path": "Models/typo_classifier_precision_edgetpu.tflite.meta.json",
       "url": "Models/typo_classifier_precision_edgetpu.tflite.meta.json",
-      "sha256": "bf0f80cf8603a94299484eff622e38ab92eef76316169179b8ec4d4badcd7a92"
+      "sha256": "57f626c6e4aec49814a2329c74a5f5eb1d4c44bf261d08f393534595cbe110a0"
     }
   ],
   "models": [
@@ -62,16 +62,17 @@
       "id": "typo_classifier_edgetpu_v1",
       "displayName": "Typo Classifier - Balanced v1",
       "path": "Models/typo_classifier_edgetpu.tflite",
-      "format": "edgetpu-tflite",
-      "description": "Alapértelmezett, kiegyensúlyozott typo gate modell.",
+      "format": "edgetpu-ready-int8",
+      "description": "Valodi int8 TFLite typo gate modell magyar es angol szotar + projektkorpusz alapjan, EdgeTPU-friendly architekturaval.",
       "default": true
     },
     {
       "id": "typo_classifier_precision_edgetpu_v1",
       "displayName": "Typo Classifier - Precision v1",
       "path": "Models/typo_classifier_precision_edgetpu.tflite",
-      "format": "edgetpu-tflite",
-      "description": "Szűrősebb, kevesebb fals pozitívra hangolva."
+      "format": "edgetpu-ready-int8",
+      "description": "Valodi int8 TFLite typo gate modell szigorubb kuszobokkel magyar es angol szotar + projektkorpusz alapjan, EdgeTPU-friendly architekturaval.",
+      "default": false
     }
   ]
 }
