@@ -1,5 +1,6 @@
 using Newtonsoft.Json.Linq;
 using KoSpellCheck.Core.TypoAcceleration;
+using KoSpellCheck.Core.ProjectConventions.Config;
 
 namespace KoSpellCheck.Core.Config;
 
@@ -94,6 +95,120 @@ public static class ConfigLoader
             localTypoAcceleration?.Value<bool?>("verboseLogging")
             ?? json.Value<bool?>("localTypoAccelerationVerboseLogging")
             ?? config.LocalTypoAccelerationVerboseLogging;
+
+        var projectConventions = json["projectConventions"] as JObject;
+        var conventions = config.ProjectConventions.Clone();
+
+        conventions.EnableProjectConventionMapping =
+            projectConventions?.Value<bool?>("enabled")
+            ?? json.Value<bool?>("projectConventionMappingEnabled")
+            ?? conventions.EnableProjectConventionMapping;
+        conventions.EnableNamingConventionDiagnostics =
+            projectConventions?.Value<bool?>("namingDiagnosticsEnabled")
+            ?? json.Value<bool?>("namingConventionDiagnosticsEnabled")
+            ?? conventions.EnableNamingConventionDiagnostics;
+        conventions.EnableStatisticalAnomalyDetection =
+            projectConventions?.Value<bool?>("statisticalAnomalyDetectionEnabled")
+            ?? json.Value<bool?>("statisticalAnomalyDetectionEnabled")
+            ?? conventions.EnableStatisticalAnomalyDetection;
+        conventions.EnableAiNamingAnomalyDetection =
+            projectConventions?.Value<bool?>("aiNamingAnomalyDetectionEnabled")
+            ?? json.Value<bool?>("aiNamingAnomalyDetectionEnabled")
+            ?? conventions.EnableAiNamingAnomalyDetection;
+        conventions.UseCoralTpuIfAvailable =
+            projectConventions?.Value<bool?>("useCoralTpuIfAvailable")
+            ?? json.Value<bool?>("useCoralTpuIfAvailable")
+            ?? conventions.UseCoralTpuIfAvailable;
+        conventions.AutoRebuildConventionProfile =
+            projectConventions?.Value<bool?>("autoRebuild")
+            ?? json.Value<bool?>("autoRebuildConventionProfile")
+            ?? conventions.AutoRebuildConventionProfile;
+        conventions.AnalyzeOnSave =
+            projectConventions?.Value<bool?>("analyzeOnSave")
+            ?? json.Value<bool?>("conventionAnalyzeOnSave")
+            ?? conventions.AnalyzeOnSave;
+        conventions.AnalyzeOnRename =
+            projectConventions?.Value<bool?>("analyzeOnRename")
+            ?? json.Value<bool?>("conventionAnalyzeOnRename")
+            ?? conventions.AnalyzeOnRename;
+        conventions.AnalyzeOnNewFile =
+            projectConventions?.Value<bool?>("analyzeOnNewFile")
+            ?? json.Value<bool?>("conventionAnalyzeOnNewFile")
+            ?? conventions.AnalyzeOnNewFile;
+        conventions.Scope =
+            projectConventions?.Value<string>("scope")
+            ?? json.Value<string>("conventionScope")
+            ?? conventions.Scope;
+        conventions.IgnoreGeneratedCode =
+            projectConventions?.Value<bool?>("ignoreGeneratedCode")
+            ?? json.Value<bool?>("conventionIgnoreGeneratedCode")
+            ?? conventions.IgnoreGeneratedCode;
+        conventions.IgnoreTestProjects =
+            projectConventions?.Value<bool?>("ignoreTestProjects")
+            ?? json.Value<bool?>("conventionIgnoreTestProjects")
+            ?? conventions.IgnoreTestProjects;
+        conventions.MaxFiles =
+            projectConventions?.Value<int?>("maxFiles")
+            ?? json.Value<int?>("projectConventionMaxFiles")
+            ?? conventions.MaxFiles;
+        conventions.MinEvidenceCount =
+            projectConventions?.Value<int?>("minEvidenceCount")
+            ?? json.Value<int?>("projectConventionMinEvidenceCount")
+            ?? conventions.MinEvidenceCount;
+        conventions.StatisticalAnomalyThreshold =
+            projectConventions?.Value<double?>("statisticalAnomalyThreshold")
+            ?? json.Value<double?>("statisticalAnomalyThreshold")
+            ?? conventions.StatisticalAnomalyThreshold;
+        conventions.AiAnomalyThreshold =
+            projectConventions?.Value<double?>("aiAnomalyThreshold")
+            ?? json.Value<double?>("aiAnomalyThreshold")
+            ?? conventions.AiAnomalyThreshold;
+        conventions.ConventionProfilePath =
+            projectConventions?.Value<string>("profilePath")
+            ?? json.Value<string>("projectConventionProfilePath")
+            ?? conventions.ConventionProfilePath;
+        conventions.ConventionProfileCachePath =
+            projectConventions?.Value<string>("profileCachePath")
+            ?? json.Value<string>("projectConventionProfileCachePath")
+            ?? conventions.ConventionProfileCachePath;
+        conventions.ConventionAnomalyModelPath =
+            projectConventions?.Value<string>("anomalyModelPath")
+            ?? json.Value<string>("projectConventionAnomalyModelPath")
+            ?? conventions.ConventionAnomalyModelPath;
+        conventions.ConventionScanSummaryPath =
+            projectConventions?.Value<string>("scanSummaryPath")
+            ?? json.Value<string>("projectConventionScanSummaryPath")
+            ?? conventions.ConventionScanSummaryPath;
+        conventions.ConventionIgnoreListPath =
+            projectConventions?.Value<string>("ignoreListPath")
+            ?? json.Value<string>("projectConventionIgnoreListPath")
+            ?? conventions.ConventionIgnoreListPath;
+
+        var includePatterns = projectConventions?["includePatterns"]?.Values<string>()?.ToList()
+            ?? json["projectConventionIncludePatterns"]?.Values<string>()?.ToList();
+        if (includePatterns is { Count: > 0 })
+        {
+            conventions.IncludePatterns = includePatterns;
+        }
+
+        var excludePatterns = projectConventions?["excludePatterns"]?.Values<string>()?.ToList()
+            ?? json["projectConventionExcludePatterns"]?.Values<string>()?.ToList();
+        if (excludePatterns is { Count: > 0 })
+        {
+            conventions.ExcludePatterns = excludePatterns;
+        }
+
+        var supportedExtensions = projectConventions?["supportedExtensions"]?.Values<string>()?.ToList()
+            ?? json["projectConventionSupportedExtensions"]?.Values<string>()?.ToList();
+        if (supportedExtensions is { Count: > 0 })
+        {
+            conventions.SupportedExtensions = supportedExtensions
+                .Where(v => !string.IsNullOrWhiteSpace(v))
+                .Select(v => v.Trim().TrimStart('.').ToLowerInvariant())
+                .ToList();
+        }
+
+        config.ProjectConventions = conventions;
 
         var ignoreWords = json["ignoreWords"]?.Values<string>()?.Where(v => !string.IsNullOrWhiteSpace(v));
         if (ignoreWords != null)
@@ -230,6 +345,94 @@ public static class ConfigLoader
                 config.LocalTypoAccelerationVerboseLogging =
                     ParseBool(value, config.LocalTypoAccelerationVerboseLogging);
                 break;
+            case "kospellcheck_project_convention_mapping_enabled":
+                config.ProjectConventions.EnableProjectConventionMapping =
+                    ParseBool(value, config.ProjectConventions.EnableProjectConventionMapping);
+                break;
+            case "kospellcheck_naming_convention_diagnostics_enabled":
+                config.ProjectConventions.EnableNamingConventionDiagnostics =
+                    ParseBool(value, config.ProjectConventions.EnableNamingConventionDiagnostics);
+                break;
+            case "kospellcheck_statistical_anomaly_detection_enabled":
+                config.ProjectConventions.EnableStatisticalAnomalyDetection =
+                    ParseBool(value, config.ProjectConventions.EnableStatisticalAnomalyDetection);
+                break;
+            case "kospellcheck_ai_naming_anomaly_detection_enabled":
+                config.ProjectConventions.EnableAiNamingAnomalyDetection =
+                    ParseBool(value, config.ProjectConventions.EnableAiNamingAnomalyDetection);
+                break;
+            case "kospellcheck_use_coral_tpu_if_available":
+                config.ProjectConventions.UseCoralTpuIfAvailable =
+                    ParseBool(value, config.ProjectConventions.UseCoralTpuIfAvailable);
+                break;
+            case "kospellcheck_auto_rebuild_convention_profile":
+                config.ProjectConventions.AutoRebuildConventionProfile =
+                    ParseBool(value, config.ProjectConventions.AutoRebuildConventionProfile);
+                break;
+            case "kospellcheck_convention_analyze_on_save":
+                config.ProjectConventions.AnalyzeOnSave =
+                    ParseBool(value, config.ProjectConventions.AnalyzeOnSave);
+                break;
+            case "kospellcheck_convention_analyze_on_rename":
+                config.ProjectConventions.AnalyzeOnRename =
+                    ParseBool(value, config.ProjectConventions.AnalyzeOnRename);
+                break;
+            case "kospellcheck_convention_analyze_on_new_file":
+                config.ProjectConventions.AnalyzeOnNewFile =
+                    ParseBool(value, config.ProjectConventions.AnalyzeOnNewFile);
+                break;
+            case "kospellcheck_convention_scope":
+                config.ProjectConventions.Scope = value;
+                break;
+            case "kospellcheck_convention_ignore_generated_code":
+                config.ProjectConventions.IgnoreGeneratedCode =
+                    ParseBool(value, config.ProjectConventions.IgnoreGeneratedCode);
+                break;
+            case "kospellcheck_convention_ignore_test_projects":
+                config.ProjectConventions.IgnoreTestProjects =
+                    ParseBool(value, config.ProjectConventions.IgnoreTestProjects);
+                break;
+            case "kospellcheck_project_convention_include_patterns":
+                config.ProjectConventions.IncludePatterns = ParseList(value);
+                break;
+            case "kospellcheck_project_convention_exclude_patterns":
+                config.ProjectConventions.ExcludePatterns = ParseList(value);
+                break;
+            case "kospellcheck_project_convention_supported_extensions":
+                config.ProjectConventions.SupportedExtensions = ParseList(value)
+                    .Select(v => v.Trim().TrimStart('.').ToLowerInvariant())
+                    .Where(v => !string.IsNullOrWhiteSpace(v))
+                    .ToList();
+                break;
+            case "kospellcheck_project_convention_max_files":
+                config.ProjectConventions.MaxFiles = ParseInt(value, config.ProjectConventions.MaxFiles);
+                break;
+            case "kospellcheck_project_convention_min_evidence_count":
+                config.ProjectConventions.MinEvidenceCount = ParseInt(value, config.ProjectConventions.MinEvidenceCount);
+                break;
+            case "kospellcheck_statistical_anomaly_threshold":
+                config.ProjectConventions.StatisticalAnomalyThreshold =
+                    ParseDouble(value, config.ProjectConventions.StatisticalAnomalyThreshold);
+                break;
+            case "kospellcheck_ai_anomaly_threshold":
+                config.ProjectConventions.AiAnomalyThreshold =
+                    ParseDouble(value, config.ProjectConventions.AiAnomalyThreshold);
+                break;
+            case "kospellcheck_project_convention_profile_path":
+                config.ProjectConventions.ConventionProfilePath = value;
+                break;
+            case "kospellcheck_project_convention_profile_cache_path":
+                config.ProjectConventions.ConventionProfileCachePath = value;
+                break;
+            case "kospellcheck_project_convention_anomaly_model_path":
+                config.ProjectConventions.ConventionAnomalyModelPath = value;
+                break;
+            case "kospellcheck_project_convention_scan_summary_path":
+                config.ProjectConventions.ConventionScanSummaryPath = value;
+                break;
+            case "kospellcheck_project_convention_ignore_list_path":
+                config.ProjectConventions.ConventionIgnoreListPath = value;
+                break;
         }
     }
 
@@ -241,6 +444,11 @@ public static class ConfigLoader
     private static int ParseInt(string value, int fallback)
     {
         return int.TryParse(value, out var parsed) ? parsed : fallback;
+    }
+
+    private static double ParseDouble(string value, double fallback)
+    {
+        return double.TryParse(value, out var parsed) ? parsed : fallback;
     }
 
     private static List<string> ParseList(string value)

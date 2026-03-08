@@ -6,6 +6,9 @@ import { loadConfig } from './config';
 import { SpellService } from './spellService';
 import { SpellIssue, TypoAccelerationMode, TypoClassificationResult } from './types';
 import { StyleLearningCoordinator } from './styleLearningCoordinator';
+import { ProjectConventionFeature } from './projectConventions/feature';
+import { DashboardLogService } from './dashboard/dashboardLogService';
+import { KoSpellCheckDashboardProvider } from './dashboard/dashboardProvider';
 import {
   InstalledRuntimeModel,
   LocalTypoAccelerationController,
@@ -23,6 +26,7 @@ interface DiagnosticMetadata {
 export function activate(context: vscode.ExtensionContext): void {
   const diagnostics = vscode.languages.createDiagnosticCollection(SOURCE);
   const output = vscode.window.createOutputChannel(SOURCE);
+  const dashboardLogService = new DashboardLogService(400);
   const service = new SpellService(context.extensionPath);
   const metadata = new Map<string, DiagnosticMetadata>();
   const timers = new Map<string, NodeJS.Timeout>();
@@ -39,6 +43,14 @@ export function activate(context: vscode.ExtensionContext): void {
       .get<boolean>('localTypoAcceleration.verboseLogging', false);
 
   const log = (message: string, uri?: vscode.Uri, force = false): void => {
+    if (shouldCaptureForDashboard(message, force)) {
+      const lowered = message.toLowerCase();
+      const level = lowered.includes('failed') || lowered.includes('error')
+        ? 'warn'
+        : 'info';
+      dashboardLogService.append(message, level);
+    }
+
     const localTypoVerbose =
       message.includes('local-typo-acceleration') && isLocalTypoVerboseEnabled(uri);
     if (!force && !isDebugEnabled(uri) && !localTypoVerbose) {
@@ -233,6 +245,16 @@ export function activate(context: vscode.ExtensionContext): void {
     context.extensionPath,
     log,
     onRuntimeDownloadProgress
+  );
+  const projectConventionFeature = new ProjectConventionFeature(
+    context,
+    log,
+    typoAcceleration
+  );
+  const dashboardProvider = new KoSpellCheckDashboardProvider(
+    context,
+    projectConventionFeature,
+    dashboardLogService
   );
   void updateRuntimeDownloadStatusSetting('Nincs aktív letöltés.');
   void updateAvailableModelsSetting(typoAcceleration.listInstalledModels());
@@ -680,7 +702,7 @@ export function activate(context: vscode.ExtensionContext): void {
       }
     } catch (error) {
       const message = formatError(error);
-      output.appendLine(`[${new Date().toISOString()}] ${message}`);
+      log(message, document.uri, true);
       diagnostics.delete(document.uri);
       if (!errorNotificationShown) {
         errorNotificationShown = true;
@@ -714,7 +736,10 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     diagnostics,
     output,
+    dashboardLogService,
     styleLearning,
+    projectConventionFeature,
+    dashboardProvider,
     codeActionProvider,
     addWordCommand,
     renameSymbolCommand,
@@ -967,6 +992,32 @@ function toModelPlaceholderText(value: boolean | undefined): string {
   }
 
   return 'ismeretlen';
+}
+
+function shouldCaptureForDashboard(message: string, force: boolean): boolean {
+  if (force) {
+    return true;
+  }
+
+  if (
+    message.startsWith('schedule check') ||
+    message.startsWith('text change') ||
+    message.startsWith('document closed') ||
+    message.startsWith('issue token=')
+  ) {
+    return false;
+  }
+
+  return (
+    message.startsWith('activate') ||
+    message.startsWith('check start') ||
+    message.startsWith('check done') ||
+    message.startsWith('init ') ||
+    message.includes('project-conventions') ||
+    message.includes('local-typo-acceleration') ||
+    message.includes('runtime-download') ||
+    message.includes('settings-changed')
+  );
 }
 
 function diagnosticKey(uri: vscode.Uri, range: vscode.Range, message: string): string {

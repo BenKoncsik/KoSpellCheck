@@ -77,6 +77,30 @@ export interface KoSpellCheckConfig {
   localTypoAccelerationShowDetectionPrompt: boolean;
   localTypoAccelerationVerboseLogging: boolean;
   localTypoAccelerationAutoDownloadRuntime: boolean;
+  projectConventionMappingEnabled: boolean;
+  namingConventionDiagnosticsEnabled: boolean;
+  statisticalAnomalyDetectionEnabled: boolean;
+  aiNamingAnomalyDetectionEnabled: boolean;
+  useCoralTpuIfAvailable: boolean;
+  autoRebuildConventionProfile: boolean;
+  conventionAnalyzeOnSave: boolean;
+  conventionAnalyzeOnRename: boolean;
+  conventionAnalyzeOnNewFile: boolean;
+  conventionScope: 'workspace' | 'solution';
+  conventionIgnoreGeneratedCode: boolean;
+  conventionIgnoreTestProjects: boolean;
+  projectConventionIncludePatterns: string[];
+  projectConventionExcludePatterns: string[];
+  projectConventionSupportedExtensions: string[];
+  projectConventionMaxFiles: number;
+  projectConventionMinEvidenceCount: number;
+  statisticalAnomalyThreshold: number;
+  aiAnomalyThreshold: number;
+  projectConventionProfilePath: string;
+  projectConventionProfileCachePath: string;
+  projectConventionAnomalyModelPath: string;
+  projectConventionScanSummaryPath: string;
+  projectConventionIgnoreListPath: string;
 }
 
 export interface TokenSpan {

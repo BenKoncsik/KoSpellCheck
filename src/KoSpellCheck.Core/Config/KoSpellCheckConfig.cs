@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using KoSpellCheck.Core.TypoAcceleration;
+using KoSpellCheck.Core.ProjectConventions.Config;
 
 namespace KoSpellCheck.Core.Config;
 
@@ -61,6 +62,8 @@ public sealed class KoSpellCheckConfig
 
     public bool LocalTypoAccelerationVerboseLogging { get; set; } = false;
 
+    public ProjectConventionOptions ProjectConventions { get; set; } = new();
+
     public bool IsLanguageEnabled(string languageCode)
     {
         return LanguagesEnabled.Any(l =>
@@ -95,6 +98,7 @@ public sealed class KoSpellCheckConfig
             LocalTypoAccelerationMode = LocalTypoAccelerationMode,
             LocalTypoAccelerationShowDetectionPrompt = LocalTypoAccelerationShowDetectionPrompt,
             LocalTypoAccelerationVerboseLogging = LocalTypoAccelerationVerboseLogging,
+            ProjectConventions = ProjectConventions.Clone(),
         };
     }
 

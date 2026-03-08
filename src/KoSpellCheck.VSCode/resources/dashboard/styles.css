@@ -1,0 +1,137 @@
+:root {
+  --bg: var(--vscode-editor-background);
+  --fg: var(--vscode-editor-foreground);
+  --muted: var(--vscode-descriptionForeground);
+  --panel: color-mix(in srgb, var(--bg) 92%, var(--fg) 8%);
+  --border: var(--vscode-panel-border);
+  --warning: var(--vscode-editorWarning-foreground);
+  --error: var(--vscode-editorError-foreground);
+  --info: var(--vscode-editorInfo-foreground);
+  --button-bg: var(--vscode-button-background);
+  --button-fg: var(--vscode-button-foreground);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--vscode-font-family);
+  font-size: 12px;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+button {
+  border: 1px solid var(--border);
+  background: var(--button-bg);
+  color: var(--button-fg);
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: var(--panel);
+  color: var(--fg);
+}
+
+.meta {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+details {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  overflow: hidden;
+}
+
+summary {
+  cursor: pointer;
+  padding: 8px 10px;
+  font-weight: 600;
+  user-select: none;
+}
+
+.section-body {
+  padding: 8px 10px 10px 10px;
+}
+
+.kv-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 10px;
+}
+
+.kv-key {
+  color: var(--muted);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  padding: 6px 4px;
+  vertical-align: top;
+}
+
+.chip {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 2px 7px;
+  font-size: 11px;
+  border: 1px solid var(--border);
+}
+
+.severity-info {
+  color: var(--info);
+}
+
+.severity-warning {
+  color: var(--warning);
+}
+
+.severity-error {
+  color: var(--error);
+}
+
+.list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.log-line {
+  border-bottom: 1px solid var(--border);
+  padding: 4px 0;
+}
+
+.empty {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.error {
+  color: var(--error);
+}

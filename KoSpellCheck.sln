@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KoSpellCheck.Core.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KoSpellCheck.VS2022", "src\KoSpellCheck.VS2022\KoSpellCheck.VS2022.csproj", "{80D35B0C-8CBB-4B59-A098-818183045757}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KoSpellCheck.ProjectConventions.Cli", "src\KoSpellCheck.ProjectConventions.Cli\KoSpellCheck.ProjectConventions.Cli.csproj", "{B6CDBCC1-3F16-4FF5-8F3F-BDAE6419A94C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +73,18 @@ Global
 		{80D35B0C-8CBB-4B59-A098-818183045757}.Release|x64.Build.0 = Release|Any CPU
 		{80D35B0C-8CBB-4B59-A098-818183045757}.Release|x86.ActiveCfg = Release|Any CPU
 		{80D35B0C-8CBB-4B59-A098-818183045757}.Release|x86.Build.0 = Release|Any CPU
+		{B6CDBCC1-3F16-4FF5-8F3F-BDAE6419A94C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6CDBCC1-3F16-4FF5-8F3F-BDAE6419A94C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6CDBCC1-3F16-4FF5-8F3F-BDAE6419A94C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B6CDBCC1-3F16-4FF5-8F3F-BDAE6419A94C}.Debug|x64.Build.0 = Debug|Any CPU
+		{B6CDBCC1-3F16-4FF5-8F3F-BDAE6419A94C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B6CDBCC1-3F16-4FF5-8F3F-BDAE6419A94C}.Debug|x86.Build.0 = Debug|Any CPU
+		{B6CDBCC1-3F16-4FF5-8F3F-BDAE6419A94C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6CDBCC1-3F16-4FF5-8F3F-BDAE6419A94C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6CDBCC1-3F16-4FF5-8F3F-BDAE6419A94C}.Release|x64.ActiveCfg = Release|Any CPU
+		{B6CDBCC1-3F16-4FF5-8F3F-BDAE6419A94C}.Release|x64.Build.0 = Release|Any CPU
+		{B6CDBCC1-3F16-4FF5-8F3F-BDAE6419A94C}.Release|x86.ActiveCfg = Release|Any CPU
+		{B6CDBCC1-3F16-4FF5-8F3F-BDAE6419A94C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -80,5 +94,6 @@ Global
 		{F175FA32-3A38-4164-ACE0-62CC5C3E60DE} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{045692CE-FCA9-4069-A06C-A121D642DF2D} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{80D35B0C-8CBB-4B59-A098-818183045757} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{B6CDBCC1-3F16-4FF5-8F3F-BDAE6419A94C} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

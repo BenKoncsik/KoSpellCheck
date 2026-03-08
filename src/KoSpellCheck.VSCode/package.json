@@ -20,7 +20,16 @@
     "onCommand:kospellcheck.addWordToProjectDictionary",
     "onCommand:kospellcheck.checkLocalTypoAccelerationStatus",
     "onCommand:kospellcheck.downloadLocalTypoRuntime",
-    "onCommand:kospellcheck.pickLocalTypoModel"
+    "onCommand:kospellcheck.pickLocalTypoModel",
+    "onCommand:kospellcheck.rebuildConventionProfile",
+    "onCommand:kospellcheck.showLearnedConventions",
+    "onCommand:kospellcheck.explainConventionDiagnostic",
+    "onCommand:kospellcheck.ignoreConventionPattern",
+    "onCommand:kospellcheck.openDashboard",
+    "onCommand:kospellcheck.refreshDashboard",
+    "onCommand:kospellcheck.refreshConventionMap",
+    "onCommand:kospellcheck.clearDashboardLogs",
+    "onView:kospellcheck.dashboardView"
   ],
   "main": "./out/extension.js",
   "files": [
@@ -49,8 +58,72 @@
       {
         "command": "kospellcheck.pickLocalTypoModel",
         "title": "KoSpellCheck: Local Typo model kiválasztása"
+      },
+      {
+        "command": "kospellcheck.rebuildConventionProfile",
+        "title": "KoSpellCheck: Rebuild Convention Profile"
+      },
+      {
+        "command": "kospellcheck.showLearnedConventions",
+        "title": "KoSpellCheck: Show Learned Conventions"
+      },
+      {
+        "command": "kospellcheck.explainConventionDiagnostic",
+        "title": "KoSpellCheck: Explain This Convention Diagnostic"
+      },
+      {
+        "command": "kospellcheck.ignoreConventionPattern",
+        "title": "KoSpellCheck: Ignore Convention Pattern"
+      },
+      {
+        "command": "kospellcheck.openDashboard",
+        "title": "KoSpellCheck: Open Dashboard"
+      },
+      {
+        "command": "kospellcheck.refreshDashboard",
+        "title": "KoSpellCheck: Refresh Dashboard"
+      },
+      {
+        "command": "kospellcheck.refreshConventionMap",
+        "title": "KoSpellCheck: Refresh Convention Map"
+      },
+      {
+        "command": "kospellcheck.clearDashboardLogs",
+        "title": "KoSpellCheck: Clear Dashboard Logs"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "kospellcheck",
+          "title": "KoSpellCheck",
+          "icon": "resources/icons/kospellcheck-dashboard.svg"
+        }
+      ]
+    },
+    "views": {
+      "kospellcheck": [
+        {
+          "type": "webview",
+          "id": "kospellcheck.dashboardView",
+          "name": "Dashboard"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "kospellcheck.refreshDashboard",
+          "when": "view == kospellcheck.dashboardView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "kospellcheck.clearDashboardLogs",
+          "when": "view == kospellcheck.dashboardView",
+          "group": "navigation@2"
+        }
+      ]
+    },
     "configuration": {
       "title": "KoSpellCheck",
       "properties": {
@@ -116,6 +189,158 @@
           "default": "Nincs telepített modell.",
           "scope": "machine",
           "markdownDescription": "Információs mező: a telepített runtime alapján elérhető modellek listája (automatikusan frissül)."
+        },
+        "kospellcheck.projectConventions.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable project convention mapping and profile generation."
+        },
+        "kospellcheck.projectConventions.namingDiagnosticsEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable deterministic naming convention diagnostics based on learned project conventions."
+        },
+        "kospellcheck.projectConventions.statisticalAnomalyDetectionEnabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable lightweight statistical anomaly scoring to augment deterministic diagnostics."
+        },
+        "kospellcheck.projectConventions.aiNamingAnomalyDetectionEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable optional local AI naming anomaly scoring."
+        },
+        "kospellcheck.projectConventions.useCoralTpuIfAvailable": {
+          "type": "boolean",
+          "default": false,
+          "description": "If local AI scoring is enabled, try Coral TPU acceleration when available; otherwise fallback to CPU."
+        },
+        "kospellcheck.projectConventions.autoRebuild": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically rebuild the convention profile when project files change."
+        },
+        "kospellcheck.projectConventions.analyzeOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Analyze naming conventions when a file is saved."
+        },
+        "kospellcheck.projectConventions.analyzeOnRename": {
+          "type": "boolean",
+          "default": true,
+          "description": "Analyze naming conventions when files are renamed."
+        },
+        "kospellcheck.projectConventions.analyzeOnNewFile": {
+          "type": "boolean",
+          "default": true,
+          "description": "Analyze naming conventions for newly created files."
+        },
+        "kospellcheck.projectConventions.scope": {
+          "type": "string",
+          "enum": [
+            "workspace",
+            "solution"
+          ],
+          "default": "workspace",
+          "description": "Convention profile scope. workspace = per folder, solution = combined across all workspace folders."
+        },
+        "kospellcheck.projectConventions.ignoreGeneratedCode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ignore generated code files when learning and validating conventions."
+        },
+        "kospellcheck.projectConventions.ignoreTestProjects": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ignore files under test/spec folders when learning and validating conventions."
+        },
+        "kospellcheck.projectConventions.includePatterns": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional glob include patterns for project convention scanning."
+        },
+        "kospellcheck.projectConventions.excludePatterns": {
+          "type": "array",
+          "default": [
+            "**/bin/**",
+            "**/obj/**",
+            "**/node_modules/**",
+            "**/.git/**",
+            "**/.vs/**",
+            "**/artifacts/**"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "description": "Glob exclude patterns for project convention scanning."
+        },
+        "kospellcheck.projectConventions.supportedExtensions": {
+          "type": "array",
+          "default": [
+            "cs",
+            "ts",
+            "tsx",
+            "js",
+            "jsx"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "description": "File extensions used for convention scanning."
+        },
+        "kospellcheck.projectConventions.maxFiles": {
+          "type": "number",
+          "default": 6000,
+          "minimum": 50,
+          "description": "Maximum number of files used when building convention profiles."
+        },
+        "kospellcheck.projectConventions.minEvidenceCount": {
+          "type": "number",
+          "default": 6,
+          "minimum": 2,
+          "description": "Minimum sample size required before deterministic rules become active."
+        },
+        "kospellcheck.projectConventions.statisticalAnomalyThreshold": {
+          "type": "number",
+          "default": 0.62,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Threshold for adding statistical anomaly support diagnostics."
+        },
+        "kospellcheck.projectConventions.aiAnomalyThreshold": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Threshold for adding local AI anomaly support diagnostics."
+        },
+        "kospellcheck.projectConventions.profilePath": {
+          "type": "string",
+          "default": ".kospellcheck/project-conventions.json",
+          "description": "Relative path for the learned convention profile JSON."
+        },
+        "kospellcheck.projectConventions.profileCachePath": {
+          "type": "string",
+          "default": ".kospellcheck/project-profile-cache.json",
+          "description": "Relative path for cache metadata used to skip unnecessary rebuilds."
+        },
+        "kospellcheck.projectConventions.anomalyModelPath": {
+          "type": "string",
+          "default": ".kospellcheck/project-anomaly-model.json",
+          "description": "Relative path for lightweight local anomaly model weights."
+        },
+        "kospellcheck.projectConventions.scanSummaryPath": {
+          "type": "string",
+          "default": ".kospellcheck/project-scan-summary.json",
+          "description": "Relative path for project convention scan summary output."
+        },
+        "kospellcheck.projectConventions.ignoreListPath": {
+          "type": "string",
+          "default": ".kospellcheck/convention-ignores.json",
+          "description": "Relative path for persisted rule suppressions."
         }
       }
     }

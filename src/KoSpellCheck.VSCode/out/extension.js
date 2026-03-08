@@ -45,11 +45,15 @@ const engine_1 = require("./engine");
 const config_1 = require("./config");
 const spellService_1 = require("./spellService");
 const styleLearningCoordinator_1 = require("./styleLearningCoordinator");
+const feature_1 = require("./projectConventions/feature");
+const dashboardLogService_1 = require("./dashboard/dashboardLogService");
+const dashboardProvider_1 = require("./dashboard/dashboardProvider");
 const localTypoAcceleration_1 = require("./localTypoAcceleration");
 const SOURCE = 'KoSpellCheck';
 function activate(context) {
     const diagnostics = vscode.languages.createDiagnosticCollection(SOURCE);
     const output = vscode.window.createOutputChannel(SOURCE);
+    const dashboardLogService = new dashboardLogService_1.DashboardLogService(400);
     const service = new spellService_1.SpellService(context.extensionPath);
     const metadata = new Map();
     const timers = new Map();
@@ -61,6 +65,13 @@ function activate(context) {
         .getConfiguration('kospellcheck', uri)
         .get('localTypoAcceleration.verboseLogging', false);
     const log = (message, uri, force = false) => {
+        if (shouldCaptureForDashboard(message, force)) {
+            const lowered = message.toLowerCase();
+            const level = lowered.includes('failed') || lowered.includes('error')
+                ? 'warn'
+                : 'info';
+            dashboardLogService.append(message, level);
+        }
         const localTypoVerbose = message.includes('local-typo-acceleration') && isLocalTypoVerboseEnabled(uri);
         if (!force && !isDebugEnabled(uri) && !localTypoVerbose) {
             return;
@@ -191,6 +202,8 @@ function activate(context) {
     };
     const styleLearning = new styleLearningCoordinator_1.StyleLearningCoordinator(log);
     const typoAcceleration = new localTypoAcceleration_1.LocalTypoAccelerationController(context, context.extensionPath, log, onRuntimeDownloadProgress);
+    const projectConventionFeature = new feature_1.ProjectConventionFeature(context, log, typoAcceleration);
+    const dashboardProvider = new dashboardProvider_1.KoSpellCheckDashboardProvider(context, projectConventionFeature, dashboardLogService);
     void updateRuntimeDownloadStatusSetting('Nincs aktív letöltés.');
     void updateAvailableModelsSetting(typoAcceleration.listInstalledModels());
     log(`activate version=${context.extension.packageJSON.version ?? 'unknown'}`, undefined, true);
@@ -516,7 +529,7 @@ function activate(context) {
         }
         catch (error) {
             const message = formatError(error);
-            output.appendLine(`[${new Date().toISOString()}] ${message}`);
+            log(message, document.uri, true);
             diagnostics.delete(document.uri);
             if (!errorNotificationShown) {
                 errorNotificationShown = true;
@@ -538,7 +551,7 @@ function activate(context) {
         }, debounceMs));
         log(`schedule check reason=${reason} debounceMs=${debounceMs}`, document.uri);
     };
-    context.subscriptions.push(diagnostics, output, styleLearning, codeActionProvider, addWordCommand, renameSymbolCommand, checkLocalTypoAccelerationStatusCommand, downloadLocalTypoRuntimeCommand, pickLocalTypoModelCommand, vscode.workspace.onDidChangeTextDocument((event) => {
+    context.subscriptions.push(diagnostics, output, dashboardLogService, styleLearning, projectConventionFeature, dashboardProvider, codeActionProvider, addWordCommand, renameSymbolCommand, checkLocalTypoAccelerationStatusCommand, downloadLocalTypoRuntimeCommand, pickLocalTypoModelCommand, vscode.workspace.onDidChangeTextDocument((event) => {
         const uri = event.document.uri.toString();
         const list = pendingFocusOffsets.get(uri) ?? [];
         for (const change of event.contentChanges) {
@@ -719,6 +732,25 @@ function toModelPlaceholderText(value) {
         return 'nem';
     }
     return 'ismeretlen';
+}
+function shouldCaptureForDashboard(message, force) {
+    if (force) {
+        return true;
+    }
+    if (message.startsWith('schedule check') ||
+        message.startsWith('text change') ||
+        message.startsWith('document closed') ||
+        message.startsWith('issue token=')) {
+        return false;
+    }
+    return (message.startsWith('activate') ||
+        message.startsWith('check start') ||
+        message.startsWith('check done') ||
+        message.startsWith('init ') ||
+        message.includes('project-conventions') ||
+        message.includes('local-typo-acceleration') ||
+        message.includes('runtime-download') ||
+        message.includes('settings-changed'));
 }
 function diagnosticKey(uri, range, message) {
     return `${uri.toString()}|${range.start.line}:${range.start.character}-${range.end.line}:${range.end.character}|${message}`;

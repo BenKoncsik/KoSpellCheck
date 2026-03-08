@@ -38,7 +38,38 @@ const DEFAULT_CONFIG = {
     localTypoAccelerationModel: 'auto',
     localTypoAccelerationShowDetectionPrompt: true,
     localTypoAccelerationVerboseLogging: false,
-    localTypoAccelerationAutoDownloadRuntime: true
+    localTypoAccelerationAutoDownloadRuntime: true,
+    projectConventionMappingEnabled: true,
+    namingConventionDiagnosticsEnabled: true,
+    statisticalAnomalyDetectionEnabled: true,
+    aiNamingAnomalyDetectionEnabled: false,
+    useCoralTpuIfAvailable: false,
+    autoRebuildConventionProfile: true,
+    conventionAnalyzeOnSave: true,
+    conventionAnalyzeOnRename: true,
+    conventionAnalyzeOnNewFile: true,
+    conventionScope: 'workspace',
+    conventionIgnoreGeneratedCode: true,
+    conventionIgnoreTestProjects: false,
+    projectConventionIncludePatterns: [],
+    projectConventionExcludePatterns: [
+        '**/bin/**',
+        '**/obj/**',
+        '**/node_modules/**',
+        '**/.git/**',
+        '**/.vs/**',
+        '**/artifacts/**'
+    ],
+    projectConventionSupportedExtensions: ['cs', 'ts', 'tsx', 'js', 'jsx'],
+    projectConventionMaxFiles: 6000,
+    projectConventionMinEvidenceCount: 6,
+    statisticalAnomalyThreshold: 0.62,
+    aiAnomalyThreshold: 0.7,
+    projectConventionProfilePath: '.kospellcheck/project-conventions.json',
+    projectConventionProfileCachePath: '.kospellcheck/project-profile-cache.json',
+    projectConventionAnomalyModelPath: '.kospellcheck/project-anomaly-model.json',
+    projectConventionScanSummaryPath: '.kospellcheck/project-scan-summary.json',
+    projectConventionIgnoreListPath: '.kospellcheck/convention-ignores.json'
 };
 function defaultConfig() {
     return JSON.parse(JSON.stringify(DEFAULT_CONFIG));
@@ -156,6 +187,84 @@ function applyEditorConfig(config, content) {
             case 'kospellcheck_local_typo_acceleration_auto_download_runtime':
                 config.localTypoAccelerationAutoDownloadRuntime = parseBool(value, config.localTypoAccelerationAutoDownloadRuntime);
                 break;
+            case 'kospellcheck_project_convention_mapping_enabled':
+                config.projectConventionMappingEnabled = parseBool(value, config.projectConventionMappingEnabled);
+                break;
+            case 'kospellcheck_naming_convention_diagnostics_enabled':
+                config.namingConventionDiagnosticsEnabled = parseBool(value, config.namingConventionDiagnosticsEnabled);
+                break;
+            case 'kospellcheck_statistical_anomaly_detection_enabled':
+                config.statisticalAnomalyDetectionEnabled = parseBool(value, config.statisticalAnomalyDetectionEnabled);
+                break;
+            case 'kospellcheck_ai_naming_anomaly_detection_enabled':
+                config.aiNamingAnomalyDetectionEnabled = parseBool(value, config.aiNamingAnomalyDetectionEnabled);
+                break;
+            case 'kospellcheck_use_coral_tpu_if_available':
+                config.useCoralTpuIfAvailable = parseBool(value, config.useCoralTpuIfAvailable);
+                break;
+            case 'kospellcheck_auto_rebuild_convention_profile':
+                config.autoRebuildConventionProfile = parseBool(value, config.autoRebuildConventionProfile);
+                break;
+            case 'kospellcheck_convention_analyze_on_save':
+                config.conventionAnalyzeOnSave = parseBool(value, config.conventionAnalyzeOnSave);
+                break;
+            case 'kospellcheck_convention_analyze_on_rename':
+                config.conventionAnalyzeOnRename = parseBool(value, config.conventionAnalyzeOnRename);
+                break;
+            case 'kospellcheck_convention_analyze_on_new_file':
+                config.conventionAnalyzeOnNewFile = parseBool(value, config.conventionAnalyzeOnNewFile);
+                break;
+            case 'kospellcheck_convention_scope': {
+                const normalized = value.trim().toLowerCase();
+                if (normalized === 'workspace' || normalized === 'solution') {
+                    config.conventionScope = normalized;
+                }
+                break;
+            }
+            case 'kospellcheck_convention_ignore_generated_code':
+                config.conventionIgnoreGeneratedCode = parseBool(value, config.conventionIgnoreGeneratedCode);
+                break;
+            case 'kospellcheck_convention_ignore_test_projects':
+                config.conventionIgnoreTestProjects = parseBool(value, config.conventionIgnoreTestProjects);
+                break;
+            case 'kospellcheck_project_convention_include_patterns':
+                config.projectConventionIncludePatterns = parseList(value);
+                break;
+            case 'kospellcheck_project_convention_exclude_patterns':
+                config.projectConventionExcludePatterns = parseList(value);
+                break;
+            case 'kospellcheck_project_convention_supported_extensions':
+                config.projectConventionSupportedExtensions = parseList(value)
+                    .map(normalizeExtension)
+                    .filter(Boolean);
+                break;
+            case 'kospellcheck_project_convention_max_files':
+                config.projectConventionMaxFiles = parseIntOr(value, config.projectConventionMaxFiles);
+                break;
+            case 'kospellcheck_project_convention_min_evidence_count':
+                config.projectConventionMinEvidenceCount = parseIntOr(value, config.projectConventionMinEvidenceCount);
+                break;
+            case 'kospellcheck_statistical_anomaly_threshold':
+                config.statisticalAnomalyThreshold = parseFloatOr(value, config.statisticalAnomalyThreshold);
+                break;
+            case 'kospellcheck_ai_anomaly_threshold':
+                config.aiAnomalyThreshold = parseFloatOr(value, config.aiAnomalyThreshold);
+                break;
+            case 'kospellcheck_project_convention_profile_path':
+                config.projectConventionProfilePath = value || config.projectConventionProfilePath;
+                break;
+            case 'kospellcheck_project_convention_profile_cache_path':
+                config.projectConventionProfileCachePath = value || config.projectConventionProfileCachePath;
+                break;
+            case 'kospellcheck_project_convention_anomaly_model_path':
+                config.projectConventionAnomalyModelPath = value || config.projectConventionAnomalyModelPath;
+                break;
+            case 'kospellcheck_project_convention_scan_summary_path':
+                config.projectConventionScanSummaryPath = value || config.projectConventionScanSummaryPath;
+                break;
+            case 'kospellcheck_project_convention_ignore_list_path':
+                config.projectConventionIgnoreListPath = value || config.projectConventionIgnoreListPath;
+                break;
         }
     }
 }
@@ -234,6 +343,133 @@ function applyJsonConfig(config, input) {
     if (typeof autoDownload === 'boolean') {
         config.localTypoAccelerationAutoDownloadRuntime = autoDownload;
     }
+    const projectConventionsInput = input.projectConventions;
+    const conventionEnabled = projectConventionsInput?.enabled ??
+        input.projectConventionMappingEnabled;
+    if (typeof conventionEnabled === 'boolean') {
+        config.projectConventionMappingEnabled = conventionEnabled;
+    }
+    const namingDiagnosticsEnabled = projectConventionsInput?.namingDiagnosticsEnabled ??
+        input.namingConventionDiagnosticsEnabled;
+    if (typeof namingDiagnosticsEnabled === 'boolean') {
+        config.namingConventionDiagnosticsEnabled = namingDiagnosticsEnabled;
+    }
+    const statisticalEnabled = projectConventionsInput?.statisticalAnomalyDetectionEnabled ??
+        input.statisticalAnomalyDetectionEnabled;
+    if (typeof statisticalEnabled === 'boolean') {
+        config.statisticalAnomalyDetectionEnabled = statisticalEnabled;
+    }
+    const aiEnabled = projectConventionsInput?.aiNamingAnomalyDetectionEnabled ??
+        input.aiNamingAnomalyDetectionEnabled;
+    if (typeof aiEnabled === 'boolean') {
+        config.aiNamingAnomalyDetectionEnabled = aiEnabled;
+    }
+    const coralEnabled = projectConventionsInput?.useCoralTpuIfAvailable ??
+        input.useCoralTpuIfAvailable;
+    if (typeof coralEnabled === 'boolean') {
+        config.useCoralTpuIfAvailable = coralEnabled;
+    }
+    const autoRebuild = projectConventionsInput?.autoRebuild ??
+        input.autoRebuildConventionProfile;
+    if (typeof autoRebuild === 'boolean') {
+        config.autoRebuildConventionProfile = autoRebuild;
+    }
+    const analyzeOnSave = projectConventionsInput?.analyzeOnSave ??
+        input.conventionAnalyzeOnSave;
+    if (typeof analyzeOnSave === 'boolean') {
+        config.conventionAnalyzeOnSave = analyzeOnSave;
+    }
+    const analyzeOnRename = projectConventionsInput?.analyzeOnRename ??
+        input.conventionAnalyzeOnRename;
+    if (typeof analyzeOnRename === 'boolean') {
+        config.conventionAnalyzeOnRename = analyzeOnRename;
+    }
+    const analyzeOnNewFile = projectConventionsInput?.analyzeOnNewFile ??
+        input.conventionAnalyzeOnNewFile;
+    if (typeof analyzeOnNewFile === 'boolean') {
+        config.conventionAnalyzeOnNewFile = analyzeOnNewFile;
+    }
+    const scope = projectConventionsInput?.scope ??
+        input.conventionScope;
+    if (typeof scope === 'string') {
+        const normalizedScope = scope.trim().toLowerCase();
+        if (normalizedScope === 'workspace' || normalizedScope === 'solution') {
+            config.conventionScope = normalizedScope;
+        }
+    }
+    const ignoreGenerated = projectConventionsInput?.ignoreGeneratedCode ??
+        input.conventionIgnoreGeneratedCode;
+    if (typeof ignoreGenerated === 'boolean') {
+        config.conventionIgnoreGeneratedCode = ignoreGenerated;
+    }
+    const ignoreTests = projectConventionsInput?.ignoreTestProjects ??
+        input.conventionIgnoreTestProjects;
+    if (typeof ignoreTests === 'boolean') {
+        config.conventionIgnoreTestProjects = ignoreTests;
+    }
+    const includePatterns = projectConventionsInput?.includePatterns ??
+        input.projectConventionIncludePatterns;
+    if (Array.isArray(includePatterns)) {
+        config.projectConventionIncludePatterns = includePatterns.filter((entry) => typeof entry === 'string' && entry.trim().length > 0);
+    }
+    const excludePatterns = projectConventionsInput?.excludePatterns ??
+        input.projectConventionExcludePatterns;
+    if (Array.isArray(excludePatterns)) {
+        config.projectConventionExcludePatterns = excludePatterns.filter((entry) => typeof entry === 'string' && entry.trim().length > 0);
+    }
+    const supportedExtensions = projectConventionsInput?.supportedExtensions ??
+        input.projectConventionSupportedExtensions;
+    if (Array.isArray(supportedExtensions) && supportedExtensions.length > 0) {
+        config.projectConventionSupportedExtensions = supportedExtensions
+            .filter((entry) => typeof entry === 'string')
+            .map(normalizeExtension)
+            .filter(Boolean);
+    }
+    const maxFiles = projectConventionsInput?.maxFiles ??
+        input.projectConventionMaxFiles;
+    if (typeof maxFiles === 'number' && Number.isFinite(maxFiles)) {
+        config.projectConventionMaxFiles = Math.max(1, Math.floor(maxFiles));
+    }
+    const minEvidenceCount = projectConventionsInput?.minEvidenceCount ??
+        input.projectConventionMinEvidenceCount;
+    if (typeof minEvidenceCount === 'number' && Number.isFinite(minEvidenceCount)) {
+        config.projectConventionMinEvidenceCount = Math.max(1, Math.floor(minEvidenceCount));
+    }
+    const statisticalThreshold = projectConventionsInput?.statisticalAnomalyThreshold ??
+        input.statisticalAnomalyThreshold;
+    if (typeof statisticalThreshold === 'number' && Number.isFinite(statisticalThreshold)) {
+        config.statisticalAnomalyThreshold = clamp01(statisticalThreshold);
+    }
+    const aiThreshold = projectConventionsInput?.aiAnomalyThreshold ??
+        input.aiAnomalyThreshold;
+    if (typeof aiThreshold === 'number' && Number.isFinite(aiThreshold)) {
+        config.aiAnomalyThreshold = clamp01(aiThreshold);
+    }
+    const profilePath = projectConventionsInput?.profilePath ??
+        input.projectConventionProfilePath;
+    if (typeof profilePath === 'string' && profilePath.trim().length > 0) {
+        config.projectConventionProfilePath = profilePath.trim();
+    }
+    const profileCachePath = projectConventionsInput?.profileCachePath ??
+        input.projectConventionProfileCachePath;
+    if (typeof profileCachePath === 'string' && profileCachePath.trim().length > 0) {
+        config.projectConventionProfileCachePath = profileCachePath.trim();
+    }
+    const anomalyModelPath = projectConventionsInput?.anomalyModelPath ??
+        input.projectConventionAnomalyModelPath;
+    if (typeof anomalyModelPath === 'string' && anomalyModelPath.trim().length > 0) {
+        config.projectConventionAnomalyModelPath = anomalyModelPath.trim();
+    }
+    const scanSummaryPath = projectConventionsInput?.scanSummaryPath ??
+        input.projectConventionScanSummaryPath;
+    if (typeof scanSummaryPath === 'string' && scanSummaryPath.trim().length > 0) {
+        config.projectConventionScanSummaryPath = scanSummaryPath.trim();
+    }
+    const ignoreListPath = projectConventionsInput?.ignoreListPath ??
+        input.projectConventionIgnoreListPath;
+    if (typeof ignoreListPath === 'string' && ignoreListPath.trim().length > 0) {
+        config.projectConventionIgnoreListPath = ignoreListPath.trim();
+    }
 }
 function parseBool(value, fallback) {
     if (value.toLowerCase() === 'true')
@@ -267,6 +503,10 @@ function parseIntOr(value, fallback) {
     const parsed = Number.parseInt(value, 10);
     return Number.isFinite(parsed) ? parsed : fallback;
 }
+function parseFloatOr(value, fallback) {
+    const parsed = Number.parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+}
 function parseTypoAccelerationMode(value, fallback) {
     const normalized = value.trim().toLowerCase();
     if (normalized === 'off' || normalized === 'auto' || normalized === 'on') {
@@ -276,5 +516,14 @@ function parseTypoAccelerationMode(value, fallback) {
 }
 function normalizeExtension(value) {
     return value.trim().replace(/^\./u, '').toLowerCase();
+}
+function clamp01(value) {
+    if (value <= 0) {
+        return 0;
+    }
+    if (value >= 1) {
+        return 1;
+    }
+    return value;
 }
 //# sourceMappingURL=config.js.map
