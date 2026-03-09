@@ -1,6 +1,7 @@
 using System.ComponentModel.Composition;
 using KoSpellCheck.Core.Style;
 using KoSpellCheck.VS2022.Services;
+using KoSpellCheck.VS2022.Services.ProjectConventions;
 using KoSpellCheck.VS2022.Services.TypoAcceleration;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -20,11 +21,12 @@ internal sealed class SpellSuggestedActionsSourceProvider : ISuggestedActionsSou
     private readonly TelemetryLogger _telemetryLogger;
     private readonly IProjectStyleProfileProvider _projectStyleProfileProvider;
     private readonly TypoAccelerationCoordinator _typoAccelerationCoordinator;
+    private readonly ProjectConventionDashboardService _projectConventionDashboardService;
 
     [ImportingConstructor]
     public SpellSuggestedActionsSourceProvider(ITextDocumentFactoryService textDocumentFactoryService)
     {
-        (_configService, _dictionaryService, _documentTextExtractor, _telemetryLogger, _projectStyleProfileProvider, _typoAccelerationCoordinator) =
+        (_configService, _dictionaryService, _documentTextExtractor, _telemetryLogger, _projectStyleProfileProvider, _typoAccelerationCoordinator, _projectConventionDashboardService) =
             SpellServiceRegistry.GetServices(textDocumentFactoryService);
     }
 
@@ -37,7 +39,8 @@ internal sealed class SpellSuggestedActionsSourceProvider : ISuggestedActionsSou
             _documentTextExtractor,
             _telemetryLogger,
             _projectStyleProfileProvider,
-            _typoAccelerationCoordinator);
+            _typoAccelerationCoordinator,
+            _projectConventionDashboardService);
 
         return textBuffer.Properties.GetOrCreateSingletonProperty(
             typeof(SpellSuggestedActionsSource),

@@ -72,6 +72,13 @@ function mapSettings(settings?: ConventionFeatureConfig): DashboardSettingItem[]
   }
 
   return [
+    {
+      id: 'projectConventions.coreCliPath',
+      label: 'Core CLI path',
+      value: settings.coreCliPath ?? '(auto)',
+      type: 'string',
+      editable: false
+    },
     boolSetting('projectConventions.enabled', 'Project convention mapping', settings.projectConventionMappingEnabled),
     boolSetting('projectConventions.namingDiagnosticsEnabled', 'Naming diagnostics', settings.namingConventionDiagnosticsEnabled),
     boolSetting('projectConventions.statisticalAnomalyDetectionEnabled', 'Statistical anomaly detection', settings.statisticalAnomalyDetectionEnabled),

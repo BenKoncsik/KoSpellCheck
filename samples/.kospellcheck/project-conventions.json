@@ -1,0 +1,221 @@
+{
+  "SchemaVersion": 1,
+  "GeneratedAtUtc": "2026-03-09T08:27:23.940444Z",
+  "WorkspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples",
+  "Scope": "workspace",
+  "FilesScanned": 7,
+  "TypesScanned": 5,
+  "DominantCaseStyle": "PascalCase",
+  "DominantCaseDistribution": [
+    {
+      "Value": "PascalCase",
+      "Count": 5,
+      "Ratio": 1.0
+    }
+  ],
+  "FileToPrimaryTypeMatchRate": 0.2857142857142857,
+  "Folders": {
+    ".": {
+      "FolderPath": ".",
+      "Files": 2,
+      "TypeCount": 1,
+      "DominantSuffixes": [],
+      "DominantPrefixes": [],
+      "DominantTypeKinds": [
+        {
+          "Value": "class",
+          "Count": 1,
+          "Ratio": 1.0
+        }
+      ],
+      "DominantCaseStyles": [
+        {
+          "Value": "PascalCase",
+          "Count": 1,
+          "Ratio": 1.0
+        }
+      ],
+      "NamespaceSamples": [
+        {
+          "Value": "KoSpellChek.Sample",
+          "Count": 1,
+          "Ratio": 1.0
+        }
+      ],
+      "SingularNames": 1,
+      "PluralNames": 0
+    },
+    "VisualStudio/Semplae/Semplae": {
+      "FolderPath": "VisualStudio/Semplae/Semplae",
+      "Files": 1,
+      "TypeCount": 0,
+      "DominantSuffixes": [],
+      "DominantPrefixes": [],
+      "DominantTypeKinds": [],
+      "DominantCaseStyles": [],
+      "NamespaceSamples": [],
+      "SingularNames": 0,
+      "PluralNames": 0
+    },
+    "ViewModels": {
+      "FolderPath": "ViewModels",
+      "Files": 3,
+      "TypeCount": 3,
+      "DominantSuffixes": [
+        {
+          "Value": "ViewModel",
+          "Count": 2,
+          "Ratio": 0.6666666666666666
+        },
+        {
+          "Value": "Model",
+          "Count": 1,
+          "Ratio": 0.3333333333333333
+        }
+      ],
+      "DominantPrefixes": [],
+      "DominantTypeKinds": [
+        {
+          "Value": "class",
+          "Count": 3,
+          "Ratio": 1.0
+        }
+      ],
+      "DominantCaseStyles": [
+        {
+          "Value": "PascalCase",
+          "Count": 3,
+          "Ratio": 1.0
+        }
+      ],
+      "NamespaceSamples": [
+        {
+          "Value": "ViewModels",
+          "Count": 3,
+          "Ratio": 1.0
+        }
+      ],
+      "SingularNames": 3,
+      "PluralNames": 0
+    },
+    "style-learning/httpclient-workspace/src": {
+      "FolderPath": "style-learning/httpclient-workspace/src",
+      "Files": 1,
+      "TypeCount": 1,
+      "DominantSuffixes": [
+        {
+          "Value": "Factory",
+          "Count": 1,
+          "Ratio": 1.0
+        }
+      ],
+      "DominantPrefixes": [],
+      "DominantTypeKinds": [
+        {
+          "Value": "class",
+          "Count": 1,
+          "Ratio": 1.0
+        }
+      ],
+      "DominantCaseStyles": [
+        {
+          "Value": "PascalCase",
+          "Count": 1,
+          "Ratio": 1.0
+        }
+      ],
+      "NamespaceSamples": [
+        {
+          "Value": "StyleLearningSample",
+          "Count": 1,
+          "Ratio": 1.0
+        }
+      ],
+      "SingularNames": 1,
+      "PluralNames": 0
+    }
+  },
+  "GlobalSuffixes": [
+    {
+      "Value": "ViewModel",
+      "Count": 2,
+      "Ratio": 0.5
+    },
+    {
+      "Value": "Factory",
+      "Count": 1,
+      "Ratio": 0.25
+    },
+    {
+      "Value": "Model",
+      "Count": 1,
+      "Ratio": 0.25
+    }
+  ],
+  "GlobalPrefixes": [],
+  "TokenFrequencies": {
+    "model": 4,
+    "servce": 1,
+    "auto": 1,
+    "view": 2,
+    "people": 1,
+    "truck": 1,
+    "http": 1,
+    "client": 1,
+    "factory": 1
+  },
+  "AbbreviationFrequencies": {
+    "auto": 1,
+    "view": 2,
+    "http": 1
+  },
+  "AbbreviationPreferredForms": {},
+  "InterfaceConvention": {
+    "ExpectedPrefix": "I",
+    "PrefixedCount": 0,
+    "TotalCount": 0,
+    "Confidence": 0.0
+  },
+  "EnumConvention": {
+    "DominantCaseStyle": "Unknown",
+    "Confidence": 0.0
+  },
+  "NamespaceConvention": {
+    "RootSegments": [
+      "viewmodels"
+    ],
+    "FolderToNamespace": {
+      ".": [
+        "KoSpellChek",
+        "Sample"
+      ],
+      "ViewModels": [
+        "ViewModels"
+      ],
+      "style-learning/httpclient-workspace/src": [
+        "StyleLearningSample"
+      ]
+    },
+    "Confidence": 0.6
+  },
+  "KnownSuffixes": [
+    "Base",
+    "Dto",
+    "Service",
+    "Controller",
+    "Repository",
+    "ViewModel",
+    "Manager",
+    "Provider",
+    "Factory",
+    "Options",
+    "Config",
+    "Request",
+    "Response",
+    "Entity",
+    "Model",
+    "Handler",
+    "Command",
+    "Query"
+  ]
+}

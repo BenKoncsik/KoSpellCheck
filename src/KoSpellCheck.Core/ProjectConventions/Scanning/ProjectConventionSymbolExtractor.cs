@@ -90,19 +90,20 @@ public sealed class ProjectConventionSymbolExtractor
 
             var rawKind = match.Groups[1].Value.Trim().ToLowerInvariant();
             var name = match.Groups[2].Value.Trim();
-            var index = match.Index;
+            var nameIndex = match.Groups[2].Index;
             if (name.Length == 0)
             {
                 continue;
             }
 
-            var key = $"{rawKind}:{name}:{index}";
+            var key = $"{rawKind}:{name}:{nameIndex}";
             if (!seen.Add(key))
             {
                 continue;
             }
 
-            var (line, column) = OffsetToLineColumn(content, index);
+            // Keep location on the symbol token itself so host adapters can underline/rename the type name.
+            var (line, column) = OffsetToLineColumn(content, nameIndex);
             output.Add(new TypeSymbolFacts
             {
                 Name = name,

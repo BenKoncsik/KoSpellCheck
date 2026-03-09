@@ -93,6 +93,30 @@ test('core convention CLI bridge builds profile and analyzes file', async () => 
   }
 });
 
+test('core convention CLI bridge discovers CLI project from workspace root when extension path is installed-layout', () => {
+  const fakeInstalledExtensionPath = path.join(
+    os.tmpdir(),
+    'kospellcheck-installed-extension',
+    '.vscode',
+    'extensions',
+    'kospellcheckv2.kospellcheck-0.1.15'
+  );
+  const repoRoot = path.resolve(__dirname, '..', '..', '..', '..');
+  const expectedCliProjectPath = path.join(
+    repoRoot,
+    'src',
+    'KoSpellCheck.ProjectConventions.Cli',
+    'KoSpellCheck.ProjectConventions.Cli.csproj'
+  );
+
+  const client = new CoreConventionCliClient(fakeInstalledExtensionPath, () => {});
+  const candidates = (client as unknown as { resolveCliProjectCandidates: (workspaceRoot?: string) => string[] })
+    .resolveCliProjectCandidates(repoRoot);
+
+  assert.ok(candidates.includes(expectedCliProjectPath));
+  assert.ok(fs.existsSync(expectedCliProjectPath));
+});
+
 function writeFile(root: string, relativePath: string, content: string): void {
   const fullPath = path.join(root, relativePath);
   fs.mkdirSync(path.dirname(fullPath), { recursive: true });

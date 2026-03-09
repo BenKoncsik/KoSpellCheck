@@ -1,6 +1,7 @@
 using KoSpellCheck.Core.Diagnostics;
 using KoSpellCheck.Core.Engine;
 using KoSpellCheck.Core.Style;
+using KoSpellCheck.VS2022.Services.ProjectConventions;
 using KoSpellCheck.VS2022.Services.TypoAcceleration;
 using Microsoft.VisualStudio.Text;
 
@@ -17,6 +18,7 @@ internal sealed class SpellCheckOrchestrator : IDisposable
     private readonly TelemetryLogger _telemetryLogger;
     private readonly IProjectStyleProfileProvider _projectStyleProfileProvider;
     private readonly TypoAccelerationCoordinator _typoAccelerationCoordinator;
+    private readonly ProjectConventionDashboardService _projectConventionDashboardService;
     private readonly object _gate = new();
     private readonly SynchronizationContext? _uiContext;
 
@@ -34,7 +36,8 @@ internal sealed class SpellCheckOrchestrator : IDisposable
         DocumentTextExtractor documentTextExtractor,
         TelemetryLogger telemetryLogger,
         IProjectStyleProfileProvider projectStyleProfileProvider,
-        TypoAccelerationCoordinator typoAccelerationCoordinator)
+        TypoAccelerationCoordinator typoAccelerationCoordinator,
+        ProjectConventionDashboardService projectConventionDashboardService)
     {
         _textBuffer = textBuffer;
         _configService = configService;
@@ -43,6 +46,7 @@ internal sealed class SpellCheckOrchestrator : IDisposable
         _telemetryLogger = telemetryLogger;
         _projectStyleProfileProvider = projectStyleProfileProvider;
         _typoAccelerationCoordinator = typoAccelerationCoordinator;
+        _projectConventionDashboardService = projectConventionDashboardService;
         _uiContext = SynchronizationContext.Current;
 
         _textBuffer.Changed += OnBufferChanged;
@@ -62,7 +66,8 @@ internal sealed class SpellCheckOrchestrator : IDisposable
         DocumentTextExtractor documentTextExtractor,
         TelemetryLogger telemetryLogger,
         IProjectStyleProfileProvider projectStyleProfileProvider,
-        TypoAccelerationCoordinator typoAccelerationCoordinator)
+        TypoAccelerationCoordinator typoAccelerationCoordinator,
+        ProjectConventionDashboardService projectConventionDashboardService)
     {
         return textBuffer.Properties.GetOrCreateSingletonProperty(
             BufferPropertyKey,
@@ -73,7 +78,8 @@ internal sealed class SpellCheckOrchestrator : IDisposable
                 documentTextExtractor,
                 telemetryLogger,
                 projectStyleProfileProvider,
-                typoAccelerationCoordinator));
+                typoAccelerationCoordinator,
+                projectConventionDashboardService));
     }
 
     public IReadOnlyList<SpellIssueSnapshot> GetIssues(ITextSnapshot snapshot)
@@ -243,6 +249,9 @@ internal sealed class SpellCheckOrchestrator : IDisposable
             }
 
             RaiseIssuesChanged();
+            await _projectConventionDashboardService
+                .UpdateFromDocumentAsync(settings, snapshot, cancellationToken)
+                .ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {

@@ -102,7 +102,8 @@ public sealed class ConventionRuleEngine
         }
 
         var dominantSuffix = folder.DominantSuffixes.FirstOrDefault();
-        if (dominantSuffix == null || dominantSuffix.Count < context.MinEvidenceCount || dominantSuffix.Ratio < 0.55)
+        var requiredEvidence = ResolveFolderSuffixEvidenceThreshold(folder, context.MinEvidenceCount);
+        if (dominantSuffix == null || dominantSuffix.Count < requiredEvidence || dominantSuffix.Ratio < 0.55)
         {
             return Array.Empty<ConventionDiagnostic>();
         }
@@ -129,7 +130,7 @@ public sealed class ConventionRuleEngine
                 symbol,
                 "KS_CONV_001",
                 "Type name does not fit folder naming convention",
-                dominantSuffix.Ratio >= 0.80 ? ConventionSeverity.Warning : ConventionSeverity.Info,
+                dominantSuffix.Ratio >= 0.65 ? ConventionSeverity.Warning : ConventionSeverity.Info,
                 dominantSuffix.Ratio,
                 $"The type {symbol.Name} deviates from the dominant *{dominantSuffix.Value} pattern used in {folderKey}.",
                 "The learned folder convention indicates a strong suffix trend in this folder. The current type name does not match that local pattern.",
@@ -159,7 +160,7 @@ public sealed class ConventionRuleEngine
                 symbol,
                 "KS_CONV_008",
                 "Unexpected or missing suffix",
-                ConventionSeverity.Info,
+                dominantSuffix.Ratio >= 0.65 ? ConventionSeverity.Warning : ConventionSeverity.Info,
                 Clamp01(dominantSuffix.Ratio * 0.90),
                 $"Expected suffix *{dominantSuffix.Value} is missing for {symbol.Name} in {folderKey}.",
                 "The dominant suffix in this folder was learned from existing project files and appears consistently.",
@@ -764,6 +765,15 @@ public sealed class ConventionRuleEngine
         }
 
         return value;
+    }
+
+    private static int ResolveFolderSuffixEvidenceThreshold(FolderConventionProfile folder, int globalMinEvidenceCount)
+    {
+        var safeGlobal = Math.Max(1, globalMinEvidenceCount);
+        // Smaller folders should not require the full global threshold to surface a local suffix trend.
+        // For example, 2x *ViewModel vs 1x *Model in ViewModels should be detectable.
+        var folderScaled = Math.Max(2, (int)Math.Ceiling(Math.Max(0, folder.TypeCount) * 0.60));
+        return Math.Min(safeGlobal, folderScaled);
     }
 
     private sealed class RuleContext

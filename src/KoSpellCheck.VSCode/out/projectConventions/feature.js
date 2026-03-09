@@ -56,7 +56,13 @@ class ProjectConventionFeature {
         this.onDidStateChange = this.stateChangeEmitter.event;
         this.log = log;
         this.typoAcceleration = typoAcceleration;
-        this.cliClient = new coreCliClient_1.CoreConventionCliClient(this.context.extensionPath, (message) => this.log(message));
+        this.cliClient = new coreCliClient_1.CoreConventionCliClient(this.context.extensionPath, (message) => this.log(message), () => {
+            const raw = vscode.workspace
+                .getConfiguration('kospellcheck', vscode.window.activeTextEditor?.document.uri)
+                .get('projectConventions.coreCliPath', '')
+                .trim();
+            return raw || undefined;
+        });
         this.diagnostics = vscode.languages.createDiagnosticCollection(SOURCE);
         this.disposables.push(this.diagnostics, this.registerCodeActions(), this.registerCommands(), this.registerEventHandlers());
         this.scheduleRebuildForAll('activation', 250);
@@ -298,7 +304,24 @@ class ProjectConventionFeature {
             this.clearMetadataForUri(document.uri);
             this.notifyDashboardStateChanged();
         });
-        return vscode.Disposable.from(onSave, onCreate, onRename, onDelete, onConfig, onFolders, onClose);
+        const onActiveEditor = vscode.window.onDidChangeActiveTextEditor((editor) => {
+            if (!editor || editor.document.uri.scheme !== 'file') {
+                return;
+            }
+            void this.handleActiveEditorChanged(editor.document);
+        });
+        return vscode.Disposable.from(onSave, onCreate, onRename, onDelete, onConfig, onFolders, onClose, onActiveEditor);
+    }
+    async handleActiveEditorChanged(document) {
+        const scope = this.resolveScope(document.uri);
+        if (!scope) {
+            return;
+        }
+        const config = this.resolveConfig(scope.storageRoot, document.uri);
+        if (!config.projectConventionMappingEnabled || !config.namingConventionDiagnosticsEnabled) {
+            return;
+        }
+        await this.analyzeDocument(document, 'active-editor-changed');
     }
     async handleDocumentSave(document) {
         if (document.uri.scheme !== 'file') {
@@ -716,6 +739,7 @@ class ProjectConventionFeature {
         const loaded = (0, config_1.loadConfig)(workspaceRoot);
         const settings = vscode.workspace.getConfiguration('kospellcheck', uri);
         return {
+            coreCliPath: settings.get('projectConventions.coreCliPath', '').trim() || undefined,
             projectConventionMappingEnabled: settings.get('projectConventions.enabled', loaded.projectConventionMappingEnabled),
             namingConventionDiagnosticsEnabled: settings.get('projectConventions.namingDiagnosticsEnabled', loaded.namingConventionDiagnosticsEnabled),
             statisticalAnomalyDetectionEnabled: settings.get('projectConventions.statisticalAnomalyDetectionEnabled', loaded.statisticalAnomalyDetectionEnabled),

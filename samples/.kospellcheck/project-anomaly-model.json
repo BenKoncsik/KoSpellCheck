@@ -1,0 +1,15 @@
+{
+  "SchemaVersion": 1,
+  "ModelType": "logistic-regression",
+  "CreatedAtUtc": "2026-03-08T21:05:13.327295Z",
+  "Weights": {
+    "Bias": -0.35,
+    "DeterministicViolationCount": 0.97,
+    "SuffixMismatchScore": 1.3,
+    "FolderKindMismatchScore": 1.05,
+    "NamespaceMismatchScore": 0.95,
+    "FileTypeMismatchScore": 1.1,
+    "AbbreviationMismatchScore": 0.8,
+    "TokenRarityScore": 0.7
+  }
+}

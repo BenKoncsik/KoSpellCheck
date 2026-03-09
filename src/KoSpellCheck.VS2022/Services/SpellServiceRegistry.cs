@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.Text;
 using KoSpellCheck.Core.Style;
 using KoSpellCheck.Core.TypoAcceleration;
+using KoSpellCheck.VS2022.Services.ProjectConventions;
 using KoSpellCheck.VS2022.Services.TypoAcceleration;
 
 namespace KoSpellCheck.VS2022.Services;
@@ -18,6 +19,7 @@ internal static class SpellServiceRegistry
     private static IAcceleratorNotificationService? _acceleratorNotificationService;
     private static ILocalTypoClassifier? _localTypoClassifier;
     private static TypoAccelerationCoordinator? _typoAccelerationCoordinator;
+    private static ProjectConventionDashboardService? _projectConventionDashboardService;
 
     public static (
         ConfigService ConfigService,
@@ -25,7 +27,8 @@ internal static class SpellServiceRegistry
         DocumentTextExtractor DocumentTextExtractor,
         TelemetryLogger TelemetryLogger,
         IProjectStyleProfileProvider ProjectStyleProfileProvider,
-        TypoAccelerationCoordinator TypoAccelerationCoordinator) GetServices(ITextDocumentFactoryService textDocumentFactoryService)
+        TypoAccelerationCoordinator TypoAccelerationCoordinator,
+        ProjectConventionDashboardService ProjectConventionDashboardService) GetServices(ITextDocumentFactoryService textDocumentFactoryService)
     {
         lock (Gate)
         {
@@ -42,6 +45,7 @@ internal static class SpellServiceRegistry
                 _acceleratorNotificationService,
                 _localTypoClassifier,
                 _telemetryLogger);
+            _projectConventionDashboardService ??= new ProjectConventionDashboardService(_telemetryLogger);
 
             return (
                 _configService,
@@ -49,7 +53,8 @@ internal static class SpellServiceRegistry
                 _documentTextExtractor,
                 _telemetryLogger,
                 _projectStyleProfileProvider,
-                _typoAccelerationCoordinator);
+                _typoAccelerationCoordinator,
+                _projectConventionDashboardService);
         }
     }
 }

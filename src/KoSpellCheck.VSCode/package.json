@@ -195,6 +195,11 @@
           "default": true,
           "description": "Enable project convention mapping and profile generation."
         },
+        "kospellcheck.projectConventions.coreCliPath": {
+          "type": "string",
+          "default": "",
+          "description": "Optional absolute path to KoSpellCheck.ProjectConventions.Cli (.dll, .csproj, or containing folder). If empty, KoSpellCheck auto-resolves packaged CLI or source project."
+        },
         "kospellcheck.projectConventions.namingDiagnosticsEnabled": {
           "type": "boolean",
           "default": true,

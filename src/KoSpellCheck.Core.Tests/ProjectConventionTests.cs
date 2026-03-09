@@ -57,6 +57,111 @@ public sealed class ProjectConventionTests
     }
 
     [Fact]
+    public void Analyzer_detects_viewmodel_suffix_mismatch_with_default_min_evidence()
+    {
+        var root = CreateTempWorkspace();
+        try
+        {
+            WriteFile(root, "ViewModels/CustomerViewModel.cs", "namespace App.ViewModels; public class CustomerViewModel {}");
+            WriteFile(root, "ViewModels/OrderViewModel.cs", "namespace App.ViewModels; public class OrderViewModel {}");
+            WriteFile(root, "Services/CustomerService.cs", "namespace App.Services; public class CustomerService {}");
+
+            var service = new ProjectConventionService();
+            var profile = service.BuildProfile(new ConventionProfileBuildRequest
+            {
+                WorkspaceRoot = root,
+                Scope = "workspace",
+                Options = new ProjectConventionOptions
+                {
+                    EnableProjectConventionMapping = true,
+                    EnableNamingConventionDiagnostics = true,
+                    MaxFiles = 100,
+                    // intentionally left at default MinEvidenceCount=6
+                },
+                PersistArtifacts = false,
+            }).Profile;
+
+            var analysis = service.Analyze(new ConventionAnalysisRequest
+            {
+                WorkspaceRoot = root,
+                FilePath = Path.Combine(root, "ViewModels", "PeopleModel.cs"),
+                FileContent = "namespace App.ViewModels; public class PeopleModel {}",
+                Profile = profile,
+                Options = new ProjectConventionOptions
+                {
+                    EnableProjectConventionMapping = true,
+                    EnableNamingConventionDiagnostics = true,
+                    // intentionally left at default MinEvidenceCount=6
+                },
+                IgnoreList = new ConventionIgnoreList(),
+            });
+
+            var ruleIds = analysis.Analysis.Diagnostics.Select(d => d.RuleId).ToList();
+            Assert.Contains("KS_CONV_001", ruleIds);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Analyzer_reports_diagnostic_position_on_type_name_token()
+    {
+        var root = CreateTempWorkspace();
+        try
+        {
+            WriteFile(root, "ViewModels/CustomerViewModel.cs", "namespace App.ViewModels; public class CustomerViewModel {}");
+            WriteFile(root, "ViewModels/OrderViewModel.cs", "namespace App.ViewModels; public class OrderViewModel {}");
+
+            var service = new ProjectConventionService();
+            var profile = service.BuildProfile(new ConventionProfileBuildRequest
+            {
+                WorkspaceRoot = root,
+                Scope = "workspace",
+                Options = new ProjectConventionOptions
+                {
+                    EnableProjectConventionMapping = true,
+                    EnableNamingConventionDiagnostics = true,
+                    MaxFiles = 100,
+                },
+                PersistArtifacts = false,
+            }).Profile;
+
+            var content =
+                "namespace App.ViewModels;\n" +
+                "public sealed partial class PeopleModel\n" +
+                "{\n" +
+                "}\n";
+            var classLine = "public sealed partial class PeopleModel";
+            var expectedColumn = classLine.IndexOf("PeopleModel", StringComparison.Ordinal);
+
+            var analysis = service.Analyze(new ConventionAnalysisRequest
+            {
+                WorkspaceRoot = root,
+                FilePath = Path.Combine(root, "ViewModels", "PeopleModel.cs"),
+                FileContent = content,
+                Profile = profile,
+                Options = new ProjectConventionOptions
+                {
+                    EnableProjectConventionMapping = true,
+                    EnableNamingConventionDiagnostics = true,
+                },
+                IgnoreList = new ConventionIgnoreList(),
+            });
+
+            var mismatch = analysis.Analysis.Diagnostics.First(d => d.RuleId == "KS_CONV_001");
+            Assert.Equal(1, mismatch.Line);
+            Assert.Equal(expectedColumn, mismatch.Column);
+            Assert.Equal(ConventionSeverity.Warning, mismatch.Severity);
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
     public void Analyzer_detects_file_primary_type_mismatch()
     {
         var root = CreateTempWorkspace();

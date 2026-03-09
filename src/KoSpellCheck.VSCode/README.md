@@ -59,6 +59,17 @@ Notes:
   - `./scripts/sync-tflite-c-runtime.sh`
 - Runtime source path a repóban: `Coral-tpu/MacOs`, `Coral-tpu/Linux`, `Coral-tpu/Windows`.
 
+### Project Convention CLI bridge settings (VS Code)
+
+- `kospellcheck.projectConventions.coreCliPath` (optional)
+  - Leave empty for automatic resolution from packaged CLI artifacts.
+  - If needed, set it to an absolute path pointing to:
+    - `KoSpellCheck.ProjectConventions.Cli.dll`, or
+    - `KoSpellCheck.ProjectConventions.Cli.csproj`, or
+    - a folder containing either of the above.
+
+If dashboard logs show `project-conventions core-cli unavailable`, set `coreCliPath` explicitly to the CLI location.
+
 ## Magyar
 A KoSpellCheck egy offline magyar + angol helyesiras-ellenorzo VS Code-hoz, amelyet kifejezetten fejlesztoi munkafolyamatokra terveztek.
 Nem csak sima szoveget ellenoriz: kodtudatos tokenizalast hasznal, igy pontosabban kezeli a forraskod sajatossagait, es kevesebb teves talalatot ad.

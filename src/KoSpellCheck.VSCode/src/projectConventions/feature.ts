@@ -25,6 +25,7 @@ interface TypoAccelerationProbe {
 }
 
 export interface ConventionFeatureConfig {
+  coreCliPath?: string;
   projectConventionMappingEnabled: boolean;
   namingConventionDiagnosticsEnabled: boolean;
   statisticalAnomalyDetectionEnabled: boolean;
@@ -179,7 +180,17 @@ export class ProjectConventionFeature implements vscode.Disposable {
   ) {
     this.log = log;
     this.typoAcceleration = typoAcceleration;
-    this.cliClient = new CoreConventionCliClient(this.context.extensionPath, (message) => this.log(message));
+    this.cliClient = new CoreConventionCliClient(
+      this.context.extensionPath,
+      (message) => this.log(message),
+      () => {
+        const raw = vscode.workspace
+          .getConfiguration('kospellcheck', vscode.window.activeTextEditor?.document.uri)
+          .get<string>('projectConventions.coreCliPath', '')
+          .trim();
+        return raw || undefined;
+      }
+    );
     this.diagnostics = vscode.languages.createDiagnosticCollection(SOURCE);
 
     this.disposables.push(
@@ -514,7 +525,38 @@ export class ProjectConventionFeature implements vscode.Disposable {
       this.notifyDashboardStateChanged();
     });
 
-    return vscode.Disposable.from(onSave, onCreate, onRename, onDelete, onConfig, onFolders, onClose);
+    const onActiveEditor = vscode.window.onDidChangeActiveTextEditor((editor) => {
+      if (!editor || editor.document.uri.scheme !== 'file') {
+        return;
+      }
+
+      void this.handleActiveEditorChanged(editor.document);
+    });
+
+    return vscode.Disposable.from(
+      onSave,
+      onCreate,
+      onRename,
+      onDelete,
+      onConfig,
+      onFolders,
+      onClose,
+      onActiveEditor
+    );
+  }
+
+  private async handleActiveEditorChanged(document: vscode.TextDocument): Promise<void> {
+    const scope = this.resolveScope(document.uri);
+    if (!scope) {
+      return;
+    }
+
+    const config = this.resolveConfig(scope.storageRoot, document.uri);
+    if (!config.projectConventionMappingEnabled || !config.namingConventionDiagnosticsEnabled) {
+      return;
+    }
+
+    await this.analyzeDocument(document, 'active-editor-changed');
   }
 
   private async handleDocumentSave(document: vscode.TextDocument): Promise<void> {
@@ -1035,6 +1077,7 @@ export class ProjectConventionFeature implements vscode.Disposable {
     const settings = vscode.workspace.getConfiguration('kospellcheck', uri);
 
     return {
+      coreCliPath: settings.get<string>('projectConventions.coreCliPath', '').trim() || undefined,
       projectConventionMappingEnabled: settings.get<boolean>(
         'projectConventions.enabled',
         loaded.projectConventionMappingEnabled
