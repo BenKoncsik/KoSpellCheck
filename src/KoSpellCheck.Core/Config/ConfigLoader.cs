@@ -1,6 +1,7 @@
 using Newtonsoft.Json.Linq;
 using KoSpellCheck.Core.TypoAcceleration;
 using KoSpellCheck.Core.ProjectConventions.Config;
+using KoSpellCheck.Core.Localization;
 
 namespace KoSpellCheck.Core.Config;
 
@@ -53,6 +54,11 @@ public static class ConfigLoader
         var json = JObject.Parse(File.ReadAllText(jsonPath));
 
         config.Enabled = json.Value<bool?>("enabled") ?? config.Enabled;
+        var uiLanguage = json.Value<string>("uiLanguage");
+        if (SharedUiText.TryNormalizeConfiguredLanguage(uiLanguage, out var normalizedUiLanguage))
+        {
+            config.UiLanguage = normalizedUiLanguage;
+        }
 
         var langs = json["languages"]?.Values<string>()?.Where(v => !string.IsNullOrWhiteSpace(v)).ToList();
         if (langs is { Count: > 0 })
@@ -273,6 +279,12 @@ public static class ConfigLoader
         {
             case "kospellcheck_enabled":
                 config.Enabled = ParseBool(value, config.Enabled);
+                break;
+            case "kospellcheck_ui_language":
+                if (SharedUiText.TryNormalizeConfiguredLanguage(value, out var normalizedUiLanguage))
+                {
+                    config.UiLanguage = normalizedUiLanguage;
+                }
                 break;
             case "kospellcheck_languages":
                 config.LanguagesEnabled = ParseList(value);

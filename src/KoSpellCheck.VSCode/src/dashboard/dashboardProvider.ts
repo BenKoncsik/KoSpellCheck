@@ -5,6 +5,7 @@ import { mapDashboardViewModel } from './dashboardMapper';
 import { DashboardLogService } from './dashboardLogService';
 import { DashboardStateStore } from './dashboardState';
 import { ProjectConventionDashboardSnapshot, ProjectConventionFeature } from '../projectConventions/feature';
+import { resolveUiLanguage, text } from '../sharedUiText';
 
 const DASHBOARD_VIEW_TYPE = 'kospellcheck.dashboardView';
 
@@ -156,6 +157,7 @@ export class KoSpellCheckDashboardProvider implements vscode.WebviewViewProvider
       );
       const examplesByFolder = await this.collectFolderExamples(snapshot);
       const model = mapDashboardViewModel(snapshot, this.logService.snapshot(), examplesByFolder);
+      model.uiStrings = this.buildUiStrings(snapshot.settings?.uiLanguage);
       this.state.setData(model);
       this.logService.append(
         `dashboard refresh completed diagnostics=${model.diagnostics.length} folders=${model.conventionMap.length}`
@@ -360,21 +362,91 @@ export class KoSpellCheckDashboardProvider implements vscode.WebviewViewProvider
       vscode.Uri.joinPath(this.context.extensionUri, 'resources', 'dashboard', 'main.js')
     );
     const nonce = randomNonce();
+    const configuredLanguage = vscode.workspace
+      .getConfiguration('kospellcheck', vscode.window.activeTextEditor?.document.uri)
+      .get<string>('uiLanguage', 'auto');
+    const lang = resolveUiLanguage(configuredLanguage);
+    const title = text('dashboard.title', 'KoSpellCheck Dashboard', {
+      configuredLanguage
+    });
 
     return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${lang}">
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="${stylesUri}" />
-  <title>KoSpellCheck Dashboard</title>
+  <title>${title}</title>
 </head>
 <body>
   <div id="app"></div>
   <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`;
+  }
+
+  private buildUiStrings(configuredLanguage: string | undefined): Record<string, string> {
+    return {
+      toolbarRefresh: text('dashboard.toolbar.refresh', 'Refresh Dashboard', { configuredLanguage }),
+      toolbarRebuild: text('dashboard.toolbar.rebuild', 'Rebuild Convention Profile', { configuredLanguage }),
+      toolbarRefreshMap: text('dashboard.toolbar.refreshMap', 'Refresh Convention Map', { configuredLanguage }),
+      toolbarClearLogs: text('dashboard.toolbar.clearLogs', 'Clear Logs', { configuredLanguage }),
+      toolbarOpenSettings: text('dashboard.toolbar.openSettings', 'Open Settings', { configuredLanguage }),
+      toolbarOpenProfileJson: text('dashboard.toolbar.openProfileJson', 'Open Profile JSON', { configuredLanguage }),
+      sectionOverview: text('dashboard.section.overview', 'Overview', { configuredLanguage }),
+      sectionSettings: text('dashboard.section.settings', 'Settings', { configuredLanguage }),
+      sectionConventionMap: text('dashboard.section.conventionMap', 'Convention Map', { configuredLanguage }),
+      sectionDiagnostics: text('dashboard.section.diagnostics', 'Diagnostics', { configuredLanguage }),
+      sectionLogs: text('dashboard.section.logs', 'Logs', { configuredLanguage }),
+      overviewWorkspaceRoot: text('dashboard.overview.workspaceRoot', 'Workspace root', { configuredLanguage }),
+      overviewScope: text('dashboard.overview.scope', 'Scope', { configuredLanguage }),
+      overviewFilesScanned: text('dashboard.overview.filesScanned', 'Files scanned', { configuredLanguage }),
+      overviewTypesScanned: text('dashboard.overview.typesScanned', 'Types scanned', { configuredLanguage }),
+      overviewDominantCase: text('dashboard.overview.dominantCase', 'Dominant case', { configuredLanguage }),
+      overviewProfileUpdated: text('dashboard.overview.profileUpdated', 'Profile updated', { configuredLanguage }),
+      overviewDiagnostics: text('dashboard.overview.diagnostics', 'Diagnostics', { configuredLanguage }),
+      overviewConventionFeature: text('dashboard.overview.conventionFeature', 'Convention feature', { configuredLanguage }),
+      overviewAiAnomaly: text('dashboard.overview.aiAnomaly', 'AI anomaly', { configuredLanguage }),
+      overviewCoral: text('dashboard.overview.coral', 'Coral', { configuredLanguage }),
+      overviewRebuildQueue: text('dashboard.overview.rebuildQueue', 'Rebuild queue', { configuredLanguage }),
+      tableSetting: text('dashboard.table.setting', 'Setting', { configuredLanguage }),
+      tableValue: text('dashboard.table.value', 'Value', { configuredLanguage }),
+      tableAction: text('dashboard.table.action', 'Action', { configuredLanguage }),
+      toggle: text('dashboard.table.toggle', 'Toggle', { configuredLanguage }),
+      emptySettings: text('dashboard.empty.settings', 'No settings snapshot available.', { configuredLanguage }),
+      tableFolder: text('dashboard.table.folder', 'Folder', { configuredLanguage }),
+      tableExpectedSuffix: text('dashboard.table.expectedSuffix', 'Expected suffix', { configuredLanguage }),
+      tableExpectedPrefix: text('dashboard.table.expectedPrefix', 'Expected prefix', { configuredLanguage }),
+      tableDominantKind: text('dashboard.table.dominantKind', 'Dominant kind', { configuredLanguage }),
+      tableConfidence: text('dashboard.table.confidence', 'Confidence', { configuredLanguage }),
+      tableNamespaceSample: text('dashboard.table.namespaceSample', 'Namespace sample', { configuredLanguage }),
+      tableExamples: text('dashboard.table.examples', 'Examples', { configuredLanguage }),
+      emptyExamples: text('dashboard.empty.examples', 'No examples found in current workspace snapshot.', { configuredLanguage }),
+      emptyConventionMap: text(
+        'dashboard.empty.conventionMap',
+        'No convention profile loaded yet. Rebuild profile to populate this section.',
+        { configuredLanguage }
+      ),
+      tableSeverity: text('dashboard.table.severity', 'Severity', { configuredLanguage }),
+      tableFile: text('dashboard.table.file', 'File', { configuredLanguage }),
+      tableProblem: text('dashboard.table.problem', 'Problem', { configuredLanguage }),
+      tableRule: text('dashboard.table.rule', 'Rule', { configuredLanguage }),
+      tableExpected: text('dashboard.table.expected', 'Expected', { configuredLanguage }),
+      tableObserved: text('dashboard.table.observed', 'Observed', { configuredLanguage }),
+      tableSuggestion: text('dashboard.table.suggestion', 'Suggestion', { configuredLanguage }),
+      reveal: text('dashboard.button.reveal', 'Reveal', { configuredLanguage }),
+      emptyDiagnostics: text('dashboard.empty.diagnostics', 'No active convention diagnostics.', { configuredLanguage }),
+      emptyLogs: text('dashboard.empty.logs', 'No log entries yet.', { configuredLanguage }),
+      valueActive: text('dashboard.value.active', 'Active', { configuredLanguage }),
+      valueInactive: text('dashboard.value.inactive', 'Inactive', { configuredLanguage }),
+      valueInFlight: text('dashboard.value.inFlight', 'In-flight', { configuredLanguage }),
+      valueQueued: text('dashboard.value.queued', 'Queued', { configuredLanguage }),
+      valueNotAvailable: text('general.notAvailable', 'n/a', { configuredLanguage }),
+      valueUnknown: text('dashboard.value.unknown', 'Unknown', { configuredLanguage }),
+      metaLastRefresh: text('dashboard.meta.lastRefresh', 'Last refresh:', { configuredLanguage }),
+      metaLoading: text('dashboard.meta.loading', 'Loading...', { configuredLanguage })
+    };
   }
 }
 

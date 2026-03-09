@@ -23,5 +23,6 @@
   </Prerequisites>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="KoSpellCheck.VS2022.dll" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" Path="KoSpellCheck.VS2022.dll" />
   </Assets>
 </PackageManifest>

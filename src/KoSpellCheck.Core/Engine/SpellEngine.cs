@@ -8,6 +8,7 @@ using KoSpellCheck.Core.Normalization;
 using KoSpellCheck.Core.Style;
 using KoSpellCheck.Core.Tokenization;
 using KoSpellCheck.Core.Utils;
+using KoSpellCheck.Core.Localization;
 
 namespace KoSpellCheck.Core.Engine;
 
@@ -99,10 +100,11 @@ public sealed class SpellEngine
             if (!cached.IsCorrect)
             {
                 diagnostics.Add(CreateDiagnostic(
+                    SpellDiagnosticKind.Misspelling,
                     lineMap,
                     token,
                     tokenText,
-                    $"Possible misspelling: '{tokenText}'.",
+                    BuildMisspellingMessage(ctx.Config, tokenText, suggestions),
                     cached.LanguageHint,
                     suggestions));
                 continue;
@@ -112,10 +114,11 @@ public sealed class SpellEngine
                 !string.Equals(preferred, normalized, StringComparison.OrdinalIgnoreCase))
             {
                 diagnostics.Add(CreateDiagnostic(
+                    SpellDiagnosticKind.PreferredTerm,
                     lineMap,
                     token,
                     tokenText,
-                    $"Preferred term is '{preferred}'.",
+                    SharedUiText.Get(ctx.Config, "spell.preferredTerm", ("preferred", preferred)),
                     cached.LanguageHint,
                     suggestions));
             }
@@ -176,6 +179,7 @@ public sealed class SpellEngine
     }
 
     private static SpellDiagnostic CreateDiagnostic(
+        SpellDiagnosticKind kind,
         LineMap lineMap,
         TokenSpan token,
         string tokenText,
@@ -187,11 +191,30 @@ public sealed class SpellEngine
         var (endLine, endCharacter) = lineMap.GetLineAndCharacter(token.End);
 
         return new SpellDiagnostic(
+            kind,
             new TextRange(token.Start, token.End, startLine, startCharacter, endLine, endCharacter),
             tokenText,
             message,
             languageHint,
             suggestions);
+    }
+
+    private static string BuildMisspellingMessage(
+        KoSpellCheckConfig config,
+        string tokenText,
+        IReadOnlyList<Suggestion> suggestions)
+    {
+        if (suggestions.Count == 0)
+        {
+            return SharedUiText.Get(config, "spell.misspelling", ("token", tokenText));
+        }
+
+        var preview = string.Join(", ", suggestions.Take(3).Select(item => item.Replacement));
+        return SharedUiText.Get(
+            config,
+            "spell.misspellingWithSuggestions",
+            ("token", tokenText),
+            ("suggestions", preview));
     }
 
     private static string BuildCacheKey(string normalizedToken, KoSpellCheckConfig config)

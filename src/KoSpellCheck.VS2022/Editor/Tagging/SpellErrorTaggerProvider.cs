@@ -1,5 +1,6 @@
 using System.ComponentModel.Composition;
 using KoSpellCheck.VS2022.Services;
+using KoSpellCheck.VS2022.Services.ProjectConventions;
 using KoSpellCheck.Core.Style;
 using KoSpellCheck.VS2022.Services.TypoAcceleration;
 using Microsoft.VisualStudio.Text;
@@ -20,11 +21,12 @@ internal sealed class SpellErrorTaggerProvider : IViewTaggerProvider
     private readonly TelemetryLogger _telemetryLogger;
     private readonly IProjectStyleProfileProvider _projectStyleProfileProvider;
     private readonly TypoAccelerationCoordinator _typoAccelerationCoordinator;
+    private readonly ProjectConventionDashboardService _projectConventionDashboardService;
 
     [ImportingConstructor]
     public SpellErrorTaggerProvider(ITextDocumentFactoryService textDocumentFactoryService)
     {
-        (_configService, _dictionaryService, _documentTextExtractor, _telemetryLogger, _projectStyleProfileProvider, _typoAccelerationCoordinator) =
+        (_configService, _dictionaryService, _documentTextExtractor, _telemetryLogger, _projectStyleProfileProvider, _typoAccelerationCoordinator, _projectConventionDashboardService) =
             SpellServiceRegistry.GetServices(textDocumentFactoryService);
     }
 
@@ -43,7 +45,8 @@ internal sealed class SpellErrorTaggerProvider : IViewTaggerProvider
             _documentTextExtractor,
             _telemetryLogger,
             _projectStyleProfileProvider,
-            _typoAccelerationCoordinator);
+            _typoAccelerationCoordinator,
+            _projectConventionDashboardService);
 
         var tagger = buffer.Properties.GetOrCreateSingletonProperty(
             typeof(SpellErrorTagger),

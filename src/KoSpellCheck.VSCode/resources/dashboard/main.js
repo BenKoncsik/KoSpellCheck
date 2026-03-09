@@ -18,6 +18,7 @@
       inFlightRebuildCount: 0,
       queuedRebuildCount: 0
     },
+    uiStrings: {},
     settings: [],
     conventionMap: [],
     diagnostics: [],
@@ -47,15 +48,21 @@
       .replaceAll("'", '&#39;');
   }
 
+  function ui(key, fallback) {
+    const strings = state.uiStrings || {};
+    const value = strings[key];
+    return typeof value === 'string' && value.length > 0 ? value : fallback;
+  }
+
   function renderToolbar() {
     return `
       <div class="toolbar">
-        <button data-action="refresh">Refresh Dashboard</button>
-        <button data-action="rebuild">Rebuild Convention Profile</button>
-        <button data-action="refreshConventionMap" class="secondary">Refresh Convention Map</button>
-        <button data-action="clearLogs" class="secondary">Clear Logs</button>
-        <button data-action="openSettings" class="secondary">Open Settings</button>
-        ${state.profilePath ? `<button data-action="openProfile" data-path="${esc(state.profilePath)}" class="secondary">Open Profile JSON</button>` : ''}
+        <button data-action="refresh">${ui('toolbarRefresh', 'Refresh Dashboard')}</button>
+        <button data-action="rebuild">${ui('toolbarRebuild', 'Rebuild Convention Profile')}</button>
+        <button data-action="refreshConventionMap" class="secondary">${ui('toolbarRefreshMap', 'Refresh Convention Map')}</button>
+        <button data-action="clearLogs" class="secondary">${ui('toolbarClearLogs', 'Clear Logs')}</button>
+        <button data-action="openSettings" class="secondary">${ui('toolbarOpenSettings', 'Open Settings')}</button>
+        ${state.profilePath ? `<button data-action="openProfile" data-path="${esc(state.profilePath)}" class="secondary">${ui('toolbarOpenProfileJson', 'Open Profile JSON')}</button>` : ''}
       </div>
     `;
   }
@@ -64,20 +71,20 @@
     const o = state.overview || {};
     return `
       <details open>
-        <summary>Overview</summary>
+        <summary>${ui('sectionOverview', 'Overview')}</summary>
         <div class="section-body">
           <div class="kv-grid">
-            <div class="kv-key">Workspace root</div><div>${esc(o.workspaceRoot || '-')}</div>
-            <div class="kv-key">Scope</div><div>${esc(o.scope || '-')}</div>
-            <div class="kv-key">Files scanned</div><div>${esc(o.filesScanned)}</div>
-            <div class="kv-key">Types scanned</div><div>${esc(o.typesScanned)}</div>
-            <div class="kv-key">Dominant case</div><div>${esc(o.dominantCaseStyle || 'Unknown')}</div>
-            <div class="kv-key">Profile updated</div><div>${esc(state.overview.profileLastUpdatedUtc || '-')}</div>
-            <div class="kv-key">Diagnostics</div><div>${esc(o.diagnosticsCount)}</div>
-            <div class="kv-key">Convention feature</div><div>${o.featureEnabled ? 'Enabled' : 'Disabled'}</div>
-            <div class="kv-key">AI anomaly</div><div>${o.aiEnabled ? 'Enabled' : 'Disabled'}</div>
-            <div class="kv-key">Coral</div><div>${o.coralActive ? 'Active' : 'Inactive'} (${esc(o.coralDetail || 'n/a')})</div>
-            <div class="kv-key">Rebuild queue</div><div>In-flight: ${esc(o.inFlightRebuildCount)} | Queued: ${esc(o.queuedRebuildCount)}</div>
+            <div class="kv-key">${ui('overviewWorkspaceRoot', 'Workspace root')}</div><div>${esc(o.workspaceRoot || '-')}</div>
+            <div class="kv-key">${ui('overviewScope', 'Scope')}</div><div>${esc(o.scope || '-')}</div>
+            <div class="kv-key">${ui('overviewFilesScanned', 'Files scanned')}</div><div>${esc(o.filesScanned)}</div>
+            <div class="kv-key">${ui('overviewTypesScanned', 'Types scanned')}</div><div>${esc(o.typesScanned)}</div>
+            <div class="kv-key">${ui('overviewDominantCase', 'Dominant case')}</div><div>${esc(o.dominantCaseStyle || ui('valueUnknown', 'Unknown'))}</div>
+            <div class="kv-key">${ui('overviewProfileUpdated', 'Profile updated')}</div><div>${esc(state.overview.profileLastUpdatedUtc || '-')}</div>
+            <div class="kv-key">${ui('overviewDiagnostics', 'Diagnostics')}</div><div>${esc(o.diagnosticsCount)}</div>
+            <div class="kv-key">${ui('overviewConventionFeature', 'Convention feature')}</div><div>${o.featureEnabled ? ui('valueActive', 'Active') : ui('valueInactive', 'Inactive')}</div>
+            <div class="kv-key">${ui('overviewAiAnomaly', 'AI anomaly')}</div><div>${o.aiEnabled ? ui('valueActive', 'Active') : ui('valueInactive', 'Inactive')}</div>
+            <div class="kv-key">${ui('overviewCoral', 'Coral')}</div><div>${o.coralActive ? ui('valueActive', 'Active') : ui('valueInactive', 'Inactive')} (${esc(o.coralDetail || ui('valueNotAvailable', 'n/a'))})</div>
+            <div class="kv-key">${ui('overviewRebuildQueue', 'Rebuild queue')}</div><div>${ui('valueInFlight', 'In-flight')}: ${esc(o.inFlightRebuildCount)} | ${ui('valueQueued', 'Queued')}: ${esc(o.queuedRebuildCount)}</div>
           </div>
         </div>
       </details>
@@ -89,7 +96,7 @@
       .map((item) => {
         const value = typeof item.value === 'boolean' ? (item.value ? 'true' : 'false') : String(item.value);
         const toggleButton = item.editable && item.type === 'boolean'
-          ? `<button data-action="toggleSetting" data-setting-id="${esc(item.id)}" data-value="${esc(item.value)}" class="secondary">Toggle</button>`
+          ? `<button data-action="toggleSetting" data-setting-id="${esc(item.id)}" data-value="${esc(item.value)}" class="secondary">${ui('toggle', 'Toggle')}</button>`
           : '';
         return `
           <tr>
@@ -103,11 +110,11 @@
 
     return `
       <details>
-        <summary>Settings</summary>
+        <summary>${ui('sectionSettings', 'Settings')}</summary>
         <div class="section-body">
           ${rows
-            ? `<table class="table"><thead><tr><th>Setting</th><th>Value</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table>`
-            : '<div class="empty">No settings snapshot available.</div>'}
+          ? `<table class="table"><thead><tr><th>${ui('tableSetting', 'Setting')}</th><th>${ui('tableValue', 'Value')}</th><th>${ui('tableAction', 'Action')}</th></tr></thead><tbody>${rows}</tbody></table>`
+            : `<div class="empty">${ui('emptySettings', 'No settings snapshot available.')}</div>`}
         </div>
       </details>
     `;
@@ -119,7 +126,7 @@
       .map((item) => {
         const examples = item.exampleTypes && item.exampleTypes.length > 0
           ? item.exampleTypes.map((example) => `<li>${esc(example)}</li>`).join('')
-          : '<li class="empty">No examples found in current workspace snapshot.</li>';
+          : `<li class="empty">${ui('emptyExamples', 'No examples found in current workspace snapshot.')}</li>`;
         return `
           <tr>
             <td>${esc(item.folderPath)}</td>
@@ -136,24 +143,24 @@
 
     return `
       <details open>
-        <summary>Convention Map</summary>
+        <summary>${ui('sectionConventionMap', 'Convention Map')}</summary>
         <div class="section-body">
           ${rows
             ? `<table class="table">
                 <thead>
                   <tr>
-                    <th>Folder</th>
-                    <th>Expected suffix</th>
-                    <th>Expected prefix</th>
-                    <th>Dominant kind</th>
-                    <th>Confidence</th>
-                    <th>Namespace sample</th>
-                    <th>Examples</th>
+                    <th>${ui('tableFolder', 'Folder')}</th>
+                    <th>${ui('tableExpectedSuffix', 'Expected suffix')}</th>
+                    <th>${ui('tableExpectedPrefix', 'Expected prefix')}</th>
+                    <th>${ui('tableDominantKind', 'Dominant kind')}</th>
+                    <th>${ui('tableConfidence', 'Confidence')}</th>
+                    <th>${ui('tableNamespaceSample', 'Namespace sample')}</th>
+                    <th>${ui('tableExamples', 'Examples')}</th>
                   </tr>
                 </thead>
                 <tbody>${rows}</tbody>
               </table>`
-            : '<div class="empty">No convention profile loaded yet. Rebuild profile to populate this section.</div>'}
+            : `<div class="empty">${ui('emptyConventionMap', 'No convention profile loaded yet. Rebuild profile to populate this section.')}</div>`}
         </div>
       </details>
     `;
@@ -175,7 +182,7 @@
             <td>${esc(item.observed || '-')}</td>
             <td>${esc(item.suggestion || '-')}</td>
             <td>
-              <button class="secondary" data-action="revealDiagnostic" data-path="${esc(item.absolutePath)}" data-line="${esc(item.line)}" data-column="${esc(item.column)}">Reveal</button>
+              <button class="secondary" data-action="revealDiagnostic" data-path="${esc(item.absolutePath)}" data-line="${esc(item.line)}" data-column="${esc(item.column)}">${ui('reveal', 'Reveal')}</button>
             </td>
           </tr>
         `;
@@ -184,26 +191,26 @@
 
     return `
       <details open>
-        <summary>Diagnostics</summary>
+        <summary>${ui('sectionDiagnostics', 'Diagnostics')}</summary>
         <div class="section-body">
           ${rows
             ? `<table class="table">
                 <thead>
                   <tr>
-                    <th>Severity</th>
-                    <th>File</th>
-                    <th>Problem</th>
-                    <th>Rule</th>
-                    <th>Conf.</th>
-                    <th>Expected</th>
-                    <th>Observed</th>
-                    <th>Suggestion</th>
+                    <th>${ui('tableSeverity', 'Severity')}</th>
+                    <th>${ui('tableFile', 'File')}</th>
+                    <th>${ui('tableProblem', 'Problem')}</th>
+                    <th>${ui('tableRule', 'Rule')}</th>
+                    <th>${ui('tableConfidence', 'Conf.')}</th>
+                    <th>${ui('tableExpected', 'Expected')}</th>
+                    <th>${ui('tableObserved', 'Observed')}</th>
+                    <th>${ui('tableSuggestion', 'Suggestion')}</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>${rows}</tbody>
               </table>`
-            : '<div class="empty">No active convention diagnostics.</div>'}
+            : `<div class="empty">${ui('emptyDiagnostics', 'No active convention diagnostics.')}</div>`}
         </div>
       </details>
     `;
@@ -219,9 +226,9 @@
 
     return `
       <details>
-        <summary>Logs</summary>
+        <summary>${ui('sectionLogs', 'Logs')}</summary>
         <div class="section-body">
-          ${rows || '<div class="empty">No log entries yet.</div>'}
+          ${rows || `<div class="empty">${ui('emptyLogs', 'No log entries yet.')}</div>`}
         </div>
       </details>
     `;
@@ -230,7 +237,7 @@
   function render() {
     app.innerHTML = `
       ${renderToolbar()}
-      <div class="meta">Last refresh: ${esc(state.refreshedAtUtc)} ${state.loading ? '| Loading...' : ''}</div>
+      <div class="meta">${ui('metaLastRefresh', 'Last refresh:')} ${esc(state.refreshedAtUtc)} ${state.loading ? `| ${ui('metaLoading', 'Loading...')}` : ''}</div>
       ${state.errorMessage ? `<div class="error">${esc(state.errorMessage)}</div>` : ''}
       ${renderOverview()}
       ${renderSettings()}

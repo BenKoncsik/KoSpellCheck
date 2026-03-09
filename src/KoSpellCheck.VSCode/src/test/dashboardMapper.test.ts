@@ -13,6 +13,7 @@ test('dashboard mapper converts convention profile snapshot into view model', ()
       storageRoot: '/tmp/demo'
     },
     settings: {
+      uiLanguage: 'en',
       projectConventionMappingEnabled: true,
       namingConventionDiagnosticsEnabled: true,
       statisticalAnomalyDetectionEnabled: true,

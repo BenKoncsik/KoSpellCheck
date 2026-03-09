@@ -1,6 +1,7 @@
 using KoSpellCheck.VS2022.Editor.Suggestions.Actions;
 using KoSpellCheck.VS2022.Services;
 using KoSpellCheck.Core.TypoAcceleration;
+using KoSpellCheck.Core.Localization;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -49,6 +50,7 @@ internal sealed class SpellSuggestedActionsSource : ISuggestedActionsSource
             return Array.Empty<SuggestedActionSet>();
         }
 
+        var uiLanguage = ResolveUiLanguage();
         var actions = new List<ISuggestedAction>();
         var trackingSpan = range.Snapshot.CreateTrackingSpan(issue.Span, SpanTrackingMode.EdgeInclusive);
         var filePath = _configService.GetDocumentFilePath(_textBuffer);
@@ -77,7 +79,8 @@ internal sealed class SpellSuggestedActionsSource : ISuggestedActionsSource
                     suggestion,
                     SuggestionApplyMode.RenameSymbol,
                     filePath,
-                    renameTarget));
+                    renameTarget,
+                    uiLanguage));
                 continue;
             }
 
@@ -86,7 +89,8 @@ internal sealed class SpellSuggestedActionsSource : ISuggestedActionsSource
                 trackingSpan,
                 suggestion,
                 SuggestionApplyMode.ReplaceSpan,
-                filePath));
+                filePath,
+                uiLanguage: uiLanguage));
         }
 
         actions.Add(new AddToProjectDictionaryAction(_textBuffer, _orchestrator, _configService, issue.Token));
@@ -97,7 +101,9 @@ internal sealed class SpellSuggestedActionsSource : ISuggestedActionsSource
                 PredefinedSuggestedActionCategoryNames.CodeFix,
                 actions,
                 priority: SuggestedActionSetPriority.Medium,
-                title: "KoSpellCheck"),
+                title: SharedUiText.Get(
+                    "vs2022.suggestedActions.categoryTitle",
+                    uiLanguage)),
         };
     }
 
@@ -339,5 +345,17 @@ internal sealed class SpellSuggestedActionsSource : ISuggestedActionsSource
     {
         Identifier = 0,
         Literal = 1
+    }
+
+    private string ResolveUiLanguage()
+    {
+        try
+        {
+            return _configService.GetSettings(_textBuffer).Config.UiLanguage;
+        }
+        catch
+        {
+            return "auto";
+        }
     }
 }

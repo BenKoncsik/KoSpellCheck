@@ -15,6 +15,7 @@ const dashboardMapper_1 = require("../dashboard/dashboardMapper");
             storageRoot: '/tmp/demo'
         },
         settings: {
+            uiLanguage: 'en',
             projectConventionMappingEnabled: true,
             namingConventionDiagnosticsEnabled: true,
             statisticalAnomalyDetectionEnabled: true,

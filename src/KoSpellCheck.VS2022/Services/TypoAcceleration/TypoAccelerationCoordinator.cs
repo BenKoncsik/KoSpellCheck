@@ -1,5 +1,6 @@
 using KoSpellCheck.Core.Diagnostics;
 using KoSpellCheck.Core.TypoAcceleration;
+using KoSpellCheck.Core.Localization;
 using Microsoft.VisualStudio.Text;
 
 namespace KoSpellCheck.VS2022.Services.TypoAcceleration;
@@ -173,11 +174,15 @@ internal sealed class TypoAccelerationCoordinator
             }
 
             var message = classification.Category == TypoClassificationCategory.Uncertain
-                ? $"Low-confidence typo signal: {diagnostic.Message}"
+                ? SharedUiText.Get(
+                    settings.Config,
+                    "spell.lowConfidenceTypoSignal",
+                    ("message", diagnostic.Message))
                 : diagnostic.Message;
 
             list.Add(new SpellIssue(
                 baseIssue.TrackingSpan,
+                baseIssue.Kind,
                 baseIssue.Token,
                 message,
                 baseIssue.Suggestions,
@@ -195,7 +200,7 @@ internal sealed class TypoAccelerationCoordinator
 
     private static bool IsMisspellDiagnostic(SpellDiagnostic diagnostic)
     {
-        return diagnostic.Message.StartsWith("Possible misspelling", StringComparison.OrdinalIgnoreCase);
+        return diagnostic.Kind == SpellDiagnosticKind.Misspelling;
     }
 
     private static bool TryCreateIssue(ITextSnapshot snapshot, SpellDiagnostic diagnostic, out SpellIssue? issue)
@@ -212,6 +217,7 @@ internal sealed class TypoAccelerationCoordinator
         var trackingSpan = snapshot.CreateTrackingSpan(start, length, SpanTrackingMode.EdgeInclusive);
         issue = new SpellIssue(
             trackingSpan,
+            diagnostic.Kind,
             diagnostic.Token,
             diagnostic.Message,
             diagnostic.Suggestions,

@@ -48,9 +48,11 @@ const styleLearningCoordinator_1 = require("./styleLearningCoordinator");
 const feature_1 = require("./projectConventions/feature");
 const dashboardLogService_1 = require("./dashboard/dashboardLogService");
 const dashboardProvider_1 = require("./dashboard/dashboardProvider");
+const sharedUiText_1 = require("./sharedUiText");
 const localTypoAcceleration_1 = require("./localTypoAcceleration");
 const SOURCE = 'KoSpellCheck';
 function activate(context) {
+    (0, sharedUiText_1.initializeSharedUiText)(context.extensionPath, vscode.env.language);
     const diagnostics = vscode.languages.createDiagnosticCollection(SOURCE);
     const output = vscode.window.createOutputChannel(SOURCE);
     const dashboardLogService = new dashboardLogService_1.DashboardLogService(400);
@@ -64,6 +66,22 @@ function activate(context) {
     const isLocalTypoVerboseEnabled = (uri) => vscode.workspace
         .getConfiguration('kospellcheck', uri)
         .get('localTypoAcceleration.verboseLogging', false);
+    const configuredUiLanguage = (uri) => {
+        const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', uri);
+        const settingValue = workspaceConfig.get('uiLanguage');
+        if (typeof settingValue === 'string' && settingValue.trim().length > 0) {
+            return settingValue.trim();
+        }
+        const globalConfig = vscode.workspace.getConfiguration(undefined, uri);
+        const compatibilityValue = globalConfig.get('koSpellCheck.uiLanguage');
+        if (typeof compatibilityValue === 'string' && compatibilityValue.trim().length > 0) {
+            return compatibilityValue.trim();
+        }
+        const workspaceRoot = uri
+            ? vscode.workspace.getWorkspaceFolder(uri)?.uri.fsPath
+            : vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        return (0, config_1.loadConfig)(workspaceRoot).uiLanguage;
+    };
     const log = (message, uri, force = false) => {
         if (shouldCaptureForDashboard(message, force)) {
             const lowered = message.toLowerCase();
@@ -115,7 +133,9 @@ function activate(context) {
         }
         lastAvailableModelIds = modelIds;
         const statusText = sorted.length === 0
-            ? 'Nincs telepített modell.'
+            ? (0, sharedUiText_1.text)('localTypo.status.noInstalledModel', 'No installed model.', {
+                configuredLanguage: configuredUiLanguage()
+            })
             : sorted
                 .map((item) => `${item.id}${item.isDefault ? ' [default]' : ''}${item.format ? ` (${item.format})` : ''}`)
                 .join(', ');
@@ -204,7 +224,9 @@ function activate(context) {
     const typoAcceleration = new localTypoAcceleration_1.LocalTypoAccelerationController(context, context.extensionPath, log, onRuntimeDownloadProgress);
     const projectConventionFeature = new feature_1.ProjectConventionFeature(context, log, typoAcceleration);
     const dashboardProvider = new dashboardProvider_1.KoSpellCheckDashboardProvider(context, projectConventionFeature, dashboardLogService);
-    void updateRuntimeDownloadStatusSetting('Nincs aktív letöltés.');
+    void updateRuntimeDownloadStatusSetting((0, sharedUiText_1.text)('localTypo.status.noActiveDownload', 'No active download.', {
+        configuredLanguage: configuredUiLanguage()
+    }));
     void updateAvailableModelsSetting(typoAcceleration.listInstalledModels());
     log(`activate version=${context.extension.packageJSON.version ?? 'unknown'}`, undefined, true);
     const codeActionProvider = vscode.languages.registerCodeActionsProvider([{ scheme: 'file' }], {
@@ -219,35 +241,45 @@ function activate(context) {
                 }
                 const contextKind = classifyDiagnosticContext(document, diagnostic.range);
                 const classification = info.classification;
+                const uiLanguage = configuredUiLanguage(document.uri);
                 for (const suggestion of info.suggestions.slice(0, 5)) {
                     if (contextKind === 'identifier' &&
                         classification?.category !== 'TextTypo' &&
                         isLikelyIdentifier(info.token) &&
                         isLikelyIdentifier(suggestion)) {
                         const renameTarget = buildRenameTarget(document, diagnostic.range, suggestion);
-                        const renameSymbol = new vscode.CodeAction(`Rename symbol to '${renameTarget}'`, vscode.CodeActionKind.QuickFix);
+                        const renameSymbol = new vscode.CodeAction((0, sharedUiText_1.text)('action.renameSymbolTo', `Rename symbol to '${renameTarget}'`, {
+                            configuredLanguage: uiLanguage,
+                            args: { value: renameTarget }
+                        }), vscode.CodeActionKind.QuickFix);
                         renameSymbol.isPreferred = classification
                             ? classification.category === 'IdentifierTypo'
                             : true;
                         renameSymbol.diagnostics = [diagnostic];
                         renameSymbol.command = {
                             command: 'kospellcheck.renameSymbolWithSuggestion',
-                            title: 'KoSpellCheck: Rename symbol with suggestion',
+                            title: (0, sharedUiText_1.text)('action.command.renameSymbolWithSuggestion', 'KoSpellCheck: Rename symbol with suggestion', { configuredLanguage: uiLanguage }),
                             arguments: [document.uri, diagnostic.range, info.token, suggestion, renameTarget]
                         };
                         actions.push(renameSymbol);
                         continue;
                     }
-                    const replaceSingle = new vscode.CodeAction(`Replace this with '${suggestion}'`, vscode.CodeActionKind.QuickFix);
+                    const replaceSingle = new vscode.CodeAction((0, sharedUiText_1.text)('action.replaceWith', `Replace this with '${suggestion}'`, {
+                        configuredLanguage: uiLanguage,
+                        args: { value: suggestion }
+                    }), vscode.CodeActionKind.QuickFix);
                     replaceSingle.diagnostics = [diagnostic];
                     replaceSingle.edit = new vscode.WorkspaceEdit();
                     replaceSingle.edit.replace(document.uri, diagnostic.range, suggestion);
                     actions.push(replaceSingle);
                 }
-                const addToDictionary = new vscode.CodeAction(`Add '${info.token}' to project dictionary`, vscode.CodeActionKind.QuickFix);
+                const addToDictionary = new vscode.CodeAction((0, sharedUiText_1.text)('action.addToProjectDictionary', `Add '${info.token}' to project dictionary`, {
+                    configuredLanguage: uiLanguage,
+                    args: { value: info.token }
+                }), vscode.CodeActionKind.QuickFix);
                 addToDictionary.command = {
                     command: 'kospellcheck.addWordToProjectDictionary',
-                    title: 'KoSpellCheck: Add word to project dictionary',
+                    title: (0, sharedUiText_1.text)('action.command.addWordToProjectDictionary', 'KoSpellCheck: Add word to project dictionary', { configuredLanguage: uiLanguage }),
                     arguments: [info.token]
                 };
                 addToDictionary.diagnostics = [diagnostic];
@@ -282,7 +314,10 @@ function activate(context) {
             projectDictionaryRaw.push(token);
             config.projectDictionary = projectDictionaryRaw;
             node_fs_1.default.writeFileSync(configPath, JSON.stringify(config, null, 2));
-            vscode.window.showInformationMessage(`KoSpellCheck: '${token}' added to project dictionary.`);
+            vscode.window.showInformationMessage((0, sharedUiText_1.text)('extension.info.wordAddedToProjectDictionary', `KoSpellCheck: '${token}' added to project dictionary.`, {
+                configuredLanguage: configuredUiLanguage(editor?.document.uri),
+                args: { token }
+            }));
             styleLearning.scheduleWorkspaceRefresh(workspaceFolder.uri.fsPath, 'project-dictionary-updated');
         }
         if (editor) {
@@ -327,6 +362,7 @@ function activate(context) {
     });
     const checkLocalTypoAccelerationStatusCommand = vscode.commands.registerCommand('kospellcheck.checkLocalTypoAccelerationStatus', async () => {
         const uri = vscode.window.activeTextEditor?.document.uri;
+        const uiLanguage = configuredUiLanguage(uri);
         const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', uri);
         const globalConfig = vscode.workspace.getConfiguration(undefined, uri);
         const mode = resolveTypoAccelerationModeFromSettings(workspaceConfig, globalConfig);
@@ -338,10 +374,10 @@ function activate(context) {
         const backendStatus = typoAcceleration.inspectClassifierBackend(effectiveConfig);
         const availableModels = typoAcceleration.listInstalledModels();
         void updateAvailableModelsSetting(availableModels);
-        const statusText = toHungarianAvailability(availability.status);
-        const modeText = toHungarianMode(mode);
+        const statusText = toLocalizedAvailability(availability.status, uiLanguage);
+        const modeText = toLocalizedMode(mode, uiLanguage);
         const autoDownload = resolveTypoAccelerationAutoDownloadFromSettings(workspaceConfig, globalConfig);
-        const runtimeDownloadStatus = resolveRuntimeDownloadStatusFromSettings(workspaceConfig, globalConfig);
+        const runtimeDownloadStatus = resolveRuntimeDownloadStatusFromSettings(workspaceConfig, globalConfig, uiLanguage);
         const modelLabel = backendStatus.selectedModelId
             ? `${backendStatus.selectedModelDisplayName ?? backendStatus.selectedModelId} (${backendStatus.selectedModelId})`
             : selectedModel;
@@ -349,37 +385,100 @@ function activate(context) {
             ? availableModels
                 .map((item) => `${item.id}${item.isDefault ? ' [default]' : ''}`)
                 .join(', ')
-            : 'nincs telepített modell';
-        const detail = availability.detail ? `\nRészlet: ${availability.detail}` : '';
+            : (0, sharedUiText_1.text)('localTypo.status.noInstalledModel', 'No installed model.', {
+                configuredLanguage: uiLanguage
+            }).toLowerCase();
+        const detail = availability.detail
+            ? `\n${(0, sharedUiText_1.text)('localTypo.status.detailLine', 'Detail: {value}', {
+                configuredLanguage: uiLanguage,
+                args: { value: availability.detail }
+            })}`
+            : '';
         const backendText = backendStatus.tpuInferenceActive
-            ? `Aktív (${backendStatus.backend})`
-            : `Nem aktív (${backendStatus.backend})`;
-        const tfliteRuntimeText = toLoadedNotLoadedText(backendStatus.tfliteRuntimeLoaded);
-        const modelLoadableText = toModelLoadableText(backendStatus.modelLoadable);
-        const modelPlaceholderText = toModelPlaceholderText(backendStatus.modelPlaceholder);
-        const backendDetail = `\nKiválasztott modell: ${modelLabel}` +
-            `\nElérhető modellek: ${availableModelsText}` +
-            `\nModel betölthető: ${modelLoadableText}` +
-            `\nModel placeholder: ${modelPlaceholderText}` +
-            `\nTFLite C runtime: ${tfliteRuntimeText}` +
-            `\nTPU inferencia: ${backendText}` +
-            `\nBackend részlet: ${backendStatus.detail}`;
-        const time = `\nEllenőrzés ideje: ${new Date(availability.detectedAtUtc).toLocaleString('hu-HU')}`;
-        const message = `Helyi elírás-gyorsító állapot\n` +
-            `Mód: ${modeText}\n` +
-            `Model beállítás: ${selectedModel}\n` +
-            `Runtime auto-letöltés: ${autoDownload ? 'bekapcsolva' : 'kikapcsolva'}\n` +
-            `Runtime letöltési állapot: ${runtimeDownloadStatus}\n` +
-            `Detektálás: ${statusText}` +
+            ? `${(0, sharedUiText_1.text)('dashboard.value.active', 'Active', { configuredLanguage: uiLanguage })} (${backendStatus.backend})`
+            : `${(0, sharedUiText_1.text)('dashboard.value.inactive', 'Inactive', { configuredLanguage: uiLanguage })} (${backendStatus.backend})`;
+        const tfliteRuntimeText = toLoadedNotLoadedText(backendStatus.tfliteRuntimeLoaded, uiLanguage);
+        const modelLoadableText = toModelLoadableText(backendStatus.modelLoadable, uiLanguage);
+        const modelPlaceholderText = toModelPlaceholderText(backendStatus.modelPlaceholder, uiLanguage);
+        const backendDetail = `\n${(0, sharedUiText_1.text)('localTypo.status.selectedModelLine', 'Selected model: {value}', {
+            configuredLanguage: uiLanguage,
+            args: { value: modelLabel }
+        })}` +
+            `\n${(0, sharedUiText_1.text)('localTypo.status.availableModelsLine', 'Available models: {value}', {
+                configuredLanguage: uiLanguage,
+                args: { value: availableModelsText }
+            })}` +
+            `\n${(0, sharedUiText_1.text)('localTypo.status.modelLoadableLine', 'Model loadable: {value}', {
+                configuredLanguage: uiLanguage,
+                args: { value: modelLoadableText }
+            })}` +
+            `\n${(0, sharedUiText_1.text)('localTypo.status.modelPlaceholderLine', 'Model placeholder: {value}', {
+                configuredLanguage: uiLanguage,
+                args: { value: modelPlaceholderText }
+            })}` +
+            `\n${(0, sharedUiText_1.text)('localTypo.status.tfliteRuntimeLine', 'TFLite C runtime: {value}', {
+                configuredLanguage: uiLanguage,
+                args: { value: tfliteRuntimeText }
+            })}` +
+            `\n${(0, sharedUiText_1.text)('localTypo.status.tpuInferenceLine', 'TPU inference: {value}', {
+                configuredLanguage: uiLanguage,
+                args: { value: backendText }
+            })}` +
+            `\n${(0, sharedUiText_1.text)('localTypo.status.backendDetailLine', 'Backend detail: {value}', {
+                configuredLanguage: uiLanguage,
+                args: { value: backendStatus.detail }
+            })}`;
+        const locale = uiLanguage === 'hu' ? 'hu-HU' : 'en-US';
+        const time = `\n${(0, sharedUiText_1.text)('localTypo.status.checkedAtLine', 'Checked at: {value}', {
+            configuredLanguage: uiLanguage,
+            args: { value: new Date(availability.detectedAtUtc).toLocaleString(locale) }
+        })}`;
+        const message = `${(0, sharedUiText_1.text)('localTypo.status.title', 'Local typo acceleration status', {
+            configuredLanguage: uiLanguage
+        })}\n` +
+            `${(0, sharedUiText_1.text)('localTypo.status.modeLine', 'Mode: {value}', {
+                configuredLanguage: uiLanguage,
+                args: { value: modeText }
+            })}\n` +
+            `${(0, sharedUiText_1.text)('localTypo.status.modelSettingLine', 'Model setting: {value}', {
+                configuredLanguage: uiLanguage,
+                args: { value: selectedModel }
+            })}\n` +
+            `${(0, sharedUiText_1.text)('localTypo.status.runtimeAutoDownloadLine', 'Runtime auto-download: {value}', {
+                configuredLanguage: uiLanguage,
+                args: {
+                    value: autoDownload
+                        ? (0, sharedUiText_1.text)('general.enabled', 'enabled', { configuredLanguage: uiLanguage })
+                        : (0, sharedUiText_1.text)('general.disabled', 'disabled', { configuredLanguage: uiLanguage })
+                }
+            })}\n` +
+            `${(0, sharedUiText_1.text)('localTypo.status.runtimeDownloadStatusLine', 'Runtime download status: {value}', {
+                configuredLanguage: uiLanguage,
+                args: { value: runtimeDownloadStatus }
+            })}\n` +
+            `${(0, sharedUiText_1.text)('localTypo.status.detectionLine', 'Detection: {value}', {
+                configuredLanguage: uiLanguage,
+                args: { value: statusText }
+            })}` +
             detail +
             backendDetail +
             time +
-            '\n\nVáltás: off = kikapcsolva, auto = automatikus, on = mindig próbálja (ha nem elérhető, fallback).';
-        const selectDownloadNow = 'Runtime letöltés most';
-        const selectModel = 'Modell kiválasztás';
-        const selectAuto = 'Mód: auto';
-        const selectOn = 'Mód: on';
-        const selectOff = 'Mód: off';
+            `\n\n${(0, sharedUiText_1.text)('localTypo.status.switchHint', 'Switch: off = disabled, auto = automatic, on = always try (fallback if unavailable).', { configuredLanguage: uiLanguage })}`;
+        const selectDownloadNow = (0, sharedUiText_1.text)('localTypo.action.downloadNow', 'Download runtime now', {
+            configuredLanguage: uiLanguage
+        });
+        const selectModel = (0, sharedUiText_1.text)('localTypo.action.selectModel', 'Select model', {
+            configuredLanguage: uiLanguage
+        });
+        const selectAuto = (0, sharedUiText_1.text)('localTypo.action.modeAuto', 'Mode: auto', {
+            configuredLanguage: uiLanguage
+        });
+        const selectOn = (0, sharedUiText_1.text)('localTypo.action.modeOn', 'Mode: on', {
+            configuredLanguage: uiLanguage
+        });
+        const selectOff = (0, sharedUiText_1.text)('localTypo.action.modeOff', 'Mode: off', {
+            configuredLanguage: uiLanguage
+        });
         const selection = await vscode.window.showInformationMessage(message, { modal: false }, selectDownloadNow, selectModel, selectAuto, selectOn, selectOff);
         if (!selection) {
             return;
@@ -397,10 +496,14 @@ function activate(context) {
             : vscode.ConfigurationTarget.Global;
         const updatedMode = selection === selectOn ? 'on' : selection === selectOff ? 'off' : 'auto';
         await workspaceConfig.update('localTypoAcceleration.mode', updatedMode, target);
-        vscode.window.showInformationMessage(`KoSpellCheck: localTypoAcceleration mód -> ${updatedMode}`);
+        vscode.window.showInformationMessage((0, sharedUiText_1.text)('localTypo.info.modeUpdated', `KoSpellCheck: localTypoAcceleration mode -> ${updatedMode}`, {
+            configuredLanguage: uiLanguage,
+            args: { mode: updatedMode }
+        }));
     });
     const downloadLocalTypoRuntimeCommand = vscode.commands.registerCommand('kospellcheck.downloadLocalTypoRuntime', async () => {
         const uri = vscode.window.activeTextEditor?.document.uri;
+        const uiLanguage = configuredUiLanguage(uri);
         const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', uri);
         const globalConfig = vscode.workspace.getConfiguration(undefined, uri);
         const mode = resolveTypoAccelerationModeFromSettings(workspaceConfig, globalConfig);
@@ -411,26 +514,33 @@ function activate(context) {
         effectiveConfig.localTypoAccelerationModel = model;
         effectiveConfig.localTypoAccelerationAutoDownloadRuntime = autoDownload;
         effectiveConfig.localTypoAccelerationVerboseLogging = true;
-        void updateRuntimeDownloadStatusSetting('Runtime letöltés kézzel indítva...');
+        void updateRuntimeDownloadStatusSetting((0, sharedUiText_1.text)('localTypo.info.runtimeManualStart', 'Runtime download started manually...', {
+            configuredLanguage: uiLanguage
+        }));
         typoAcceleration.requestRuntimeDownload(effectiveConfig, uri, true);
-        vscode.window.showInformationMessage('KoSpellCheck: runtime letöltés indítva (ha elérhető a platformhoz tartozó csomag a repo-ban).');
+        vscode.window.showInformationMessage((0, sharedUiText_1.text)('localTypo.info.downloadStarted', 'KoSpellCheck: runtime download started (if package exists for this platform in the repo).', { configuredLanguage: uiLanguage }));
     });
     const pickLocalTypoModelCommand = vscode.commands.registerCommand('kospellcheck.pickLocalTypoModel', async () => {
         const uri = vscode.window.activeTextEditor?.document.uri;
+        const uiLanguage = configuredUiLanguage(uri);
         const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', uri);
         const globalConfig = vscode.workspace.getConfiguration(undefined, uri);
         const selected = resolveTypoAccelerationModelFromSettings(workspaceConfig, globalConfig);
         const models = typoAcceleration.listInstalledModels();
         void updateAvailableModelsSetting(models);
         if (models.length === 0) {
-            vscode.window.showInformationMessage('KoSpellCheck: nincs telepített modell. Előbb töltsd le a runtime csomagot.');
+            vscode.window.showInformationMessage((0, sharedUiText_1.text)('localTypo.info.noInstalledModel', 'KoSpellCheck: no installed model found. Download runtime package first.', { configuredLanguage: uiLanguage }));
             return;
         }
         const quickPickItems = [
             {
                 label: 'auto',
-                description: 'Alapértelmezett runtime modell',
-                detail: 'A runtime manifest default modelljét használja.'
+                description: (0, sharedUiText_1.text)('localTypo.model.defaultRuntimeModel', 'Default runtime model', {
+                    configuredLanguage: uiLanguage
+                }),
+                detail: (0, sharedUiText_1.text)('localTypo.model.defaultRuntimeDetail', 'Uses runtime manifest default model.', {
+                    configuredLanguage: uiLanguage
+                })
             },
             ...models.map((item) => ({
                 label: item.id,
@@ -439,8 +549,13 @@ function activate(context) {
             }))
         ];
         const picked = await vscode.window.showQuickPick(quickPickItems, {
-            title: 'KoSpellCheck: Local Typo model kiválasztása',
-            placeHolder: `Jelenlegi: ${selected}`
+            title: (0, sharedUiText_1.text)('localTypo.info.modelSelectionTitle', 'KoSpellCheck: Select local typo model', {
+                configuredLanguage: uiLanguage
+            }),
+            placeHolder: (0, sharedUiText_1.text)('localTypo.info.modelSelectionPlaceholder', `Current: ${selected}`, {
+                configuredLanguage: uiLanguage,
+                args: { value: selected }
+            })
         });
         if (!picked) {
             return;
@@ -449,7 +564,10 @@ function activate(context) {
             ? vscode.ConfigurationTarget.Workspace
             : vscode.ConfigurationTarget.Global;
         await workspaceConfig.update('localTypoAcceleration.model', picked.label, target);
-        vscode.window.showInformationMessage(`KoSpellCheck: localTypoAcceleration modell -> ${picked.label}`);
+        vscode.window.showInformationMessage((0, sharedUiText_1.text)('localTypo.info.modelUpdated', `KoSpellCheck: localTypoAcceleration model -> ${picked.label}`, {
+            configuredLanguage: uiLanguage,
+            args: { model: picked.label }
+        }));
     });
     const checkNow = (document, trigger) => {
         if (document.uri.scheme !== 'file') {
@@ -468,6 +586,14 @@ function activate(context) {
         const globalConfig = vscode.workspace.getConfiguration(undefined, document.uri);
         const settingEnabled = workspaceConfig.get('enabled', true);
         config.enabled = config.enabled && settingEnabled;
+        const settingUiLanguage = workspaceConfig.get('uiLanguage');
+        if (typeof settingUiLanguage === 'string' && settingUiLanguage.trim().length > 0) {
+            config.uiLanguage = settingUiLanguage.trim();
+        }
+        const fallbackUiLanguage = globalConfig.get('koSpellCheck.uiLanguage');
+        if (typeof fallbackUiLanguage === 'string' && fallbackUiLanguage.trim().length > 0) {
+            config.uiLanguage = fallbackUiLanguage.trim();
+        }
         config.localTypoAccelerationMode = resolveTypoAccelerationModeFromSettings(workspaceConfig, globalConfig);
         config.localTypoAccelerationModel = resolveTypoAccelerationModelFromSettings(workspaceConfig, globalConfig);
         config.localTypoAccelerationShowDetectionPrompt = workspaceConfig.get('localTypoAcceleration.showDetectionPrompt', config.localTypoAccelerationShowDetectionPrompt);
@@ -533,7 +659,9 @@ function activate(context) {
             diagnostics.delete(document.uri);
             if (!errorNotificationShown) {
                 errorNotificationShown = true;
-                void vscode.window.showWarningMessage('KoSpellCheck initialization error. Open Output -> KoSpellCheck for details.');
+                void vscode.window.showWarningMessage((0, sharedUiText_1.text)('extension.warning.initializationError', 'KoSpellCheck initialization error. Open Output -> KoSpellCheck for details.', {
+                    configuredLanguage: configuredUiLanguage(document.uri)
+                }));
             }
         }
     };
@@ -668,7 +796,7 @@ function resolveTypoAccelerationAutoDownloadFromSettings(workspaceConfig, global
     }
     return true;
 }
-function resolveRuntimeDownloadStatusFromSettings(workspaceConfig, globalConfig) {
+function resolveRuntimeDownloadStatusFromSettings(workspaceConfig, globalConfig, configuredLanguage = 'auto') {
     const workspaceValue = workspaceConfig.get('localTypoAcceleration.runtimeDownloadStatus');
     if (typeof workspaceValue === 'string' && workspaceValue.trim().length > 0) {
         return workspaceValue.trim();
@@ -677,61 +805,67 @@ function resolveRuntimeDownloadStatusFromSettings(workspaceConfig, globalConfig)
     if (typeof compatibilityValue === 'string' && compatibilityValue.trim().length > 0) {
         return compatibilityValue.trim();
     }
-    return 'Nincs aktív letöltés';
+    return (0, sharedUiText_1.text)('localTypo.status.noActiveDownload', 'No active download.', {
+        configuredLanguage
+    });
 }
-function toHungarianMode(mode) {
+function toLocalizedMode(mode, configuredLanguage) {
     switch (mode) {
         case 'off':
-            return 'Kikapcsolva (off)';
+            return (0, sharedUiText_1.text)('localTypo.status.modeOff', 'Off (off)', { configuredLanguage });
         case 'on':
-            return 'Bekapcsolva (on)';
+            return (0, sharedUiText_1.text)('localTypo.status.modeOn', 'On (on)', { configuredLanguage });
         case 'auto':
         default:
-            return 'Automatikus (auto)';
+            return (0, sharedUiText_1.text)('localTypo.status.modeAuto', 'Automatic (auto)', { configuredLanguage });
     }
 }
-function toHungarianAvailability(status) {
+function toLocalizedAvailability(status, configuredLanguage) {
     switch (status) {
         case 'Available':
-            return 'Elérhető';
+            return (0, sharedUiText_1.text)('localTypo.status.available', 'Available', { configuredLanguage });
         case 'Unavailable':
-            return 'Nem elérhető';
+            return (0, sharedUiText_1.text)('localTypo.status.unavailable', 'Unavailable', { configuredLanguage });
         case 'UnavailableMissingRuntime':
-            return 'Nem elérhető (hiányzó helyi runtime)';
+            return (0, sharedUiText_1.text)('localTypo.status.unavailableMissingRuntime', 'Unavailable (missing local runtime)', {
+                configuredLanguage
+            });
         case 'UnavailableUnsupportedPlatform':
-            return 'Nem elérhető (nem támogatott platform)';
+            return (0, sharedUiText_1.text)('localTypo.status.unavailableUnsupportedPlatform', 'Unavailable (unsupported platform)', { configuredLanguage });
         case 'Error':
-            return 'Hiba történt detektálás közben';
+            return (0, sharedUiText_1.text)('localTypo.status.errorDuringDetection', 'Error during detection', {
+                configuredLanguage
+            });
         default:
             return status;
     }
 }
-function toLoadedNotLoadedText(value) {
+function toLoadedNotLoadedText(value, configuredLanguage) {
     if (value === true) {
-        return 'loaded';
+        return (0, sharedUiText_1.text)('localTypo.status.loaded', 'loaded', { configuredLanguage });
     }
     if (value === false) {
-        return 'not loaded';
+        return (0, sharedUiText_1.text)('localTypo.status.notLoaded', 'not loaded', { configuredLanguage });
     }
-    return 'unknown';
+    return (0, sharedUiText_1.text)('general.unknown', 'unknown', { configuredLanguage });
 }
-function toModelLoadableText(value) {
+function toModelLoadableText(value, configuredLanguage) {
     if (value === true) {
-        return 'igen';
+        return (0, sharedUiText_1.text)('localTypo.status.yes', 'yes', { configuredLanguage });
     }
     if (value === false) {
-        return 'nem';
+        return (0, sharedUiText_1.text)('localTypo.status.no', 'no', { configuredLanguage });
     }
-    return 'ismeretlen';
+    return (0, sharedUiText_1.text)('general.unknown', 'unknown', { configuredLanguage });
 }
-function toModelPlaceholderText(value) {
+function toModelPlaceholderText(value, configuredLanguage) {
     if (value === true) {
-        return 'igen (helykitöltő modell, nem futtatható TPU inferenciára)';
+        return (0, sharedUiText_1.text)('localTypo.model.placeholderYes', 'yes (placeholder model; not runnable for TPU inference)', { configuredLanguage });
     }
     if (value === false) {
-        return 'nem';
+        return (0, sharedUiText_1.text)('localTypo.status.no', 'no', { configuredLanguage });
     }
-    return 'ismeretlen';
+    return (0, sharedUiText_1.text)('general.unknown', 'unknown', { configuredLanguage });
 }
 function shouldCaptureForDashboard(message, force) {
     if (force) {

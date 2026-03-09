@@ -8,6 +8,8 @@ public sealed class KoSpellCheckConfig
 {
     public bool Enabled { get; set; } = true;
 
+    public string UiLanguage { get; set; } = "auto";
+
     public IList<string> LanguagesEnabled { get; set; } = new List<string> { "hu", "en" };
 
     public bool AllowMixedLanguages { get; set; } = true;
@@ -75,6 +77,7 @@ public sealed class KoSpellCheckConfig
         return new KoSpellCheckConfig
         {
             Enabled = Enabled,
+            UiLanguage = UiLanguage,
             LanguagesEnabled = LanguagesEnabled.ToList(),
             AllowMixedLanguages = AllowMixedLanguages,
             PreferTerms = new Dictionary<string, string>(PreferTerms, StringComparer.OrdinalIgnoreCase),

@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Rename;
+using KoSpellCheck.Core.Localization;
 
 namespace KoSpellCheck.VS2022.Editor.Suggestions.Actions;
 
@@ -14,6 +15,7 @@ internal sealed class ReplaceWithSuggestionAction : ISuggestedAction
     private readonly string? _filePath;
     private readonly SuggestionApplyMode _applyMode;
     private readonly string? _renameTarget;
+    private readonly string _uiLanguage;
 
     public ReplaceWithSuggestionAction(
         ITextBuffer textBuffer,
@@ -21,7 +23,8 @@ internal sealed class ReplaceWithSuggestionAction : ISuggestedAction
         string replacement,
         SuggestionApplyMode applyMode,
         string? filePath = null,
-        string? renameTarget = null)
+        string? renameTarget = null,
+        string uiLanguage = "auto")
     {
         _textBuffer = textBuffer;
         _trackingSpan = trackingSpan;
@@ -29,12 +32,19 @@ internal sealed class ReplaceWithSuggestionAction : ISuggestedAction
         _applyMode = applyMode;
         _filePath = filePath;
         _renameTarget = renameTarget;
+        _uiLanguage = uiLanguage;
     }
 
     public string DisplayText =>
         _applyMode == SuggestionApplyMode.RenameSymbol
-            ? $"Rename symbol to '{_renameTarget ?? _replacement}'"
-            : $"Replace this with '{_replacement}'";
+            ? SharedUiText.Get(
+                "action.renameSymbolTo",
+                _uiLanguage,
+                ("value", _renameTarget ?? _replacement))
+            : SharedUiText.Get(
+                "action.replaceWith",
+                _uiLanguage,
+                ("value", _replacement));
 
     public bool HasPreview => true;
 

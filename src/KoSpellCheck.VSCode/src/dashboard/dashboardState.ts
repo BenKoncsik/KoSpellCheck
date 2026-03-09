@@ -55,6 +55,7 @@ export interface DashboardViewModel {
   loading: boolean;
   errorMessage?: string;
   refreshedAtUtc: string;
+  uiStrings?: Record<string, string>;
   profilePath?: string;
   summaryPath?: string;
   overview: DashboardOverview;

@@ -5,6 +5,7 @@ const normalization_1 = require("./normalization");
 const tokenizer_1 = require("./tokenizer");
 const config_1 = require("./config");
 const styleRanker_1 = require("./styleRanker");
+const sharedUiText_1 = require("./sharedUiText");
 function checkDocument(text, config, service, options) {
     if (!config.enabled || !text) {
         return [];
@@ -38,7 +39,7 @@ function checkDocument(text, config, service, options) {
         suggestions = (0, styleRanker_1.rankSuggestionsByStyle)(raw, suggestions, config, options?.styleProfile)
             .slice(0, config.suggestionsMax);
         if (!check.correct) {
-            const message = buildMisspellingMessage(raw, suggestions);
+            const message = buildMisspellingMessage(raw, suggestions, config.uiLanguage);
             issues.push({
                 type: 'misspell',
                 token: raw,
@@ -56,7 +57,10 @@ function checkDocument(text, config, service, options) {
                 token: raw,
                 start: token.start,
                 end: token.end,
-                message: `Preferred term is '${preferred}'.`,
+                message: (0, sharedUiText_1.text)('spell.preferredTerm', `Preferred term is '${preferred}'.`, {
+                    configuredLanguage: config.uiLanguage,
+                    args: { preferred }
+                }),
                 languageHint: check.languages[0],
                 suggestions: suggestions.slice(0, config.suggestionsMax)
             });
@@ -68,7 +72,10 @@ function checkDocument(text, config, service, options) {
                 token: raw,
                 start: token.start,
                 end: token.end,
-                message: `Preferred identifier form is '${asciiPreferred}' (ASCII-only).`,
+                message: (0, sharedUiText_1.text)('spell.preferredIdentifierAscii', `Preferred identifier form is '${asciiPreferred}' (ASCII-only).`, {
+                    configuredLanguage: config.uiLanguage,
+                    args: { preferred: asciiPreferred }
+                }),
                 languageHint: check.languages[0],
                 suggestions: suggestions.slice(0, config.suggestionsMax)
             });
@@ -142,15 +149,21 @@ function findTokenIndexAtOffset(tokens, offset) {
     }
     return tokens.length - 1;
 }
-function buildMisspellingMessage(raw, suggestions) {
+function buildMisspellingMessage(raw, suggestions, uiLanguage) {
     if (suggestions.length === 0) {
-        return `Possible misspelling: '${raw}'.`;
+        return (0, sharedUiText_1.text)('spell.misspelling', `Possible misspelling: '${raw}'.`, {
+            configuredLanguage: uiLanguage,
+            args: { token: raw }
+        });
     }
     const preview = suggestions
         .slice(0, 3)
         .map((x) => x.replacement)
         .join(', ');
-    return `Possible misspelling: '${raw}'. Suggestions: ${preview}`;
+    return (0, sharedUiText_1.text)('spell.misspellingWithSuggestions', `Possible misspelling: '${raw}'. Suggestions: ${preview}`, {
+        configuredLanguage: uiLanguage,
+        args: { token: raw, suggestions: preview }
+    });
 }
 function mergeCompoundIdentifierIssues(text, issues, candidateSpans, maxSuggestions, config, styleProfile) {
     const misspellEntries = issues
@@ -207,7 +220,10 @@ function mergeCompoundIdentifierIssues(text, issues, candidateSpans, maxSuggesti
             token: candidate.value,
             start: candidate.start,
             end: candidate.end,
-            message: `Possible misspelling: '${candidate.value}'. Suggestions: ${replacement}`,
+            message: (0, sharedUiText_1.text)('spell.misspellingWithSuggestions', `Possible misspelling: '${candidate.value}'. Suggestions: ${replacement}`, {
+                configuredLanguage: config.uiLanguage,
+                args: { token: candidate.value, suggestions: replacement }
+            }),
             languageHint: related[0].issue.languageHint,
             suggestions: rankedSuggestions.slice(0, maxSuggestions)
         });

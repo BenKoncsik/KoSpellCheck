@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import * as vscode from 'vscode';
 import { loadConfig } from '../config';
+import { text } from '../sharedUiText';
 import {
   CoreCliAnalyzeRequest,
   CoreCliIgnoreRequest,
@@ -25,6 +26,8 @@ interface TypoAccelerationProbe {
 }
 
 export interface ConventionFeatureConfig {
+  uiLanguage: string;
+  coreCliPath?: string;
   projectConventionMappingEnabled: boolean;
   namingConventionDiagnosticsEnabled: boolean;
   statisticalAnomalyDetectionEnabled: boolean;
@@ -179,7 +182,17 @@ export class ProjectConventionFeature implements vscode.Disposable {
   ) {
     this.log = log;
     this.typoAcceleration = typoAcceleration;
-    this.cliClient = new CoreConventionCliClient(this.context.extensionPath, (message) => this.log(message));
+    this.cliClient = new CoreConventionCliClient(
+      this.context.extensionPath,
+      (message) => this.log(message),
+      () => {
+        const raw = vscode.workspace
+          .getConfiguration('kospellcheck', vscode.window.activeTextEditor?.document.uri)
+          .get<string>('projectConventions.coreCliPath', '')
+          .trim();
+        return raw || undefined;
+      }
+    );
     this.diagnostics = vscode.languages.createDiagnosticCollection(SOURCE);
 
     this.disposables.push(
@@ -277,7 +290,12 @@ export class ProjectConventionFeature implements vscode.Disposable {
         }
 
         await this.rebuildScope(scope, 'manual-command', true);
-        vscode.window.showInformationMessage('KoSpellCheck: convention profile rebuilt.');
+        const config = this.resolveConfig(scope.storageRoot, vscode.window.activeTextEditor?.document.uri);
+        vscode.window.showInformationMessage(
+          text('conventions.info.profileRebuilt', 'KoSpellCheck: convention profile rebuilt.', {
+            configuredLanguage: config.uiLanguage
+          })
+        );
       }
     );
 
@@ -293,7 +311,13 @@ export class ProjectConventionFeature implements vscode.Disposable {
         const profilePath = resolveArtifactPath(scope.storageRoot, config.profilePath);
         if (!fs.existsSync(profilePath)) {
           vscode.window.showInformationMessage(
-            'KoSpellCheck: no learned convention profile found yet. Run "Rebuild Convention Profile" first.'
+            text(
+              'conventions.info.noLearnedProfile',
+              'KoSpellCheck: no learned convention profile found yet. Run "Rebuild Convention Profile" first.',
+              {
+                configuredLanguage: config.uiLanguage
+              }
+            )
           );
           return;
         }
@@ -313,7 +337,19 @@ export class ProjectConventionFeature implements vscode.Disposable {
 
         const key = metadataKey ?? this.findMetadataKeyAtCursor(resolvedUri, range);
         if (!key) {
-          vscode.window.showInformationMessage('KoSpellCheck: no convention diagnostic found at cursor.');
+          const scope = this.resolveScope(resolvedUri);
+          const config = scope
+            ? this.resolveConfig(scope.storageRoot, resolvedUri)
+            : this.resolveConfig(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '', resolvedUri);
+          vscode.window.showInformationMessage(
+            text(
+              'conventions.info.noDiagnosticAtCursor',
+              'KoSpellCheck: no convention diagnostic found at cursor.',
+              {
+                configuredLanguage: config.uiLanguage
+              }
+            )
+          );
           return;
         }
 
@@ -334,14 +370,29 @@ export class ProjectConventionFeature implements vscode.Disposable {
           .slice(0, 4)
           .map((entry) => `- ${entry}`)
           .join('\n');
+        const config = this.resolveConfig(info.workspaceRoot, resolvedUri);
 
         const message =
           `${info.diagnostic.Title}\n` +
-          `Rule: ${info.diagnostic.RuleId}\n` +
-          `Confidence: ${(info.diagnostic.Confidence * 100).toFixed(0)}%\n\n` +
+          `${text('conventions.explain.rule', 'Rule: {value}', {
+            configuredLanguage: config.uiLanguage,
+            args: { value: info.diagnostic.RuleId }
+          })}\n` +
+          `${text('conventions.explain.confidence', 'Confidence: {value}%', {
+            configuredLanguage: config.uiLanguage,
+            args: { value: (info.diagnostic.Confidence * 100).toFixed(0) }
+          })}\n\n` +
           `${info.diagnostic.Explanation}` +
-          (evidence ? `\n\nEvidence:\n${evidence}` : '') +
-          (suggestions ? `\n\nSuggestions:\n${suggestions}` : '');
+          (evidence
+            ? `\n\n${text('conventions.explain.evidence', 'Evidence:', {
+              configuredLanguage: config.uiLanguage
+            })}\n${evidence}`
+            : '') +
+          (suggestions
+            ? `\n\n${text('conventions.explain.suggestions', 'Suggestions:', {
+              configuredLanguage: config.uiLanguage
+            })}\n${suggestions}`
+            : '');
 
         await vscode.window.showInformationMessage(message, { modal: true });
       }
@@ -422,46 +473,80 @@ export class ProjectConventionFeature implements vscode.Disposable {
             if (!info) {
               continue;
             }
+            const config = this.resolveConfig(info.workspaceRoot, document.uri);
 
             (info.diagnostic.QuickFixes ?? []).forEach((quickFix, index) => {
               const action = new vscode.CodeAction(quickFix.Title, vscode.CodeActionKind.QuickFix);
               action.diagnostics = [diagnostic];
               action.command = {
                 command: 'kospellcheck.applyConventionQuickFix',
-                title: 'KoSpellCheck: Apply convention quick fix',
+                title: text(
+                  'conventions.command.applyQuickFix',
+                  'KoSpellCheck: Apply convention quick fix',
+                  {
+                    configuredLanguage: config.uiLanguage
+                  }
+                ),
                 arguments: [document.uri, key, index]
               };
               actions.push(action);
             });
 
             const explainAction = new vscode.CodeAction(
-              'Explain this diagnostic',
+              text('conventions.quickfix.explain', 'Explain this diagnostic', {
+                configuredLanguage: config.uiLanguage
+              }),
               vscode.CodeActionKind.QuickFix
             );
             explainAction.command = {
               command: 'kospellcheck.explainConventionDiagnostic',
-              title: 'KoSpellCheck: Explain convention diagnostic',
+              title: text(
+                'conventions.command.explainDiagnostic',
+                'KoSpellCheck: Explain convention diagnostic',
+                {
+                  configuredLanguage: config.uiLanguage
+                }
+              ),
               arguments: [document.uri, diagnostic.range, key]
             };
             explainAction.diagnostics = [diagnostic];
             actions.push(explainAction);
 
-            const ignoreFileAction = new vscode.CodeAction('Ignore this rule for file', vscode.CodeActionKind.QuickFix);
+            const ignoreFileAction = new vscode.CodeAction(
+              text('conventions.quickfix.ignoreFile', 'Ignore this rule for file', {
+                configuredLanguage: config.uiLanguage
+              }),
+              vscode.CodeActionKind.QuickFix
+            );
             ignoreFileAction.command = {
               command: 'kospellcheck.ignoreConventionPattern',
-              title: 'KoSpellCheck: Ignore convention pattern',
+              title: text(
+                'conventions.command.ignorePattern',
+                'KoSpellCheck: Ignore convention pattern',
+                {
+                  configuredLanguage: config.uiLanguage
+                }
+              ),
               arguments: [document.uri, diagnostic.range, key, 'file']
             };
             ignoreFileAction.diagnostics = [diagnostic];
             actions.push(ignoreFileAction);
 
             const ignoreProjectAction = new vscode.CodeAction(
-              'Ignore this rule for project',
+              text('conventions.quickfix.ignoreProject', 'Ignore this rule for project', {
+                configuredLanguage: config.uiLanguage
+              }),
               vscode.CodeActionKind.QuickFix
             );
             ignoreProjectAction.command = {
               command: 'kospellcheck.ignoreConventionPattern',
-              title: 'KoSpellCheck: Ignore convention pattern',
+              title: text(
+                'conventions.command.ignorePattern',
+                'KoSpellCheck: Ignore convention pattern',
+                {
+                  configuredLanguage: config.uiLanguage
+                }
+              ),
               arguments: [document.uri, diagnostic.range, key, 'project']
             };
             ignoreProjectAction.diagnostics = [diagnostic];
@@ -514,7 +599,38 @@ export class ProjectConventionFeature implements vscode.Disposable {
       this.notifyDashboardStateChanged();
     });
 
-    return vscode.Disposable.from(onSave, onCreate, onRename, onDelete, onConfig, onFolders, onClose);
+    const onActiveEditor = vscode.window.onDidChangeActiveTextEditor((editor) => {
+      if (!editor || editor.document.uri.scheme !== 'file') {
+        return;
+      }
+
+      void this.handleActiveEditorChanged(editor.document);
+    });
+
+    return vscode.Disposable.from(
+      onSave,
+      onCreate,
+      onRename,
+      onDelete,
+      onConfig,
+      onFolders,
+      onClose,
+      onActiveEditor
+    );
+  }
+
+  private async handleActiveEditorChanged(document: vscode.TextDocument): Promise<void> {
+    const scope = this.resolveScope(document.uri);
+    if (!scope) {
+      return;
+    }
+
+    const config = this.resolveConfig(scope.storageRoot, document.uri);
+    if (!config.projectConventionMappingEnabled || !config.namingConventionDiagnosticsEnabled) {
+      return;
+    }
+
+    await this.analyzeDocument(document, 'active-editor-changed');
   }
 
   private async handleDocumentSave(document: vscode.TextDocument): Promise<void> {
@@ -702,12 +818,25 @@ export class ProjectConventionFeature implements vscode.Disposable {
 
     if (!this.shownInitialSummary && summary) {
       this.shownInitialSummary = true;
+      const summaryConfig = this.resolveConfig(scope.storageRoot, vscode.window.activeTextEditor?.document.uri);
       const dominant = summary.DominantFolderConventions?.[0];
       const detail = dominant
         ? `${dominant.FolderPath ?? 'folder'}: ${dominant.DominantSuffix ?? dominant.DominantKind ?? 'pattern'}`
-        : 'no dominant folder conventions yet';
+        : text('conventions.detail.noDominantFolder', 'no dominant folder conventions yet', {
+          configuredLanguage: summaryConfig.uiLanguage
+        });
       void vscode.window.showInformationMessage(
-        `KoSpellCheck: learned project conventions from ${summary.FilesScanned ?? 0} files (${detail}).`
+        text(
+          'conventions.info.learnedSummary',
+          `KoSpellCheck: learned project conventions from ${summary.FilesScanned ?? 0} files (${detail}).`,
+          {
+            configuredLanguage: summaryConfig.uiLanguage,
+            args: {
+              files: summary.FilesScanned ?? 0,
+              detail
+            }
+          }
+        )
       );
     }
   }
@@ -857,7 +986,13 @@ export class ProjectConventionFeature implements vscode.Disposable {
           await vscode.workspace.fs.rename(uri, vscode.Uri.file(targetPath), { overwrite: false });
           await this.analyzeDocumentByPath(targetPath, 'quick-fix-rename-file');
         } catch (error) {
-          vscode.window.showWarningMessage(`KoSpellCheck: rename file failed (${String(error)}).`);
+          const config = this.resolveConfig(info.workspaceRoot, uri);
+          vscode.window.showWarningMessage(
+            text('conventions.warning.renameFileFailed', `KoSpellCheck: rename file failed (${String(error)}).`, {
+              configuredLanguage: config.uiLanguage,
+              args: { error: String(error) }
+            })
+          );
         }
         return;
       }
@@ -874,7 +1009,13 @@ export class ProjectConventionFeature implements vscode.Disposable {
           await vscode.workspace.fs.rename(uri, vscode.Uri.file(destinationPath), { overwrite: false });
           await this.analyzeDocumentByPath(destinationPath, 'quick-fix-move-file');
         } catch (error) {
-          vscode.window.showWarningMessage(`KoSpellCheck: move file failed (${String(error)}).`);
+          const config = this.resolveConfig(info.workspaceRoot, uri);
+          vscode.window.showWarningMessage(
+            text('conventions.warning.moveFileFailed', `KoSpellCheck: move file failed (${String(error)}).`, {
+              configuredLanguage: config.uiLanguage,
+              args: { error: String(error) }
+            })
+          );
         }
         return;
       }
@@ -1035,6 +1176,8 @@ export class ProjectConventionFeature implements vscode.Disposable {
     const settings = vscode.workspace.getConfiguration('kospellcheck', uri);
 
     return {
+      uiLanguage: settings.get<string>('uiLanguage', loaded.uiLanguage),
+      coreCliPath: settings.get<string>('projectConventions.coreCliPath', '').trim() || undefined,
       projectConventionMappingEnabled: settings.get<boolean>(
         'projectConventions.enabled',
         loaded.projectConventionMappingEnabled

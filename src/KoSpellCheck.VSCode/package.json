@@ -1,7 +1,7 @@
 {
   "name": "kospellcheck",
-  "displayName": "KoSpellCheck",
-  "description": "Offline HU+EN spell checker extension with code-aware tokenization and quick fix suggestions.",
+   "displayName": "%kospellcheck.displayName%",
+  "description": "%kospellcheck.description%",
   "version": "0.1.16",
   "publisher": "KoSpellCheckV2",
   "license": "MIT",
@@ -45,58 +45,58 @@
     "commands": [
       {
         "command": "kospellcheck.addWordToProjectDictionary",
-        "title": "KoSpellCheck: Add word to project dictionary"
+        "title": "%kospellcheck.command.addWordToProjectDictionary%"
       },
       {
         "command": "kospellcheck.checkLocalTypoAccelerationStatus",
-        "title": "KoSpellCheck: Local Typo Accelerator állapot"
+        "title": "%kospellcheck.command.checkLocalTypoAccelerationStatus%"
       },
       {
         "command": "kospellcheck.downloadLocalTypoRuntime",
-        "title": "KoSpellCheck: Local Typo Runtime letöltése"
+        "title": "%kospellcheck.command.downloadLocalTypoRuntime%"
       },
       {
         "command": "kospellcheck.pickLocalTypoModel",
-        "title": "KoSpellCheck: Local Typo model kiválasztása"
+        "title": "%kospellcheck.command.pickLocalTypoModel%"
       },
       {
         "command": "kospellcheck.rebuildConventionProfile",
-        "title": "KoSpellCheck: Rebuild Convention Profile"
+        "title": "%kospellcheck.command.rebuildConventionProfile%"
       },
       {
         "command": "kospellcheck.showLearnedConventions",
-        "title": "KoSpellCheck: Show Learned Conventions"
+        "title": "%kospellcheck.command.showLearnedConventions%"
       },
       {
         "command": "kospellcheck.explainConventionDiagnostic",
-        "title": "KoSpellCheck: Explain This Convention Diagnostic"
+        "title": "%kospellcheck.command.explainConventionDiagnostic%"
       },
       {
         "command": "kospellcheck.ignoreConventionPattern",
-        "title": "KoSpellCheck: Ignore Convention Pattern"
+        "title": "%kospellcheck.command.ignoreConventionPattern%"
       },
       {
         "command": "kospellcheck.openDashboard",
-        "title": "KoSpellCheck: Open Dashboard"
+        "title": "%kospellcheck.command.openDashboard%"
       },
       {
         "command": "kospellcheck.refreshDashboard",
-        "title": "KoSpellCheck: Refresh Dashboard"
+        "title": "%kospellcheck.command.refreshDashboard%"
       },
       {
         "command": "kospellcheck.refreshConventionMap",
-        "title": "KoSpellCheck: Refresh Convention Map"
+        "title": "%kospellcheck.command.refreshConventionMap%"
       },
       {
         "command": "kospellcheck.clearDashboardLogs",
-        "title": "KoSpellCheck: Clear Dashboard Logs"
+        "title": "%kospellcheck.command.clearDashboardLogs%"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
           "id": "kospellcheck",
-          "title": "KoSpellCheck",
+          "title": "%kospellcheck.viewContainer.title%",
           "icon": "resources/icons/kospellcheck-dashboard.svg"
         }
       ]
@@ -106,7 +106,7 @@
         {
           "type": "webview",
           "id": "kospellcheck.dashboardView",
-          "name": "Dashboard"
+          "name": "%kospellcheck.view.dashboard.name%"
         }
       ]
     },
@@ -125,22 +125,32 @@
       ]
     },
     "configuration": {
-      "title": "KoSpellCheck",
+      "title": "%kospellcheck.configuration.title%",
       "properties": {
         "kospellcheck.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Enable KoSpellCheck diagnostics."
+          "description": "%kospellcheck.config.enabled.description%"
+        },
+        "kospellcheck.uiLanguage": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "en",
+            "hu"
+          ],
+          "default": "auto",
+          "description": "%kospellcheck.config.uiLanguage.description%"
         },
         "kospellcheck.debounceMs": {
           "type": "number",
           "default": 500,
-          "description": "Debounce delay for document re-check."
+          "description": "%kospellcheck.config.debounceMs.description%"
         },
         "kospellcheck.debugLogging": {
           "type": "boolean",
           "default": false,
-          "description": "Enable verbose KoSpellCheck debug logs in Output panel."
+          "description": "%kospellcheck.config.debugLogging.description%"
         },
         "kospellcheck.localTypoAcceleration.mode": {
           "type": "string",
@@ -150,90 +160,95 @@
             "on"
           ],
           "default": "auto",
-          "markdownDescription": "Opcionális helyi elírás-gyorsító mód. `auto`: csak akkor használja, ha kompatibilis helyi runtime + eszköz elérhető. `on`: mindig próbálja, de ha nem elérhető, automatikus fallback van. `off`: teljesen kikapcsolja ezt az útvonalat. Kiválasztott modell: `kospellcheck.localTypoAcceleration.model`. Kézi ellenőrzés: [Állapot megnyitása](command:kospellcheck.checkLocalTypoAccelerationStatus). Modellválasztás listából: [Modell kiválasztása](command:kospellcheck.pickLocalTypoModel)."
+          "markdownDescription": "%kospellcheck.config.localTypoAcceleration.mode.markdownDescription%"
         },
         "kospellcheck.localTypoAcceleration.showDetectionPrompt": {
           "type": "boolean",
           "default": true,
-          "description": "Egyszeri értesítést mutat, ha auto módban kompatibilis helyi gyorsító eszközt talál."
+          "description": "%kospellcheck.config.localTypoAcceleration.showDetectionPrompt.description%"
         },
         "kospellcheck.localTypoAcceleration.verboseLogging": {
           "type": "boolean",
           "default": false,
-          "description": "Részletes naplózás a helyi elírás-gyorsító detektálásáról és döntéseiről."
+          "description": "%kospellcheck.config.localTypoAcceleration.verboseLogging.description%"
         },
         "kospellcheck.localTypoAcceleration.autoDownloadRuntime": {
           "type": "boolean",
           "default": true,
-          "markdownDescription": "Automatikusan letölti a platformhoz tartozó Coral runtime csomagot a KoSpellCheck GitHub repóból (`Coral-tpu/<Platform>`) ha hiányzik. Manuális letöltés: [Letöltés indítása most](command:kospellcheck.downloadLocalTypoRuntime)."
+          "markdownDescription": "%kospellcheck.config.localTypoAcceleration.autoDownloadRuntime.markdownDescription%"
         },
         "kospellcheck.localTypoAcceleration.runtimeDownloadStatus": {
           "type": "string",
-          "default": "Nincs aktív letöltés.",
+          "default": "No active download.",
           "scope": "machine",
-          "markdownDescription": "Információs állapotmező, automatikusan frissíti a KoSpellCheck. Itt látható, hol tart a helyi runtime/model letöltése."
+          "markdownDescription": "%kospellcheck.config.localTypoAcceleration.runtimeDownloadStatus.markdownDescription%"
         },
         "kospellcheck.localTypoAcceleration.manualDownloadNow": {
           "type": "boolean",
           "default": false,
           "scope": "machine",
-          "markdownDescription": "Kézi letöltés trigger Settingsből. Állítsd `true`-ra, és a KoSpellCheck elindítja a runtime letöltést, majd automatikusan visszaállítja `false`-ra."
+          "markdownDescription": "%kospellcheck.config.localTypoAcceleration.manualDownloadNow.markdownDescription%"
         },
         "kospellcheck.localTypoAcceleration.model": {
           "type": "string",
           "default": "auto",
-          "markdownDescription": "A használandó runtime modell azonosítója. `auto` esetén a runtime manifest alapértelmezett modelljét használja. Dinamikus lista: [Modell kiválasztása](command:kospellcheck.pickLocalTypoModel)."
+          "markdownDescription": "%kospellcheck.config.localTypoAcceleration.model.markdownDescription%"
         },
         "kospellcheck.localTypoAcceleration.availableModels": {
           "type": "string",
-          "default": "Nincs telepített modell.",
+          "default": "No installed model.",
           "scope": "machine",
-          "markdownDescription": "Információs mező: a telepített runtime alapján elérhető modellek listája (automatikusan frissül)."
+          "markdownDescription": "%kospellcheck.config.localTypoAcceleration.availableModels.markdownDescription%"
         },
         "kospellcheck.projectConventions.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Enable project convention mapping and profile generation."
+          "description": "%kospellcheck.config.projectConventions.enabled.description%"
+        },
+        "kospellcheck.projectConventions.coreCliPath": {
+          "type": "string",
+          "default": "",
+          "description": "%kospellcheck.config.projectConventions.coreCliPath.description%"
         },
         "kospellcheck.projectConventions.namingDiagnosticsEnabled": {
           "type": "boolean",
           "default": true,
-          "description": "Enable deterministic naming convention diagnostics based on learned project conventions."
+          "description": "%kospellcheck.config.projectConventions.namingDiagnosticsEnabled.description%"
         },
         "kospellcheck.projectConventions.statisticalAnomalyDetectionEnabled": {
           "type": "boolean",
           "default": true,
-          "description": "Enable lightweight statistical anomaly scoring to augment deterministic diagnostics."
+          "description": "%kospellcheck.config.projectConventions.statisticalAnomalyDetectionEnabled.description%"
         },
         "kospellcheck.projectConventions.aiNamingAnomalyDetectionEnabled": {
           "type": "boolean",
           "default": false,
-          "description": "Enable optional local AI naming anomaly scoring."
+          "description": "%kospellcheck.config.projectConventions.aiNamingAnomalyDetectionEnabled.description%"
         },
         "kospellcheck.projectConventions.useCoralTpuIfAvailable": {
           "type": "boolean",
           "default": false,
-          "description": "If local AI scoring is enabled, try Coral TPU acceleration when available; otherwise fallback to CPU."
+          "description": "%kospellcheck.config.projectConventions.useCoralTpuIfAvailable.description%"
         },
         "kospellcheck.projectConventions.autoRebuild": {
           "type": "boolean",
           "default": true,
-          "description": "Automatically rebuild the convention profile when project files change."
+          "description": "%kospellcheck.config.projectConventions.autoRebuild.description%"
         },
         "kospellcheck.projectConventions.analyzeOnSave": {
           "type": "boolean",
           "default": true,
-          "description": "Analyze naming conventions when a file is saved."
+          "description": "%kospellcheck.config.projectConventions.analyzeOnSave.description%"
         },
         "kospellcheck.projectConventions.analyzeOnRename": {
           "type": "boolean",
           "default": true,
-          "description": "Analyze naming conventions when files are renamed."
+          "description": "%kospellcheck.config.projectConventions.analyzeOnRename.description%"
         },
         "kospellcheck.projectConventions.analyzeOnNewFile": {
           "type": "boolean",
           "default": true,
-          "description": "Analyze naming conventions for newly created files."
+          "description": "%kospellcheck.config.projectConventions.analyzeOnNewFile.description%"
         },
         "kospellcheck.projectConventions.scope": {
           "type": "string",
@@ -242,17 +257,17 @@
             "solution"
           ],
           "default": "workspace",
-          "description": "Convention profile scope. workspace = per folder, solution = combined across all workspace folders."
+          "description": "%kospellcheck.config.projectConventions.scope.description%"
         },
         "kospellcheck.projectConventions.ignoreGeneratedCode": {
           "type": "boolean",
           "default": true,
-          "description": "Ignore generated code files when learning and validating conventions."
+          "description": "%kospellcheck.config.projectConventions.ignoreGeneratedCode.description%"
         },
         "kospellcheck.projectConventions.ignoreTestProjects": {
           "type": "boolean",
           "default": false,
-          "description": "Ignore files under test/spec folders when learning and validating conventions."
+          "description": "%kospellcheck.config.projectConventions.ignoreTestProjects.description%"
         },
         "kospellcheck.projectConventions.includePatterns": {
           "type": "array",
@@ -260,7 +275,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Optional glob include patterns for project convention scanning."
+          "description": "%kospellcheck.config.projectConventions.includePatterns.description%"
         },
         "kospellcheck.projectConventions.excludePatterns": {
           "type": "array",
@@ -275,7 +290,7 @@
           "items": {
             "type": "string"
           },
-          "description": "Glob exclude patterns for project convention scanning."
+          "description": "%kospellcheck.config.projectConventions.excludePatterns.description%"
         },
         "kospellcheck.projectConventions.supportedExtensions": {
           "type": "array",
@@ -289,58 +304,58 @@
           "items": {
             "type": "string"
           },
-          "description": "File extensions used for convention scanning."
+          "description": "%kospellcheck.config.projectConventions.supportedExtensions.description%"
         },
         "kospellcheck.projectConventions.maxFiles": {
           "type": "number",
           "default": 6000,
           "minimum": 50,
-          "description": "Maximum number of files used when building convention profiles."
+          "description": "%kospellcheck.config.projectConventions.maxFiles.description%"
         },
         "kospellcheck.projectConventions.minEvidenceCount": {
           "type": "number",
           "default": 6,
           "minimum": 2,
-          "description": "Minimum sample size required before deterministic rules become active."
+          "description": "%kospellcheck.config.projectConventions.minEvidenceCount.description%"
         },
         "kospellcheck.projectConventions.statisticalAnomalyThreshold": {
           "type": "number",
           "default": 0.62,
           "minimum": 0,
           "maximum": 1,
-          "description": "Threshold for adding statistical anomaly support diagnostics."
+          "description": "%kospellcheck.config.projectConventions.statisticalAnomalyThreshold.description%"
         },
         "kospellcheck.projectConventions.aiAnomalyThreshold": {
           "type": "number",
           "default": 0.7,
           "minimum": 0,
           "maximum": 1,
-          "description": "Threshold for adding local AI anomaly support diagnostics."
+          "description": "%kospellcheck.config.projectConventions.aiAnomalyThreshold.description%"
         },
         "kospellcheck.projectConventions.profilePath": {
           "type": "string",
           "default": ".kospellcheck/project-conventions.json",
-          "description": "Relative path for the learned convention profile JSON."
+          "description": "%kospellcheck.config.projectConventions.profilePath.description%"
         },
         "kospellcheck.projectConventions.profileCachePath": {
           "type": "string",
           "default": ".kospellcheck/project-profile-cache.json",
-          "description": "Relative path for cache metadata used to skip unnecessary rebuilds."
+          "description": "%kospellcheck.config.projectConventions.profileCachePath.description%"
         },
         "kospellcheck.projectConventions.anomalyModelPath": {
           "type": "string",
           "default": ".kospellcheck/project-anomaly-model.json",
-          "description": "Relative path for lightweight local anomaly model weights."
+          "description": "%kospellcheck.config.projectConventions.anomalyModelPath.description%"
         },
         "kospellcheck.projectConventions.scanSummaryPath": {
           "type": "string",
           "default": ".kospellcheck/project-scan-summary.json",
-          "description": "Relative path for project convention scan summary output."
+          "description": "%kospellcheck.config.projectConventions.scanSummaryPath.description%"
         },
         "kospellcheck.projectConventions.ignoreListPath": {
           "type": "string",
           "default": ".kospellcheck/convention-ignores.json",
-          "description": "Relative path for persisted rule suppressions."
+          "description": "%kospellcheck.config.projectConventions.ignoreListPath.description%"
         }
       }
     }

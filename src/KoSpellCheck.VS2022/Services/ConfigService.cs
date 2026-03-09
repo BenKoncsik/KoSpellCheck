@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.IO;
 using KoSpellCheck.Core.Config;
 using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json.Linq;

@@ -1,4 +1,5 @@
 using KoSpellCheck.VS2022.Services;
+using KoSpellCheck.Core.Localization;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -24,7 +25,10 @@ internal sealed class AddToProjectDictionaryAction : ISuggestedAction
         _token = token;
     }
 
-    public string DisplayText => $"Add '{_token}' to project dictionary";
+    public string DisplayText => SharedUiText.Get(
+        "action.addToProjectDictionary",
+        ResolveUiLanguage(),
+        ("value", _token));
 
     public bool HasPreview => false;
 
@@ -68,5 +72,17 @@ internal sealed class AddToProjectDictionaryAction : ISuggestedAction
     {
         telemetryId = Guid.Empty;
         return false;
+    }
+
+    private string ResolveUiLanguage()
+    {
+        try
+        {
+            return _configService.GetSettings(_textBuffer).Config.UiLanguage;
+        }
+        catch
+        {
+            return "auto";
+        }
     }
 }

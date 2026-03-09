@@ -1,0 +1,31 @@
+{
+  "SchemaVersion": 1,
+  "GeneratedAtUtc": "2026-03-09T08:43:06.15318Z",
+  "WorkspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples",
+  "Scope": "workspace",
+  "FilesScanned": 7,
+  "FilesSkippedGenerated": 0,
+  "FilesSkippedTests": 0,
+  "FilesSkippedByPattern": 0,
+  "TypesScanned": 5,
+  "DominantCaseStyle": "PascalCase",
+  "DominantFolderConventions": [
+    {
+      "FolderPath": ".",
+      "DominantKind": "class",
+      "Confidence": 1.0
+    },
+    {
+      "FolderPath": "ViewModels",
+      "DominantSuffix": "ViewModel",
+      "DominantKind": "class",
+      "Confidence": 1.0
+    },
+    {
+      "FolderPath": "style-learning/httpclient-workspace/src",
+      "DominantSuffix": "Factory",
+      "DominantKind": "class",
+      "Confidence": 1.0
+    }
+  ]
+}
