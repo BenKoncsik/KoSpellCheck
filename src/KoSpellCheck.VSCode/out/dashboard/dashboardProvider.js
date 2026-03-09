@@ -42,6 +42,7 @@ const node_path_1 = __importDefault(require("node:path"));
 const vscode = __importStar(require("vscode"));
 const dashboardMapper_1 = require("./dashboardMapper");
 const dashboardState_1 = require("./dashboardState");
+const sharedUiText_1 = require("../sharedUiText");
 const DASHBOARD_VIEW_TYPE = 'kospellcheck.dashboardView';
 class KoSpellCheckDashboardProvider {
     constructor(context, projectConventionFeature, logService) {
@@ -133,6 +134,7 @@ class KoSpellCheckDashboardProvider {
             const snapshot = this.projectConventionFeature.getDashboardSnapshot(vscode.window.activeTextEditor?.document.uri);
             const examplesByFolder = await this.collectFolderExamples(snapshot);
             const model = (0, dashboardMapper_1.mapDashboardViewModel)(snapshot, this.logService.snapshot(), examplesByFolder);
+            model.uiStrings = this.buildUiStrings(snapshot.settings?.uiLanguage);
             this.state.setData(model);
             this.logService.append(`dashboard refresh completed diagnostics=${model.diagnostics.length} folders=${model.conventionMap.length}`);
         }
@@ -303,20 +305,85 @@ class KoSpellCheckDashboardProvider {
         const stylesUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'resources', 'dashboard', 'styles.css'));
         const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.context.extensionUri, 'resources', 'dashboard', 'main.js'));
         const nonce = randomNonce();
+        const configuredLanguage = vscode.workspace
+            .getConfiguration('kospellcheck', vscode.window.activeTextEditor?.document.uri)
+            .get('uiLanguage', 'auto');
+        const lang = (0, sharedUiText_1.resolveUiLanguage)(configuredLanguage);
+        const title = (0, sharedUiText_1.text)('dashboard.title', 'KoSpellCheck Dashboard', {
+            configuredLanguage
+        });
         return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${lang}">
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="${stylesUri}" />
-  <title>KoSpellCheck Dashboard</title>
+  <title>${title}</title>
 </head>
 <body>
   <div id="app"></div>
   <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`;
+    }
+    buildUiStrings(configuredLanguage) {
+        return {
+            toolbarRefresh: (0, sharedUiText_1.text)('dashboard.toolbar.refresh', 'Refresh Dashboard', { configuredLanguage }),
+            toolbarRebuild: (0, sharedUiText_1.text)('dashboard.toolbar.rebuild', 'Rebuild Convention Profile', { configuredLanguage }),
+            toolbarRefreshMap: (0, sharedUiText_1.text)('dashboard.toolbar.refreshMap', 'Refresh Convention Map', { configuredLanguage }),
+            toolbarClearLogs: (0, sharedUiText_1.text)('dashboard.toolbar.clearLogs', 'Clear Logs', { configuredLanguage }),
+            toolbarOpenSettings: (0, sharedUiText_1.text)('dashboard.toolbar.openSettings', 'Open Settings', { configuredLanguage }),
+            toolbarOpenProfileJson: (0, sharedUiText_1.text)('dashboard.toolbar.openProfileJson', 'Open Profile JSON', { configuredLanguage }),
+            sectionOverview: (0, sharedUiText_1.text)('dashboard.section.overview', 'Overview', { configuredLanguage }),
+            sectionSettings: (0, sharedUiText_1.text)('dashboard.section.settings', 'Settings', { configuredLanguage }),
+            sectionConventionMap: (0, sharedUiText_1.text)('dashboard.section.conventionMap', 'Convention Map', { configuredLanguage }),
+            sectionDiagnostics: (0, sharedUiText_1.text)('dashboard.section.diagnostics', 'Diagnostics', { configuredLanguage }),
+            sectionLogs: (0, sharedUiText_1.text)('dashboard.section.logs', 'Logs', { configuredLanguage }),
+            overviewWorkspaceRoot: (0, sharedUiText_1.text)('dashboard.overview.workspaceRoot', 'Workspace root', { configuredLanguage }),
+            overviewScope: (0, sharedUiText_1.text)('dashboard.overview.scope', 'Scope', { configuredLanguage }),
+            overviewFilesScanned: (0, sharedUiText_1.text)('dashboard.overview.filesScanned', 'Files scanned', { configuredLanguage }),
+            overviewTypesScanned: (0, sharedUiText_1.text)('dashboard.overview.typesScanned', 'Types scanned', { configuredLanguage }),
+            overviewDominantCase: (0, sharedUiText_1.text)('dashboard.overview.dominantCase', 'Dominant case', { configuredLanguage }),
+            overviewProfileUpdated: (0, sharedUiText_1.text)('dashboard.overview.profileUpdated', 'Profile updated', { configuredLanguage }),
+            overviewDiagnostics: (0, sharedUiText_1.text)('dashboard.overview.diagnostics', 'Diagnostics', { configuredLanguage }),
+            overviewConventionFeature: (0, sharedUiText_1.text)('dashboard.overview.conventionFeature', 'Convention feature', { configuredLanguage }),
+            overviewAiAnomaly: (0, sharedUiText_1.text)('dashboard.overview.aiAnomaly', 'AI anomaly', { configuredLanguage }),
+            overviewCoral: (0, sharedUiText_1.text)('dashboard.overview.coral', 'Coral', { configuredLanguage }),
+            overviewRebuildQueue: (0, sharedUiText_1.text)('dashboard.overview.rebuildQueue', 'Rebuild queue', { configuredLanguage }),
+            tableSetting: (0, sharedUiText_1.text)('dashboard.table.setting', 'Setting', { configuredLanguage }),
+            tableValue: (0, sharedUiText_1.text)('dashboard.table.value', 'Value', { configuredLanguage }),
+            tableAction: (0, sharedUiText_1.text)('dashboard.table.action', 'Action', { configuredLanguage }),
+            toggle: (0, sharedUiText_1.text)('dashboard.table.toggle', 'Toggle', { configuredLanguage }),
+            emptySettings: (0, sharedUiText_1.text)('dashboard.empty.settings', 'No settings snapshot available.', { configuredLanguage }),
+            tableFolder: (0, sharedUiText_1.text)('dashboard.table.folder', 'Folder', { configuredLanguage }),
+            tableExpectedSuffix: (0, sharedUiText_1.text)('dashboard.table.expectedSuffix', 'Expected suffix', { configuredLanguage }),
+            tableExpectedPrefix: (0, sharedUiText_1.text)('dashboard.table.expectedPrefix', 'Expected prefix', { configuredLanguage }),
+            tableDominantKind: (0, sharedUiText_1.text)('dashboard.table.dominantKind', 'Dominant kind', { configuredLanguage }),
+            tableConfidence: (0, sharedUiText_1.text)('dashboard.table.confidence', 'Confidence', { configuredLanguage }),
+            tableNamespaceSample: (0, sharedUiText_1.text)('dashboard.table.namespaceSample', 'Namespace sample', { configuredLanguage }),
+            tableExamples: (0, sharedUiText_1.text)('dashboard.table.examples', 'Examples', { configuredLanguage }),
+            emptyExamples: (0, sharedUiText_1.text)('dashboard.empty.examples', 'No examples found in current workspace snapshot.', { configuredLanguage }),
+            emptyConventionMap: (0, sharedUiText_1.text)('dashboard.empty.conventionMap', 'No convention profile loaded yet. Rebuild profile to populate this section.', { configuredLanguage }),
+            tableSeverity: (0, sharedUiText_1.text)('dashboard.table.severity', 'Severity', { configuredLanguage }),
+            tableFile: (0, sharedUiText_1.text)('dashboard.table.file', 'File', { configuredLanguage }),
+            tableProblem: (0, sharedUiText_1.text)('dashboard.table.problem', 'Problem', { configuredLanguage }),
+            tableRule: (0, sharedUiText_1.text)('dashboard.table.rule', 'Rule', { configuredLanguage }),
+            tableExpected: (0, sharedUiText_1.text)('dashboard.table.expected', 'Expected', { configuredLanguage }),
+            tableObserved: (0, sharedUiText_1.text)('dashboard.table.observed', 'Observed', { configuredLanguage }),
+            tableSuggestion: (0, sharedUiText_1.text)('dashboard.table.suggestion', 'Suggestion', { configuredLanguage }),
+            reveal: (0, sharedUiText_1.text)('dashboard.button.reveal', 'Reveal', { configuredLanguage }),
+            emptyDiagnostics: (0, sharedUiText_1.text)('dashboard.empty.diagnostics', 'No active convention diagnostics.', { configuredLanguage }),
+            emptyLogs: (0, sharedUiText_1.text)('dashboard.empty.logs', 'No log entries yet.', { configuredLanguage }),
+            valueActive: (0, sharedUiText_1.text)('dashboard.value.active', 'Active', { configuredLanguage }),
+            valueInactive: (0, sharedUiText_1.text)('dashboard.value.inactive', 'Inactive', { configuredLanguage }),
+            valueInFlight: (0, sharedUiText_1.text)('dashboard.value.inFlight', 'In-flight', { configuredLanguage }),
+            valueQueued: (0, sharedUiText_1.text)('dashboard.value.queued', 'Queued', { configuredLanguage }),
+            valueNotAvailable: (0, sharedUiText_1.text)('general.notAvailable', 'n/a', { configuredLanguage }),
+            valueUnknown: (0, sharedUiText_1.text)('dashboard.value.unknown', 'Unknown', { configuredLanguage }),
+            metaLastRefresh: (0, sharedUiText_1.text)('dashboard.meta.lastRefresh', 'Last refresh:', { configuredLanguage }),
+            metaLoading: (0, sharedUiText_1.text)('dashboard.meta.loading', 'Loading...', { configuredLanguage })
+        };
     }
 }
 exports.KoSpellCheckDashboardProvider = KoSpellCheckDashboardProvider;

@@ -8,6 +8,7 @@ internal sealed class SpellIssue
 {
     public SpellIssue(
         ITrackingSpan trackingSpan,
+        SpellDiagnosticKind kind,
         string token,
         string message,
         IReadOnlyList<Suggestion> suggestions,
@@ -15,6 +16,7 @@ internal sealed class SpellIssue
         TypoClassificationResult? typoClassification)
     {
         TrackingSpan = trackingSpan;
+        Kind = kind;
         Token = token;
         Message = message;
         Suggestions = suggestions;
@@ -23,6 +25,8 @@ internal sealed class SpellIssue
     }
 
     public ITrackingSpan TrackingSpan { get; }
+
+    public SpellDiagnosticKind Kind { get; }
 
     public string Token { get; }
 
@@ -40,6 +44,7 @@ internal sealed class SpellIssueSnapshot
     public SpellIssueSnapshot(SnapshotSpan span, SpellIssue issue)
     {
         Span = span;
+        Kind = issue.Kind;
         Token = issue.Token;
         Message = issue.Message;
         Suggestions = issue.Suggestions;
@@ -48,6 +53,8 @@ internal sealed class SpellIssueSnapshot
     }
 
     public SnapshotSpan Span { get; }
+
+    public SpellDiagnosticKind Kind { get; }
 
     public string Token { get; }
 

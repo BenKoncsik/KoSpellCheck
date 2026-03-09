@@ -11,6 +11,7 @@ const node_test_1 = __importDefault(require("node:test"));
 const config_1 = require("../config");
 (0, node_test_1.default)('default config enables local typo acceleration auto mode', () => {
     const config = (0, config_1.defaultConfig)();
+    node_assert_1.default.equal(config.uiLanguage, 'auto');
     node_assert_1.default.equal(config.localTypoAccelerationMode, 'auto');
     node_assert_1.default.equal(config.localTypoAccelerationModel, 'auto');
     node_assert_1.default.equal(config.localTypoAccelerationShowDetectionPrompt, true);

@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using System.IO;
 using EnvDTE;
 using EnvDTE80;
+using KoSpellCheck.Core.Config;
+using KoSpellCheck.Core.Localization;
 using KoSpellCheck.VS2022.Services.ProjectConventions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -104,15 +106,15 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
             Margin = new Thickness(8, 8, 8, 0),
         };
 
-        panel.Children.Add(CreateButton("Refresh", async () => await RefreshAsync(deepScan: true).ConfigureAwait(false)));
-        panel.Children.Add(CreateButton("Rebuild Profile", async () => await RebuildAsync().ConfigureAwait(false)));
-        panel.Children.Add(CreateButton("Refresh Map", async () => await RefreshAsync(deepScan: true).ConfigureAwait(false)));
-        panel.Children.Add(CreateButton("Clear Logs", async () =>
+        panel.Children.Add(CreateButton(T("dashboard.toolbar.refresh", "Refresh Dashboard"), async () => await RefreshAsync(deepScan: true).ConfigureAwait(false)));
+        panel.Children.Add(CreateButton(T("dashboard.toolbar.rebuild", "Rebuild Convention Profile"), async () => await RebuildAsync().ConfigureAwait(false)));
+        panel.Children.Add(CreateButton(T("dashboard.toolbar.refreshMap", "Refresh Convention Map"), async () => await RefreshAsync(deepScan: true).ConfigureAwait(false)));
+        panel.Children.Add(CreateButton(T("dashboard.toolbar.clearLogs", "Clear Logs"), async () =>
         {
             _dashboardService.ClearLogs();
             await RefreshAsync(deepScan: false).ConfigureAwait(false);
         }));
-        panel.Children.Add(CreateButton("Open Settings", async () =>
+        panel.Children.Add(CreateButton(T("dashboard.toolbar.openSettings", "Open Settings"), async () =>
         {
             await OpenSettingsFileAsync().ConfigureAwait(false);
         }));
@@ -156,7 +158,7 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(6),
         };
-        panel.Children.Add(CreateExpander("Overview", _overviewText, isExpanded: true));
+        panel.Children.Add(CreateExpander(T("dashboard.section.overview", "Overview"), _overviewText, isExpanded: true));
 
         _settingsGrid = new DataGrid
         {
@@ -168,9 +170,9 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
             ItemsSource = _settings,
             Margin = new Thickness(2),
         };
-        _settingsGrid.Columns.Add(new DataGridTextColumn { Header = "Setting", Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardSettingItem.Label)), Width = new DataGridLength(2, DataGridLengthUnitType.Star) });
-        _settingsGrid.Columns.Add(new DataGridTextColumn { Header = "Value", Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardSettingItem.Value)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
-        panel.Children.Add(CreateExpander("Settings", _settingsGrid, isExpanded: false));
+        _settingsGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.setting", "Setting"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardSettingItem.Label)), Width = new DataGridLength(2, DataGridLengthUnitType.Star) });
+        _settingsGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.value", "Value"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardSettingItem.Value)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+        panel.Children.Add(CreateExpander(T("dashboard.section.settings", "Settings"), _settingsGrid, isExpanded: false));
 
         _conventionGrid = new DataGrid
         {
@@ -183,13 +185,13 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
             Margin = new Thickness(2),
             MinHeight = 170,
         };
-        _conventionGrid.Columns.Add(new DataGridTextColumn { Header = "Folder", Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardMapItem.Folder)), Width = new DataGridLength(2, DataGridLengthUnitType.Star) });
-        _conventionGrid.Columns.Add(new DataGridTextColumn { Header = "Suffix", Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardMapItem.ExpectedSuffix)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
-        _conventionGrid.Columns.Add(new DataGridTextColumn { Header = "Prefix", Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardMapItem.ExpectedPrefix)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
-        _conventionGrid.Columns.Add(new DataGridTextColumn { Header = "Kind", Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardMapItem.DominantKind)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
-        _conventionGrid.Columns.Add(new DataGridTextColumn { Header = "Confidence", Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardMapItem.Confidence)) { StringFormat = "0.00" }, Width = new DataGridLength(0.9, DataGridLengthUnitType.Star) });
-        _conventionGrid.Columns.Add(new DataGridTextColumn { Header = "Examples", Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardMapItem.Examples)), Width = new DataGridLength(2.4, DataGridLengthUnitType.Star) });
-        panel.Children.Add(CreateExpander("Convention Map", _conventionGrid, isExpanded: true));
+        _conventionGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.folder", "Folder"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardMapItem.Folder)), Width = new DataGridLength(2, DataGridLengthUnitType.Star) });
+        _conventionGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.expectedSuffix", "Expected suffix"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardMapItem.ExpectedSuffix)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+        _conventionGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.expectedPrefix", "Expected prefix"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardMapItem.ExpectedPrefix)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+        _conventionGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.dominantKind", "Dominant kind"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardMapItem.DominantKind)), Width = new DataGridLength(1, DataGridLengthUnitType.Star) });
+        _conventionGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.confidence", "Confidence"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardMapItem.Confidence)) { StringFormat = "0.00" }, Width = new DataGridLength(0.9, DataGridLengthUnitType.Star) });
+        _conventionGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.examples", "Examples"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardMapItem.Examples)), Width = new DataGridLength(2.4, DataGridLengthUnitType.Star) });
+        panel.Children.Add(CreateExpander(T("dashboard.section.conventionMap", "Convention Map"), _conventionGrid, isExpanded: true));
 
         _diagnosticGrid = new DataGrid
         {
@@ -202,12 +204,12 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
             Margin = new Thickness(2),
             MinHeight = 190,
         };
-        _diagnosticGrid.Columns.Add(new DataGridTextColumn { Header = "Severity", Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardDiagnosticItem.Severity)), Width = new DataGridLength(0.8, DataGridLengthUnitType.Star) });
-        _diagnosticGrid.Columns.Add(new DataGridTextColumn { Header = "File", Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardDiagnosticItem.FilePath)), Width = new DataGridLength(2.3, DataGridLengthUnitType.Star) });
-        _diagnosticGrid.Columns.Add(new DataGridTextColumn { Header = "Rule", Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardDiagnosticItem.RuleId)), Width = new DataGridLength(1.1, DataGridLengthUnitType.Star) });
-        _diagnosticGrid.Columns.Add(new DataGridTextColumn { Header = "Confidence", Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardDiagnosticItem.Confidence)) { StringFormat = "0.00" }, Width = new DataGridLength(0.8, DataGridLengthUnitType.Star) });
-        _diagnosticGrid.Columns.Add(new DataGridTextColumn { Header = "Message", Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardDiagnosticItem.Message)), Width = new DataGridLength(3.1, DataGridLengthUnitType.Star) });
-        _diagnosticGrid.Columns.Add(new DataGridTextColumn { Header = "Suggestion", Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardDiagnosticItem.Suggestion)), Width = new DataGridLength(2.2, DataGridLengthUnitType.Star) });
+        _diagnosticGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.severity", "Severity"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardDiagnosticItem.Severity)), Width = new DataGridLength(0.8, DataGridLengthUnitType.Star) });
+        _diagnosticGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.file", "File"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardDiagnosticItem.FilePath)), Width = new DataGridLength(2.3, DataGridLengthUnitType.Star) });
+        _diagnosticGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.rule", "Rule"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardDiagnosticItem.RuleId)), Width = new DataGridLength(1.1, DataGridLengthUnitType.Star) });
+        _diagnosticGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.confidence", "Confidence"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardDiagnosticItem.Confidence)) { StringFormat = "0.00" }, Width = new DataGridLength(0.8, DataGridLengthUnitType.Star) });
+        _diagnosticGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.problem", "Problem"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardDiagnosticItem.Message)), Width = new DataGridLength(3.1, DataGridLengthUnitType.Star) });
+        _diagnosticGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.suggestion", "Suggestion"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardDiagnosticItem.Suggestion)), Width = new DataGridLength(2.2, DataGridLengthUnitType.Star) });
         _diagnosticGrid.MouseDoubleClick += async (_, _) =>
         {
             if (_diagnosticGrid.SelectedItem is ConventionDashboardDiagnosticItem item)
@@ -215,7 +217,7 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
                 await RevealDiagnosticAsync(item).ConfigureAwait(false);
             }
         };
-        panel.Children.Add(CreateExpander("Diagnostics", _diagnosticGrid, isExpanded: true));
+        panel.Children.Add(CreateExpander(T("dashboard.section.diagnostics", "Diagnostics"), _diagnosticGrid, isExpanded: true));
 
         _logList = new ListBox
         {
@@ -224,7 +226,7 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
             MinHeight = 130,
             Margin = new Thickness(2),
         };
-        panel.Children.Add(CreateExpander("Logs", _logList, isExpanded: false));
+        panel.Children.Add(CreateExpander(T("dashboard.section.logs", "Logs"), _logList, isExpanded: false));
 
         return panel;
     }
@@ -245,7 +247,7 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
         var context = await WorkspaceContextResolver.ResolveAsync(_package, _package.DisposalToken).ConfigureAwait(true);
         if (string.IsNullOrWhiteSpace(context.WorkspaceRoot))
         {
-            UpdateStatus("No workspace detected.");
+            UpdateStatus(T("dashboard.status.noWorkspaceDetected", "No workspace detected."));
             return;
         }
 
@@ -260,7 +262,7 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
         var context = await WorkspaceContextResolver.ResolveAsync(_package, _package.DisposalToken).ConfigureAwait(true);
         if (string.IsNullOrWhiteSpace(context.WorkspaceRoot))
         {
-            UpdateStatus("No workspace detected.");
+            UpdateStatus(T("dashboard.status.noWorkspaceDetected", "No workspace detected."));
             return;
         }
 
@@ -357,31 +359,70 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
         _statusText.Text = message;
     }
 
-    private static string BuildStatusText(ConventionDashboardSnapshot snapshot)
+    private string BuildStatusText(ConventionDashboardSnapshot snapshot)
     {
-        var updated = snapshot.ProfileUpdatedUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? "n/a";
+        var language = ResolveUiLanguage(snapshot.WorkspaceRoot);
+        var updated = snapshot.ProfileUpdatedUtc?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
+            ?? Translate(language, "general.notAvailable", "n/a");
         var state = snapshot.IsRebuilding
-            ? "Rebuilding profile..."
+            ? Translate(language, "dashboard.status.rebuilding", "Rebuilding profile...")
             : snapshot.IsRefreshing
-                ? "Refreshing..."
-                : "Idle";
-        var error = string.IsNullOrWhiteSpace(snapshot.LastError) ? string.Empty : $" | Error: {snapshot.LastError}";
-        return $"{state} | Workspace: {snapshot.WorkspaceRoot} | Profile updated: {updated}{error}";
+                ? Translate(language, "dashboard.status.refreshing", "Refreshing...")
+                : Translate(language, "dashboard.status.idle", "Idle");
+        var errorLabel = Translate(language, "dashboard.status.error", "Error");
+        var workspaceLabel = Translate(language, "dashboard.status.workspace", "Workspace");
+        var profileUpdatedLabel = Translate(language, "dashboard.status.profileUpdated", "Profile updated");
+        var error = string.IsNullOrWhiteSpace(snapshot.LastError) ? string.Empty : $" | {errorLabel}: {snapshot.LastError}";
+        return $"{state} | {workspaceLabel}: {snapshot.WorkspaceRoot} | {profileUpdatedLabel}: {updated}{error}";
     }
 
-    private static string BuildOverviewText(ConventionDashboardSnapshot snapshot)
+    private string BuildOverviewText(ConventionDashboardSnapshot snapshot)
     {
+        var language = ResolveUiLanguage(snapshot.WorkspaceRoot);
         return
-            $"Files scanned: {snapshot.FilesScanned}\n" +
-            $"Types scanned: {snapshot.TypesScanned}\n" +
-            $"Dominant case style: {snapshot.DominantCaseStyle}\n" +
-            $"Diagnostics count: {snapshot.DiagnosticCount}\n" +
-            $"Convention feature enabled: {snapshot.FeatureEnabled}\n" +
-            $"AI anomaly detection: {snapshot.AiEnabled}\n" +
-            $"Coral requested: {snapshot.CoralEnabled}\n" +
-            $"Coral active: {snapshot.CoralActive}\n" +
-            $"Coral status: {snapshot.CoralStatus}\n" +
-            $"Profile path: {snapshot.ProfilePath}\n" +
-            $"Summary path: {snapshot.SummaryPath}";
+            $"{Translate(language, "dashboard.overview.filesScannedLine", "Files scanned: {value}", ("value", snapshot.FilesScanned))}\n" +
+            $"{Translate(language, "dashboard.overview.typesScannedLine", "Types scanned: {value}", ("value", snapshot.TypesScanned))}\n" +
+            $"{Translate(language, "dashboard.overview.dominantCaseLine", "Dominant case style: {value}", ("value", snapshot.DominantCaseStyle))}\n" +
+            $"{Translate(language, "dashboard.overview.diagnosticsCountLine", "Diagnostics count: {value}", ("value", snapshot.DiagnosticCount))}\n" +
+            $"{Translate(language, "dashboard.overview.conventionFeatureLine", "Convention feature enabled: {value}", ("value", snapshot.FeatureEnabled))}\n" +
+            $"{Translate(language, "dashboard.overview.aiAnomalyLine", "AI anomaly detection: {value}", ("value", snapshot.AiEnabled))}\n" +
+            $"{Translate(language, "dashboard.overview.coralRequestedLine", "Coral requested: {value}", ("value", snapshot.CoralEnabled))}\n" +
+            $"{Translate(language, "dashboard.overview.coralActiveLine", "Coral active: {value}", ("value", snapshot.CoralActive))}\n" +
+            $"{Translate(language, "dashboard.overview.coralStatusLine", "Coral status: {value}", ("value", snapshot.CoralStatus))}\n" +
+            $"{Translate(language, "dashboard.overview.profilePathLine", "Profile path: {value}", ("value", snapshot.ProfilePath ?? string.Empty))}\n" +
+            $"{Translate(language, "dashboard.overview.summaryPathLine", "Summary path: {value}", ("value", snapshot.SummaryPath ?? string.Empty))}";
+    }
+
+    private string T(string key, string fallback, params (string Name, object? Value)[] args)
+    {
+        return Translate(ResolveUiLanguage(), key, fallback, args);
+    }
+
+    private string ResolveUiLanguage(string? workspaceRoot = null)
+    {
+        var root = workspaceRoot ?? _currentWorkspaceRoot;
+        if (string.IsNullOrWhiteSpace(root))
+        {
+            return "auto";
+        }
+
+        try
+        {
+            return ConfigLoader.Load(root!).UiLanguage;
+        }
+        catch
+        {
+            return "auto";
+        }
+    }
+
+    private static string Translate(
+        string uiLanguage,
+        string key,
+        string fallback,
+        params (string Name, object? Value)[] args)
+    {
+        var value = SharedUiText.Get(key, uiLanguage, args);
+        return string.Equals(value, key, StringComparison.Ordinal) ? fallback : value;
     }
 }

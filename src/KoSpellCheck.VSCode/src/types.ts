@@ -1,4 +1,5 @@
 export type TypoAccelerationMode = 'off' | 'auto' | 'on';
+export type UiLanguageMode = 'auto' | 'en' | 'hu';
 
 export type AcceleratorAvailabilityStatus =
   | 'Available'
@@ -52,6 +53,7 @@ export interface IAcceleratorNotificationService {
 
 export interface KoSpellCheckConfig {
   enabled: boolean;
+  uiLanguage: UiLanguageMode;
   languages: string[];
   allowMixedLanguages: boolean;
   preferTerms: Record<string, string>;

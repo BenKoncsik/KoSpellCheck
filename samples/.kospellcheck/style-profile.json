@@ -1,10 +1,10 @@
 {
   "workspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples",
-  "fingerprint": "651a28cce4787f6e2ac724e7a76c027183a857e77eee2c49b7160fa0be8d7527",
+  "fingerprint": "0bc691968c5456768670f4909644b60691d02c9b2867ba6c363d7cf39729897a",
   "profile": {
     "workspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples",
-    "createdAtUtc": "2026-03-09T08:19:07.994Z",
-    "updatedAtUtc": "2026-03-09T08:19:08.017Z",
+    "createdAtUtc": "2026-03-09T08:43:05.813Z",
+    "updatedAtUtc": "2026-03-09T08:43:05.834Z",
     "tokenStats": {
       "schemaversion": {
         "totalCount": 8,
@@ -43,13 +43,13 @@
         "confidence": 0.8
       },
       "2026-03-08t21": {
-        "totalCount": 7,
+        "totalCount": 5,
         "variants": {
-          "2026-03-08T21": 5,
+          "2026-03-08T21": 3,
           "2026-03-08t21": 2
         },
         "preferredVariant": "2026-03-08T21",
-        "confidence": 0.7
+        "confidence": 0.5
       },
       "13.327295z": {
         "totalCount": 5,
@@ -124,9 +124,9 @@
         "confidence": 1
       },
       "model": {
-        "totalCount": 30,
+        "totalCount": 37,
         "variants": {
-          "Model": 26,
+          "Model": 33,
           "model": 4
         },
         "preferredVariant": "Model",
@@ -239,10 +239,10 @@
         "confidence": 1
       },
       "namespace": {
-        "totalCount": 27,
+        "totalCount": 28,
         "variants": {
           "Namespace": 17,
-          "namespace": 10
+          "namespace": 11
         },
         "preferredVariant": "Namespace",
         "confidence": 1
@@ -284,20 +284,20 @@
         "confidence": 0.7
       },
       "2026-03-09t08": {
-        "totalCount": 8,
+        "totalCount": 11,
         "variants": {
-          "2026-03-09T08": 7,
-          "2026-03-09t08": 1
+          "2026-03-09T08": 9,
+          "2026-03-09t08": 2
         },
         "preferredVariant": "2026-03-09T08",
-        "confidence": 0.8
+        "confidence": 1
       },
-      "32.754613z": {
+      "04.938359z": {
         "totalCount": 2,
         "variants": {
-          "32.754613Z": 2
+          "04.938359Z": 2
         },
-        "preferredVariant": "32.754613Z",
+        "preferredVariant": "04.938359Z",
         "confidence": 0.2
       },
       "workspaceroot": {
@@ -437,22 +437,22 @@
         "confidence": 0.8
       },
       "viewmodels": {
-        "totalCount": 9,
+        "totalCount": 14,
         "variants": {
-          "ViewModels": 8,
-          "viewmodels": 1
+          "ViewModels": 11,
+          "viewmodels": 3
         },
         "preferredVariant": "ViewModels",
-        "confidence": 0.9
+        "confidence": 1
       },
       "viewmodel": {
-        "totalCount": 7,
+        "totalCount": 8,
         "variants": {
-          "ViewModel": 5,
+          "ViewModel": 6,
           "viewmodel": 2
         },
         "preferredVariant": "ViewModel",
-        "confidence": 0.7
+        "confidence": 0.8
       },
       "stylelearningsample": {
         "totalCount": 10,
@@ -527,10 +527,10 @@
         "confidence": 0.5
       },
       "totalcount": {
-        "totalCount": 462,
+        "totalCount": 492,
         "variants": {
           "TotalCount": 2,
-          "totalCount": 458,
+          "totalCount": 488,
           "totalcount": 2
         },
         "preferredVariant": "totalCount",
@@ -690,27 +690,27 @@
         "confidence": 1
       },
       "value": {
-        "totalCount": 20,
+        "totalCount": 18,
         "variants": {
-          "Value": 18,
+          "Value": 16,
           "value": 2
         },
         "preferredVariant": "Value",
         "confidence": 1
       },
       "count": {
-        "totalCount": 489,
+        "totalCount": 517,
         "variants": {
-          "Count": 487,
+          "Count": 515,
           "count": 2
         },
         "preferredVariant": "Count",
         "confidence": 1
       },
       "ratio": {
-        "totalCount": 20,
+        "totalCount": 18,
         "variants": {
-          "Ratio": 18,
+          "Ratio": 16,
           "ratio": 2
         },
         "preferredVariant": "Ratio",
@@ -762,9 +762,9 @@
         "confidence": 1
       },
       "class": {
-        "totalCount": 16,
+        "totalCount": 17,
         "variants": {
-          "class": 16
+          "class": 17
         },
         "preferredVariant": "class",
         "confidence": 1
@@ -842,21 +842,22 @@
         "confidence": 1
       },
       "view": {
-        "totalCount": 28,
+        "totalCount": 39,
         "variants": {
-          "View": 24,
+          "View": 35,
           "view": 4
         },
         "preferredVariant": "View",
         "confidence": 1
       },
       "models": {
-        "totalCount": 8,
+        "totalCount": 15,
         "variants": {
-          "Models": 8
+          "Models": 13,
+          "models": 2
         },
         "preferredVariant": "Models",
-        "confidence": 0.8
+        "confidence": 1
       },
       "factory": {
         "totalCount": 18,
@@ -904,22 +905,31 @@
         "confidence": 0.8
       },
       "auto": {
-        "totalCount": 12,
+        "totalCount": 15,
         "variants": {
           "auto": 11,
-          "Auto": 1
+          "Auto": 4
         },
         "preferredVariant": "auto",
         "confidence": 1
       },
       "people": {
-        "totalCount": 2,
+        "totalCount": 8,
         "variants": {
-          "people": 1,
-          "People": 1
+          "people": 4,
+          "People": 4
         },
         "preferredVariant": "people",
-        "confidence": 0.2
+        "confidence": 0.8
+      },
+      "truck": {
+        "totalCount": 10,
+        "variants": {
+          "truck": 4,
+          "Truck": 6
+        },
+        "preferredVariant": "Truck",
+        "confidence": 1
       },
       "http": {
         "totalCount": 42,
@@ -994,19 +1004,19 @@
         "confidence": 0.7
       },
       "total": {
-        "totalCount": 464,
+        "totalCount": 494,
         "variants": {
           "Total": 3,
-          "total": 461
+          "total": 491
         },
         "preferredVariant": "total",
         "confidence": 1
       },
       "confidence": {
-        "totalCount": 466,
+        "totalCount": 496,
         "variants": {
           "Confidence": 7,
-          "confidence": 459
+          "confidence": 489
         },
         "preferredVariant": "confidence",
         "confidence": 1
@@ -1182,12 +1192,12 @@
         "preferredVariant": "Query",
         "confidence": 0.5
       },
-      "32.769711z": {
+      "04.95944z": {
         "totalCount": 1,
         "variants": {
-          "32.769711Z": 1
+          "04.95944Z": 1
         },
-        "preferredVariant": "32.769711Z",
+        "preferredVariant": "04.95944Z",
         "confidence": 0.1
       },
       "fingerprint": {
@@ -1271,12 +1281,12 @@
         "preferredVariant": "Pattern",
         "confidence": 0.7
       },
-      "07.744z": {
+      "04.594z": {
         "totalCount": 1,
         "variants": {
-          "07.744Z": 1
+          "04.594Z": 1
         },
-        "preferredVariant": "07.744Z",
+        "preferredVariant": "04.594Z",
         "confidence": 0.1
       },
       "updatedatutc": {
@@ -1289,12 +1299,12 @@
         "preferredVariant": "updatedAtUtc",
         "confidence": 0.7
       },
-      "08.907z": {
+      "04.629z": {
         "totalCount": 1,
         "variants": {
-          "08.907Z": 1
+          "04.629Z": 1
         },
-        "preferredVariant": "08.907Z",
+        "preferredVariant": "04.629Z",
         "confidence": 0.1
       },
       "tokenstats": {
@@ -1308,56 +1318,164 @@
         "confidence": 0.7
       },
       "preferredvariant": {
-        "totalCount": 461,
+        "totalCount": 491,
         "variants": {
-          "preferredVariant": 458,
+          "preferredVariant": 488,
           "PreferredVariant": 1,
           "preferredvariant": 2
         },
         "preferredVariant": "preferredVariant",
         "confidence": 1
       },
-      "06.956166z": {
+      "34.269807z": {
         "totalCount": 3,
         "variants": {
-          "06.956166z": 1,
-          "06.956166Z": 2
+          "34.269807z": 1,
+          "34.269807Z": 2
         },
-        "preferredVariant": "06.956166Z",
+        "preferredVariant": "34.269807Z",
         "confidence": 0.3
+      },
+      "34.292245z": {
+        "totalCount": 3,
+        "variants": {
+          "34.292245z": 1,
+          "34.292245Z": 2
+        },
+        "preferredVariant": "34.292245Z",
+        "confidence": 0.3
+      },
+      "34.297z": {
+        "totalCount": 3,
+        "variants": {
+          "34.297z": 1,
+          "34.297Z": 2
+        },
+        "preferredVariant": "34.297Z",
+        "confidence": 0.3
+      },
+      "34.341z": {
+        "totalCount": 3,
+        "variants": {
+          "34.341z": 1,
+          "34.341Z": 2
+        },
+        "preferredVariant": "34.341Z",
+        "confidence": 0.3
+      },
+      "23.940444z": {
+        "totalCount": 4,
+        "variants": {
+          "23.940444z": 2,
+          "23.940444Z": 2
+        },
+        "preferredVariant": "23.940444z",
+        "confidence": 0.4
+      },
+      "23.958502z": {
+        "totalCount": 4,
+        "variants": {
+          "23.958502z": 2,
+          "23.958502Z": 2
+        },
+        "preferredVariant": "23.958502z",
+        "confidence": 0.4
+      },
+      "07.994z": {
+        "totalCount": 4,
+        "variants": {
+          "07.994z": 2,
+          "07.994Z": 2
+        },
+        "preferredVariant": "07.994z",
+        "confidence": 0.4
+      },
+      "08.017z": {
+        "totalCount": 4,
+        "variants": {
+          "08.017z": 2,
+          "08.017Z": 2
+        },
+        "preferredVariant": "08.017z",
+        "confidence": 0.4
+      },
+      "32.754613z": {
+        "totalCount": 4,
+        "variants": {
+          "32.754613z": 3,
+          "32.754613Z": 1
+        },
+        "preferredVariant": "32.754613z",
+        "confidence": 0.4
+      },
+      "32.769711z": {
+        "totalCount": 4,
+        "variants": {
+          "32.769711z": 3,
+          "32.769711Z": 1
+        },
+        "preferredVariant": "32.769711z",
+        "confidence": 0.4
+      },
+      "07.744z": {
+        "totalCount": 4,
+        "variants": {
+          "07.744z": 3,
+          "07.744Z": 1
+        },
+        "preferredVariant": "07.744z",
+        "confidence": 0.4
+      },
+      "08.907z": {
+        "totalCount": 4,
+        "variants": {
+          "08.907z": 3,
+          "08.907Z": 1
+        },
+        "preferredVariant": "08.907z",
+        "confidence": 0.4
+      },
+      "06.956166z": {
+        "totalCount": 4,
+        "variants": {
+          "06.956166z": 3,
+          "06.956166Z": 1
+        },
+        "preferredVariant": "06.956166z",
+        "confidence": 0.4
       },
       "07.066077z": {
-        "totalCount": 3,
+        "totalCount": 4,
         "variants": {
-          "07.066077z": 1,
-          "07.066077Z": 2
+          "07.066077z": 3,
+          "07.066077Z": 1
         },
-        "preferredVariant": "07.066077Z",
-        "confidence": 0.3
+        "preferredVariant": "07.066077z",
+        "confidence": 0.4
       },
       "13.558z": {
-        "totalCount": 3,
+        "totalCount": 4,
         "variants": {
-          "13.558z": 1,
-          "13.558Z": 2
+          "13.558z": 3,
+          "13.558Z": 1
         },
-        "preferredVariant": "13.558Z",
-        "confidence": 0.3
+        "preferredVariant": "13.558z",
+        "confidence": 0.4
       },
       "13.599z": {
-        "totalCount": 3,
+        "totalCount": 4,
         "variants": {
-          "13.599z": 1,
-          "13.599Z": 2
+          "13.599z": 3,
+          "13.599Z": 1
         },
-        "preferredVariant": "13.599Z",
-        "confidence": 0.3
+        "preferredVariant": "13.599z",
+        "confidence": 0.4
       },
       "13.349138z": {
         "totalCount": 4,
         "variants": {
-          "13.349138z": 2,
-          "13.349138Z": 2
+          "13.349138z": 3,
+          "13.349138Z": 1
         },
         "preferredVariant": "13.349138z",
         "confidence": 0.4
@@ -1365,8 +1483,8 @@
       "2026-03-08t20": {
         "totalCount": 4,
         "variants": {
-          "2026-03-08t20": 2,
-          "2026-03-08T20": 2
+          "2026-03-08t20": 3,
+          "2026-03-08T20": 1
         },
         "preferredVariant": "2026-03-08t20",
         "confidence": 0.4
@@ -1374,8 +1492,8 @@
       "15.611z": {
         "totalCount": 4,
         "variants": {
-          "15.611z": 2,
-          "15.611Z": 2
+          "15.611z": 3,
+          "15.611Z": 1
         },
         "preferredVariant": "15.611z",
         "confidence": 0.4
@@ -1383,8 +1501,8 @@
       "16.981z": {
         "totalCount": 4,
         "variants": {
-          "16.981z": 2,
-          "16.981Z": 2
+          "16.981z": 3,
+          "16.981Z": 1
         },
         "preferredVariant": "16.981z",
         "confidence": 0.4
@@ -2930,8 +3048,8 @@
       "58.217969z": {
         "totalCount": 4,
         "variants": {
-          "58.217969z": 2,
-          "58.217969Z": 2
+          "58.217969z": 3,
+          "58.217969Z": 1
         },
         "preferredVariant": "58.217969z",
         "confidence": 0.4
@@ -2939,8 +3057,8 @@
       "58.309351z": {
         "totalCount": 4,
         "variants": {
-          "58.309351z": 2,
-          "58.309351Z": 2
+          "58.309351z": 3,
+          "58.309351Z": 1
         },
         "preferredVariant": "58.309351z",
         "confidence": 0.4
@@ -2948,19 +3066,100 @@
       "52.475z": {
         "totalCount": 4,
         "variants": {
-          "52.475z": 1,
-          "52.475Z": 3
+          "52.475z": 3,
+          "52.475Z": 1
         },
-        "preferredVariant": "52.475Z",
+        "preferredVariant": "52.475z",
         "confidence": 0.4
       },
       "52.491z": {
         "totalCount": 4,
         "variants": {
-          "52.491z": 1,
-          "52.491Z": 3
+          "52.491z": 3,
+          "52.491Z": 1
         },
-        "preferredVariant": "52.491Z",
+        "preferredVariant": "52.491z",
+        "confidence": 0.4
+      },
+      "system.collections.generic": {
+        "totalCount": 7,
+        "variants": {
+          "system.collections.generic": 2,
+          "System.Collections.Generic": 5
+        },
+        "preferredVariant": "System.Collections.Generic",
+        "confidence": 0.7
+      },
+      "system.linq": {
+        "totalCount": 7,
+        "variants": {
+          "system.linq": 2,
+          "System.Linq": 5
+        },
+        "preferredVariant": "System.Linq",
+        "confidence": 0.7
+      },
+      "system.threading.tasks": {
+        "totalCount": 7,
+        "variants": {
+          "system.threading.tasks": 2,
+          "System.Threading.Tasks": 5
+        },
+        "preferredVariant": "System.Threading.Tasks",
+        "confidence": 0.7
+      },
+      "autoviewmodel": {
+        "totalCount": 5,
+        "variants": {
+          "AutoViewModel": 3,
+          "autoviewmodel": 2
+        },
+        "preferredVariant": "AutoViewModel",
+        "confidence": 0.5
+      },
+      "peopleviewmodel": {
+        "totalCount": 5,
+        "variants": {
+          "PeopleViewModel": 3,
+          "peopleviewmodel": 2
+        },
+        "preferredVariant": "PeopleViewModel",
+        "confidence": 0.5
+      },
+      "59.335z": {
+        "totalCount": 5,
+        "variants": {
+          "59.335z": 2,
+          "59.335Z": 3
+        },
+        "preferredVariant": "59.335Z",
+        "confidence": 0.5
+      },
+      "59.351z": {
+        "totalCount": 5,
+        "variants": {
+          "59.351z": 2,
+          "59.351Z": 3
+        },
+        "preferredVariant": "59.351Z",
+        "confidence": 0.5
+      },
+      "truckmodel": {
+        "totalCount": 4,
+        "variants": {
+          "TruckModel": 2,
+          "truckmodel": 2
+        },
+        "preferredVariant": "truckmodel",
+        "confidence": 0.4
+      },
+      "truckviewmodel": {
+        "totalCount": 4,
+        "variants": {
+          "TruckViewModel": 3,
+          "truckviewmodel": 1
+        },
+        "preferredVariant": "TruckViewModel",
         "confidence": 0.4
       },
       "profile": {
@@ -2990,27 +3189,27 @@
         "confidence": 0.9
       },
       "variants": {
-        "totalCount": 460,
+        "totalCount": 490,
         "variants": {
-          "variants": 459,
+          "variants": 489,
           "Variants": 1
         },
         "preferredVariant": "variants",
         "confidence": 1
       },
       "preferred": {
-        "totalCount": 463,
+        "totalCount": 493,
         "variants": {
-          "preferred": 461,
+          "preferred": 491,
           "Preferred": 2
         },
         "preferredVariant": "preferred",
         "confidence": 1
       },
       "variant": {
-        "totalCount": 463,
+        "totalCount": 493,
         "variants": {
-          "Variant": 461,
+          "Variant": 491,
           "variant": 2
         },
         "preferredVariant": "Variant",
@@ -3552,6 +3751,60 @@
         "preferredVariant": "Start",
         "confidence": 1
       },
+      "system": {
+        "totalCount": 29,
+        "variants": {
+          "system": 8,
+          "System": 21
+        },
+        "preferredVariant": "System",
+        "confidence": 1
+      },
+      "collections": {
+        "totalCount": 11,
+        "variants": {
+          "collections": 4,
+          "Collections": 7
+        },
+        "preferredVariant": "Collections",
+        "confidence": 1
+      },
+      "generic": {
+        "totalCount": 11,
+        "variants": {
+          "generic": 4,
+          "Generic": 7
+        },
+        "preferredVariant": "Generic",
+        "confidence": 1
+      },
+      "linq": {
+        "totalCount": 11,
+        "variants": {
+          "linq": 4,
+          "Linq": 7
+        },
+        "preferredVariant": "Linq",
+        "confidence": 1
+      },
+      "threading": {
+        "totalCount": 11,
+        "variants": {
+          "threading": 4,
+          "Threading": 7
+        },
+        "preferredVariant": "Threading",
+        "confidence": 1
+      },
+      "tasks": {
+        "totalCount": 11,
+        "variants": {
+          "tasks": 4,
+          "Tasks": 7
+        },
+        "preferredVariant": "Tasks",
+        "confidence": 1
+      },
       "true": {
         "totalCount": 14,
         "variants": {
@@ -3561,26 +3814,17 @@
         "confidence": 1
       },
       "using": {
-        "totalCount": 12,
+        "totalCount": 16,
         "variants": {
-          "using": 12
+          "using": 16
         },
         "preferredVariant": "using",
         "confidence": 1
       },
-      "system": {
-        "totalCount": 13,
-        "variants": {
-          "system": 2,
-          "System": 11
-        },
-        "preferredVariant": "System",
-        "confidence": 1
-      },
       "public": {
-        "totalCount": 16,
+        "totalCount": 17,
         "variants": {
-          "public": 16
+          "public": 17
         },
         "preferredVariant": "public",
         "confidence": 1
@@ -3876,86 +4120,6 @@
         },
         "preferredVariant": "new",
         "confidence": 0.5
-      },
-      "system.collections.generic": {
-        "totalCount": 2,
-        "variants": {
-          "System.Collections.Generic": 2
-        },
-        "preferredVariant": "System.Collections.Generic",
-        "confidence": 0.2
-      },
-      "system.linq": {
-        "totalCount": 2,
-        "variants": {
-          "System.Linq": 2
-        },
-        "preferredVariant": "System.Linq",
-        "confidence": 0.2
-      },
-      "system.threading.tasks": {
-        "totalCount": 2,
-        "variants": {
-          "System.Threading.Tasks": 2
-        },
-        "preferredVariant": "System.Threading.Tasks",
-        "confidence": 0.2
-      },
-      "autoviewmodel": {
-        "totalCount": 1,
-        "variants": {
-          "AutoViewModel": 1
-        },
-        "preferredVariant": "AutoViewModel",
-        "confidence": 0.1
-      },
-      "collections": {
-        "totalCount": 2,
-        "variants": {
-          "Collections": 2
-        },
-        "preferredVariant": "Collections",
-        "confidence": 0.2
-      },
-      "generic": {
-        "totalCount": 2,
-        "variants": {
-          "Generic": 2
-        },
-        "preferredVariant": "Generic",
-        "confidence": 0.2
-      },
-      "linq": {
-        "totalCount": 2,
-        "variants": {
-          "Linq": 2
-        },
-        "preferredVariant": "Linq",
-        "confidence": 0.2
-      },
-      "threading": {
-        "totalCount": 2,
-        "variants": {
-          "Threading": 2
-        },
-        "preferredVariant": "Threading",
-        "confidence": 0.2
-      },
-      "tasks": {
-        "totalCount": 2,
-        "variants": {
-          "Tasks": 2
-        },
-        "preferredVariant": "Tasks",
-        "confidence": 0.2
-      },
-      "peopleviewmodel": {
-        "totalCount": 1,
-        "variants": {
-          "PeopleViewModel": 1
-        },
-        "preferredVariant": "PeopleViewModel",
-        "confidence": 0.1
       }
     }
   }

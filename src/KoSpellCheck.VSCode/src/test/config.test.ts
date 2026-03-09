@@ -7,6 +7,7 @@ import { defaultConfig, loadConfig } from '../config';
 
 test('default config enables local typo acceleration auto mode', () => {
   const config = defaultConfig();
+  assert.equal(config.uiLanguage, 'auto');
   assert.equal(config.localTypoAccelerationMode, 'auto');
   assert.equal(config.localTypoAccelerationModel, 'auto');
   assert.equal(config.localTypoAccelerationShowDetectionPrompt, true);

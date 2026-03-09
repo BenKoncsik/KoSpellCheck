@@ -5,6 +5,7 @@ using KoSpellCheck.Core.ProjectConventions.Persistence;
 using KoSpellCheck.Core.ProjectConventions.Scanning;
 using KoSpellCheck.Core.ProjectConventions.Services;
 using KoSpellCheck.Core.ProjectConventions.Utils;
+using KoSpellCheck.Core.Localization;
 using Microsoft.VisualStudio.Text;
 
 namespace KoSpellCheck.VS2022.Services.ProjectConventions;
@@ -253,7 +254,7 @@ internal sealed class ProjectConventionDashboardService
         {
             return new ConventionDashboardSnapshot
             {
-                LastError = "No workspace is currently available.",
+                LastError = SharedUiText.Get("dashboard.status.noWorkspaceAvailable", "auto"),
                 Logs = _logs.Snapshot(),
             };
         }
@@ -299,7 +300,7 @@ internal sealed class ProjectConventionDashboardService
 
         var diagnostics = state.DiagnosticsByFile.Values.SelectMany(item => item).ToList();
         var mapItems = BuildMapItems(profile, state.FolderExamples);
-        var settings = BuildSettingItems(options);
+        var settings = BuildSettingItems(options, config.UiLanguage);
         var coralActive = options.EnableAiNamingAnomalyDetection && options.UseCoralTpuIfAvailable && false;
         var coralStatus = options.UseCoralTpuIfAvailable
             ? "requested (CPU fallback active in VS2022 host)"
@@ -316,7 +317,9 @@ internal sealed class ProjectConventionDashboardService
             CoralStatus = coralStatus,
             FilesScanned = profile?.FilesScanned ?? summary?.FilesScanned ?? 0,
             TypesScanned = profile?.TypesScanned ?? summary?.TypesScanned ?? 0,
-            DominantCaseStyle = profile?.DominantCaseStyle.ToString() ?? summary?.DominantCaseStyle.ToString() ?? "Unknown",
+            DominantCaseStyle = profile?.DominantCaseStyle.ToString()
+                ?? summary?.DominantCaseStyle.ToString()
+                ?? SharedUiText.Get("dashboard.value.unknown", config.UiLanguage),
             ProfileUpdatedUtc = profile?.GeneratedAtUtc ?? summary?.GeneratedAtUtc,
             DiagnosticCount = diagnostics.Count,
             IsRefreshing = state.IsRefreshing,
@@ -507,24 +510,26 @@ internal sealed class ProjectConventionDashboardService
             .ToList();
     }
 
-    private static IReadOnlyList<ConventionDashboardSettingItem> BuildSettingItems(ProjectConventionOptions options)
+    private static IReadOnlyList<ConventionDashboardSettingItem> BuildSettingItems(
+        ProjectConventionOptions options,
+        string uiLanguage)
     {
         return new List<ConventionDashboardSettingItem>
         {
-            new() { Id = "EnableProjectConventionMapping", Label = "Project convention mapping", Value = options.EnableProjectConventionMapping.ToString() },
-            new() { Id = "EnableNamingConventionDiagnostics", Label = "Naming diagnostics", Value = options.EnableNamingConventionDiagnostics.ToString() },
-            new() { Id = "EnableStatisticalAnomalyDetection", Label = "Statistical anomaly detection", Value = options.EnableStatisticalAnomalyDetection.ToString() },
-            new() { Id = "EnableAiNamingAnomalyDetection", Label = "AI naming anomaly detection", Value = options.EnableAiNamingAnomalyDetection.ToString() },
-            new() { Id = "UseCoralTpuIfAvailable", Label = "Use Coral TPU if available", Value = options.UseCoralTpuIfAvailable.ToString() },
-            new() { Id = "AutoRebuildConventionProfile", Label = "Auto rebuild profile", Value = options.AutoRebuildConventionProfile.ToString() },
-            new() { Id = "AnalyzeOnSave", Label = "Analyze on save", Value = options.AnalyzeOnSave.ToString() },
-            new() { Id = "AnalyzeOnRename", Label = "Analyze on rename", Value = options.AnalyzeOnRename.ToString() },
-            new() { Id = "AnalyzeOnNewFile", Label = "Analyze on new file", Value = options.AnalyzeOnNewFile.ToString() },
-            new() { Id = "IgnoreGeneratedCode", Label = "Ignore generated code", Value = options.IgnoreGeneratedCode.ToString() },
-            new() { Id = "IgnoreTestProjects", Label = "Ignore test projects", Value = options.IgnoreTestProjects.ToString() },
-            new() { Id = "StatisticalAnomalyThreshold", Label = "Statistical anomaly threshold", Value = options.StatisticalAnomalyThreshold.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) },
-            new() { Id = "AiAnomalyThreshold", Label = "AI anomaly threshold", Value = options.AiAnomalyThreshold.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) },
-            new() { Id = "Scope", Label = "Scope", Value = options.Scope },
+            new() { Id = "EnableProjectConventionMapping", Label = SharedUiText.Get("dashboard.setting.projectConventionMapping", uiLanguage), Value = options.EnableProjectConventionMapping.ToString() },
+            new() { Id = "EnableNamingConventionDiagnostics", Label = SharedUiText.Get("dashboard.setting.namingDiagnostics", uiLanguage), Value = options.EnableNamingConventionDiagnostics.ToString() },
+            new() { Id = "EnableStatisticalAnomalyDetection", Label = SharedUiText.Get("dashboard.setting.statisticalAnomalyDetection", uiLanguage), Value = options.EnableStatisticalAnomalyDetection.ToString() },
+            new() { Id = "EnableAiNamingAnomalyDetection", Label = SharedUiText.Get("dashboard.setting.aiNamingAnomalyDetection", uiLanguage), Value = options.EnableAiNamingAnomalyDetection.ToString() },
+            new() { Id = "UseCoralTpuIfAvailable", Label = SharedUiText.Get("dashboard.setting.useCoralTpuIfAvailable", uiLanguage), Value = options.UseCoralTpuIfAvailable.ToString() },
+            new() { Id = "AutoRebuildConventionProfile", Label = SharedUiText.Get("dashboard.setting.autoRebuildConventionProfile", uiLanguage), Value = options.AutoRebuildConventionProfile.ToString() },
+            new() { Id = "AnalyzeOnSave", Label = SharedUiText.Get("dashboard.setting.analyzeOnSave", uiLanguage), Value = options.AnalyzeOnSave.ToString() },
+            new() { Id = "AnalyzeOnRename", Label = SharedUiText.Get("dashboard.setting.analyzeOnRename", uiLanguage), Value = options.AnalyzeOnRename.ToString() },
+            new() { Id = "AnalyzeOnNewFile", Label = SharedUiText.Get("dashboard.setting.analyzeOnNewFile", uiLanguage), Value = options.AnalyzeOnNewFile.ToString() },
+            new() { Id = "IgnoreGeneratedCode", Label = SharedUiText.Get("dashboard.setting.ignoreGeneratedCode", uiLanguage), Value = options.IgnoreGeneratedCode.ToString() },
+            new() { Id = "IgnoreTestProjects", Label = SharedUiText.Get("dashboard.setting.ignoreTestProjects", uiLanguage), Value = options.IgnoreTestProjects.ToString() },
+            new() { Id = "StatisticalAnomalyThreshold", Label = SharedUiText.Get("dashboard.setting.statisticalAnomalyThreshold", uiLanguage), Value = options.StatisticalAnomalyThreshold.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) },
+            new() { Id = "AiAnomalyThreshold", Label = SharedUiText.Get("dashboard.setting.aiAnomalyThreshold", uiLanguage), Value = options.AiAnomalyThreshold.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) },
+            new() { Id = "Scope", Label = SharedUiText.Get("dashboard.setting.scope", uiLanguage), Value = options.Scope },
         };
     }
 

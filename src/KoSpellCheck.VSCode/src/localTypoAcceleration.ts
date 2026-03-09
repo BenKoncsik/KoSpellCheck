@@ -18,6 +18,7 @@ import {
   TypoClassificationResult,
   TypoAccelerationMode
 } from './types';
+import { text } from './sharedUiText';
 
 type ContextResolver = (range: vscode.Range) => 'identifier' | 'literal';
 type LogFn = (message: string, uri?: vscode.Uri, force?: boolean) => void;
@@ -1389,6 +1390,11 @@ class VscodeAcceleratorNotificationService implements IAcceleratorNotificationSe
     this.log = log;
   }
 
+  private configuredUiLanguage(): string {
+    const uri = vscode.window.activeTextEditor?.document.uri;
+    return vscode.workspace.getConfiguration('kospellcheck', uri).get<string>('uiLanguage', 'auto');
+  }
+
   public notifyAutoModeDetection(mode: TypoAccelerationMode, showPrompt: boolean): void {
     if (mode !== 'auto' || !showPrompt) {
       return;
@@ -1399,11 +1405,20 @@ class VscodeAcceleratorNotificationService implements IAcceleratorNotificationSe
     }
 
     void this.context.globalState.update(this.autoPromptKey, true);
-    const enableAlwaysOn = 'Enable Always On';
-    const keepAuto = 'Keep Auto';
+    const uiLanguage = this.configuredUiLanguage();
+    const enableAlwaysOn = text('localTypo.info.enableAlwaysOn', 'Enable Always On', {
+      configuredLanguage: uiLanguage
+    });
+    const keepAuto = text('localTypo.info.keepAuto', 'Keep Auto', {
+      configuredLanguage: uiLanguage
+    });
     void vscode.window
       .showInformationMessage(
-        'Local typo accelerator detected. Enable faster local typo classification?',
+        text(
+          'localTypo.info.detectedEnablePrompt',
+          'Local typo accelerator detected. Enable faster local typo classification?',
+          { configuredLanguage: uiLanguage }
+        ),
         enableAlwaysOn,
         keepAuto
       )
@@ -1425,14 +1440,34 @@ class VscodeAcceleratorNotificationService implements IAcceleratorNotificationSe
     }
 
     void this.context.globalState.update(this.onUnavailablePromptKey, true);
+    const uiLanguage = this.configuredUiLanguage();
     const detail =
       status === 'UnavailableMissingRuntime'
-        ? 'Bundled local runtime is not present in this build.'
+        ? text(
+          'localTypo.detail.missingRuntime',
+          'Bundled local runtime is not present in this build.',
+          { configuredLanguage: uiLanguage }
+        )
         : status === 'UnavailableUnsupportedPlatform'
-          ? 'Current platform is not supported by this optional path.'
-          : 'A compatible local accelerator is not available right now.';
+          ? text(
+            'localTypo.detail.unsupportedPlatform',
+            'Current platform is not supported by this optional path.',
+            { configuredLanguage: uiLanguage }
+          )
+          : text(
+            'localTypo.detail.notAvailable',
+            'A compatible local accelerator is not available right now.',
+            { configuredLanguage: uiLanguage }
+          );
     void vscode.window.showInformationMessage(
-      `KoSpellCheck local typo acceleration is ON, but unavailable. ${detail} Falling back to standard local spell checking.`
+      text(
+        'localTypo.info.unavailableOnMode',
+        `KoSpellCheck local typo acceleration is ON, but unavailable. ${detail} Falling back to standard local spell checking.`,
+        {
+          configuredLanguage: uiLanguage,
+          args: { detail }
+        }
+      )
     );
   }
 }

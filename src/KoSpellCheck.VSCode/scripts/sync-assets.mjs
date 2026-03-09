@@ -6,8 +6,19 @@ const extensionRoot = process.cwd();
 const repoRoot = path.resolve(extensionRoot, '..', '..');
 const sourceDictionaries = path.join(repoRoot, 'tools', 'dictionaries');
 const sourceLicenses = path.join(repoRoot, 'tools', 'licenses');
+const sourceSharedUiStrings = path.join(
+  repoRoot,
+  'src',
+  'KoSpellCheck.Core',
+  'Localization',
+  'SharedUiStrings.json'
+);
 const targetDictionaries = path.join(extensionRoot, 'resources', 'dictionaries');
 const targetLicenses = path.join(extensionRoot, 'resources', 'licenses');
+const targetI18nDir = path.join(extensionRoot, 'resources', 'i18n');
+const targetSharedUiStrings = path.join(targetI18nDir, 'shared-ui-strings.json');
+const targetPackageNls = path.join(extensionRoot, 'package.nls.json');
+const targetPackageNlsHu = path.join(extensionRoot, 'package.nls.hu.json');
 const cliProjectPath = path.join(
   repoRoot,
   'src',
@@ -61,6 +72,56 @@ function logInfo(message) {
 
 function logWarn(message) {
   process.stderr.write(`[prepare-assets] WARN: ${message}\n`);
+}
+
+function readJson(filePath) {
+  try {
+    const raw = fs.readFileSync(filePath, 'utf8');
+    return JSON.parse(raw);
+  } catch (error) {
+    logWarn(`failed to read JSON file '${filePath}': ${error instanceof Error ? error.message : String(error)}`);
+    return undefined;
+  }
+}
+
+function writeJson(filePath, data) {
+  fs.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
+}
+
+function syncPackageLocalization(sharedUiPath) {
+  const shared = readJson(sharedUiPath);
+  if (!shared || typeof shared !== 'object') {
+    return;
+  }
+
+  const languages = shared.languages ?? {};
+  const english = languages.en ?? {};
+  const hungarian = languages.hu ?? {};
+  const keys = Object.keys(english).filter((key) => key.startsWith('kospellcheck.'));
+
+  if (keys.length === 0) {
+    logWarn('no package.nls keys found in shared UI catalog (expected prefix: kospellcheck.)');
+    return;
+  }
+
+  const packageNls = {};
+  const packageNlsHu = {};
+
+  for (const key of keys.sort()) {
+    const enValue = english[key];
+    if (typeof enValue !== 'string' || enValue.trim().length === 0) {
+      continue;
+    }
+
+    packageNls[key] = enValue;
+    const huValue = hungarian[key];
+    packageNlsHu[key] =
+      typeof huValue === 'string' && huValue.trim().length > 0 ? huValue : enValue;
+  }
+
+  writeJson(targetPackageNls, packageNls);
+  writeJson(targetPackageNlsHu, packageNlsHu);
+  logInfo(`package localization synced: ${targetPackageNls}, ${targetPackageNlsHu}`);
 }
 
 function runDotnetBuildCli(targetFramework) {
@@ -137,8 +198,16 @@ function syncProjectConventionsCli() {
 ensureDir(path.join(extensionRoot, 'resources'));
 ensureDir(targetDictionaries);
 ensureDir(targetLicenses);
+ensureDir(targetI18nDir);
 clearDir(targetDictionaries);
 clearDir(targetLicenses);
 copyRecursive(sourceDictionaries, targetDictionaries);
 copyRecursive(sourceLicenses, targetLicenses);
+if (fs.existsSync(sourceSharedUiStrings)) {
+  fs.copyFileSync(sourceSharedUiStrings, targetSharedUiStrings);
+  logInfo(`shared UI strings synced: ${targetSharedUiStrings}`);
+  syncPackageLocalization(sourceSharedUiStrings);
+} else {
+  logWarn(`shared UI strings source file missing: ${sourceSharedUiStrings}`);
+}
 syncProjectConventionsCli();

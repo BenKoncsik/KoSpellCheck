@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace ViewModels
 {
-    public class TruckModel
+    public class TruckViewModel
     {
         
     }

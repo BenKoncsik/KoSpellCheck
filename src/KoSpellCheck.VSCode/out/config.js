@@ -10,6 +10,7 @@ const node_fs_1 = __importDefault(require("node:fs"));
 const node_path_1 = __importDefault(require("node:path"));
 const DEFAULT_CONFIG = {
     enabled: true,
+    uiLanguage: 'auto',
     languages: ['hu', 'en'],
     allowMixedLanguages: true,
     preferTerms: {},
@@ -114,6 +115,9 @@ function applyEditorConfig(config, content) {
         switch (key) {
             case 'kospellcheck_enabled':
                 config.enabled = parseBool(value, config.enabled);
+                break;
+            case 'kospellcheck_ui_language':
+                config.uiLanguage = parseUiLanguage(value, config.uiLanguage);
                 break;
             case 'kospellcheck_languages':
                 config.languages = parseList(value);
@@ -271,6 +275,9 @@ function applyEditorConfig(config, content) {
 function applyJsonConfig(config, input) {
     if (typeof input.enabled === 'boolean')
         config.enabled = input.enabled;
+    if (typeof input.uiLanguage === 'string') {
+        config.uiLanguage = parseUiLanguage(input.uiLanguage, config.uiLanguage);
+    }
     if (Array.isArray(input.languages) && input.languages.length > 0)
         config.languages = input.languages;
     if (typeof input.allowMixedLanguages === 'boolean')
@@ -511,6 +518,22 @@ function parseTypoAccelerationMode(value, fallback) {
     const normalized = value.trim().toLowerCase();
     if (normalized === 'off' || normalized === 'auto' || normalized === 'on') {
         return normalized;
+    }
+    return fallback;
+}
+function parseUiLanguage(value, fallback) {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'auto' || normalized === 'system') {
+        return 'auto';
+    }
+    if (normalized === 'en' || normalized === 'eng' || normalized === 'english') {
+        return 'en';
+    }
+    if (normalized === 'hu' ||
+        normalized === 'hun' ||
+        normalized === 'hungarian' ||
+        normalized === 'magyar') {
+        return 'hu';
     }
     return fallback;
 }

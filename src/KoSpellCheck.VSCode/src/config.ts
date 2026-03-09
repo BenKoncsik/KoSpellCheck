@@ -1,9 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { KoSpellCheckConfig, TypoAccelerationMode } from './types';
+import { KoSpellCheckConfig, TypoAccelerationMode, UiLanguageMode } from './types';
 
 const DEFAULT_CONFIG: KoSpellCheckConfig = {
   enabled: true,
+  uiLanguage: 'auto',
   languages: ['hu', 'en'],
   allowMixedLanguages: true,
   preferTerms: {},
@@ -117,6 +118,9 @@ function applyEditorConfig(config: KoSpellCheckConfig, content: string): void {
     switch (key) {
       case 'kospellcheck_enabled':
         config.enabled = parseBool(value, config.enabled);
+        break;
+      case 'kospellcheck_ui_language':
+        config.uiLanguage = parseUiLanguage(value, config.uiLanguage);
         break;
       case 'kospellcheck_languages':
         config.languages = parseList(value);
@@ -307,6 +311,9 @@ function applyEditorConfig(config: KoSpellCheckConfig, content: string): void {
 
 function applyJsonConfig(config: KoSpellCheckConfig, input: Partial<KoSpellCheckConfig>): void {
   if (typeof input.enabled === 'boolean') config.enabled = input.enabled;
+  if (typeof input.uiLanguage === 'string') {
+    config.uiLanguage = parseUiLanguage(input.uiLanguage, config.uiLanguage);
+  }
   if (Array.isArray(input.languages) && input.languages.length > 0) config.languages = input.languages;
   if (typeof input.allowMixedLanguages === 'boolean') config.allowMixedLanguages = input.allowMixedLanguages;
   if (input.preferTerms) config.preferTerms = input.preferTerms;
@@ -606,6 +613,28 @@ function parseTypoAccelerationMode(
   const normalized = value.trim().toLowerCase();
   if (normalized === 'off' || normalized === 'auto' || normalized === 'on') {
     return normalized;
+  }
+
+  return fallback;
+}
+
+function parseUiLanguage(value: string, fallback: UiLanguageMode): UiLanguageMode {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'auto' || normalized === 'system') {
+    return 'auto';
+  }
+
+  if (normalized === 'en' || normalized === 'eng' || normalized === 'english') {
+    return 'en';
+  }
+
+  if (
+    normalized === 'hu' ||
+    normalized === 'hun' ||
+    normalized === 'hungarian' ||
+    normalized === 'magyar'
+  ) {
+    return 'hu';
   }
 
   return fallback;

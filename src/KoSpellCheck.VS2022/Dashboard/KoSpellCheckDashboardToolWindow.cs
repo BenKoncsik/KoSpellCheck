@@ -1,4 +1,5 @@
 using KoSpellCheck.VS2022.Services.ProjectConventions;
+using KoSpellCheck.Core.Localization;
 using Microsoft.VisualStudio.Shell;
 using System.Runtime.InteropServices;
 
@@ -9,7 +10,7 @@ public sealed class KoSpellCheckDashboardToolWindow : ToolWindowPane
 {
     public KoSpellCheckDashboardToolWindow() : base(null)
     {
-        Caption = "KoSpellCheck Dashboard";
+        Caption = SharedUiText.Get("vs2022.dashboard.toolWindowCaption", "auto");
     }
 
     public override void OnToolWindowCreated()
@@ -24,7 +25,7 @@ public sealed class KoSpellCheckDashboardToolWindow : ToolWindowPane
 
         Content = new System.Windows.Controls.TextBlock
         {
-            Text = "KoSpellCheck dashboard service is not available.",
+            Text = SharedUiText.Get("dashboard.serviceUnavailable", "auto"),
             Margin = new System.Windows.Thickness(12),
         };
     }

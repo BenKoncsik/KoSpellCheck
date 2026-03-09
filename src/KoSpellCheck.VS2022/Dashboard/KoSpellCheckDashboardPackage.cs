@@ -1,5 +1,6 @@
 using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
+using KoSpellCheck.Core.Localization;
 using KoSpellCheck.VS2022.Services;
 using KoSpellCheck.VS2022.Services.ProjectConventions;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -41,7 +42,8 @@ public sealed class KoSpellCheckDashboardPackage : AsyncPackage
         var pane = await ShowToolWindowAsync(typeof(KoSpellCheckDashboardToolWindow), 0, true, DisposalToken).ConfigureAwait(true);
         if (pane?.Frame == null)
         {
-            throw new InvalidOperationException("Failed to create KoSpellCheck dashboard tool window.");
+            throw new InvalidOperationException(
+                SharedUiText.Get("vs2022.dashboard.toolWindowCreateFailed", "auto"));
         }
     }
 }

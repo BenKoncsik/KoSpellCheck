@@ -11,6 +11,7 @@ import {
   DashboardSettingItem,
   DashboardViewModel
 } from './dashboardState';
+import { text } from '../sharedUiText';
 
 export function mapDashboardViewModel(
   snapshot: ProjectConventionDashboardSnapshot,
@@ -43,7 +44,9 @@ function mapOverview(snapshot: ProjectConventionDashboardSnapshot): DashboardOve
   const dominantCaseStyle =
     toStringValue(profile.DominantCaseStyle) ??
     toStringValue(summary.DominantCaseStyle) ??
-    'Unknown';
+    text('dashboard.value.unknown', 'Unknown', {
+      configuredLanguage: snapshot.settings?.uiLanguage
+    });
   const profileLastUpdatedUtc =
     toStringValue(profile.GeneratedAtUtc) ?? toStringValue(summary.GeneratedAtUtc);
   const settings = snapshot.settings;
@@ -60,7 +63,9 @@ function mapOverview(snapshot: ProjectConventionDashboardSnapshot): DashboardOve
     featureEnabled: settings?.projectConventionMappingEnabled ?? false,
     aiEnabled: settings?.aiNamingAnomalyDetectionEnabled ?? false,
     coralActive: !!coral?.Available,
-    coralDetail: coral?.Detail ?? 'inactive',
+    coralDetail: coral?.Detail ?? text('dashboard.value.inactive', 'Inactive', {
+      configuredLanguage: snapshot.settings?.uiLanguage
+    }).toLowerCase(),
     inFlightRebuildCount: snapshot.inFlightRebuildCount,
     queuedRebuildCount: snapshot.queuedRebuildCount
   };
@@ -74,39 +79,126 @@ function mapSettings(settings?: ConventionFeatureConfig): DashboardSettingItem[]
   return [
     {
       id: 'projectConventions.coreCliPath',
-      label: 'Core CLI path',
-      value: settings.coreCliPath ?? '(auto)',
+      label: text('dashboard.setting.coreCliPath', 'Core CLI path', {
+        configuredLanguage: settings.uiLanguage
+      }),
+      value: settings.coreCliPath ?? text('dashboard.value.auto', '(auto)', {
+        configuredLanguage: settings.uiLanguage
+      }),
       type: 'string',
       editable: false
     },
-    boolSetting('projectConventions.enabled', 'Project convention mapping', settings.projectConventionMappingEnabled),
-    boolSetting('projectConventions.namingDiagnosticsEnabled', 'Naming diagnostics', settings.namingConventionDiagnosticsEnabled),
-    boolSetting('projectConventions.statisticalAnomalyDetectionEnabled', 'Statistical anomaly detection', settings.statisticalAnomalyDetectionEnabled),
-    boolSetting('projectConventions.aiNamingAnomalyDetectionEnabled', 'AI naming anomaly detection', settings.aiNamingAnomalyDetectionEnabled),
-    boolSetting('projectConventions.useCoralTpuIfAvailable', 'Use Coral TPU if available', settings.useCoralTpuIfAvailable),
-    boolSetting('projectConventions.autoRebuild', 'Auto rebuild convention profile', settings.autoRebuildConventionProfile),
-    boolSetting('projectConventions.analyzeOnSave', 'Analyze on save', settings.analyzeOnSave),
-    boolSetting('projectConventions.analyzeOnRename', 'Analyze on rename', settings.analyzeOnRename),
-    boolSetting('projectConventions.analyzeOnNewFile', 'Analyze on new file', settings.analyzeOnNewFile),
-    boolSetting('projectConventions.ignoreGeneratedCode', 'Ignore generated code', settings.ignoreGeneratedCode),
-    boolSetting('projectConventions.ignoreTestProjects', 'Ignore test projects', settings.ignoreTestProjects),
+    boolSetting(
+      settings.uiLanguage,
+      'projectConventions.enabled',
+      text('dashboard.setting.projectConventionMapping', 'Project convention mapping', {
+        configuredLanguage: settings.uiLanguage
+      }),
+      settings.projectConventionMappingEnabled
+    ),
+    boolSetting(
+      settings.uiLanguage,
+      'projectConventions.namingDiagnosticsEnabled',
+      text('dashboard.setting.namingDiagnostics', 'Naming diagnostics', {
+        configuredLanguage: settings.uiLanguage
+      }),
+      settings.namingConventionDiagnosticsEnabled
+    ),
+    boolSetting(
+      settings.uiLanguage,
+      'projectConventions.statisticalAnomalyDetectionEnabled',
+      text('dashboard.setting.statisticalAnomalyDetection', 'Statistical anomaly detection', {
+        configuredLanguage: settings.uiLanguage
+      }),
+      settings.statisticalAnomalyDetectionEnabled
+    ),
+    boolSetting(
+      settings.uiLanguage,
+      'projectConventions.aiNamingAnomalyDetectionEnabled',
+      text('dashboard.setting.aiNamingAnomalyDetection', 'AI naming anomaly detection', {
+        configuredLanguage: settings.uiLanguage
+      }),
+      settings.aiNamingAnomalyDetectionEnabled
+    ),
+    boolSetting(
+      settings.uiLanguage,
+      'projectConventions.useCoralTpuIfAvailable',
+      text('dashboard.setting.useCoralTpuIfAvailable', 'Use Coral TPU if available', {
+        configuredLanguage: settings.uiLanguage
+      }),
+      settings.useCoralTpuIfAvailable
+    ),
+    boolSetting(
+      settings.uiLanguage,
+      'projectConventions.autoRebuild',
+      text('dashboard.setting.autoRebuildConventionProfile', 'Auto rebuild convention profile', {
+        configuredLanguage: settings.uiLanguage
+      }),
+      settings.autoRebuildConventionProfile
+    ),
+    boolSetting(
+      settings.uiLanguage,
+      'projectConventions.analyzeOnSave',
+      text('dashboard.setting.analyzeOnSave', 'Analyze on save', {
+        configuredLanguage: settings.uiLanguage
+      }),
+      settings.analyzeOnSave
+    ),
+    boolSetting(
+      settings.uiLanguage,
+      'projectConventions.analyzeOnRename',
+      text('dashboard.setting.analyzeOnRename', 'Analyze on rename', {
+        configuredLanguage: settings.uiLanguage
+      }),
+      settings.analyzeOnRename
+    ),
+    boolSetting(
+      settings.uiLanguage,
+      'projectConventions.analyzeOnNewFile',
+      text('dashboard.setting.analyzeOnNewFile', 'Analyze on new file', {
+        configuredLanguage: settings.uiLanguage
+      }),
+      settings.analyzeOnNewFile
+    ),
+    boolSetting(
+      settings.uiLanguage,
+      'projectConventions.ignoreGeneratedCode',
+      text('dashboard.setting.ignoreGeneratedCode', 'Ignore generated code', {
+        configuredLanguage: settings.uiLanguage
+      }),
+      settings.ignoreGeneratedCode
+    ),
+    boolSetting(
+      settings.uiLanguage,
+      'projectConventions.ignoreTestProjects',
+      text('dashboard.setting.ignoreTestProjects', 'Ignore test projects', {
+        configuredLanguage: settings.uiLanguage
+      }),
+      settings.ignoreTestProjects
+    ),
     {
       id: 'projectConventions.statisticalAnomalyThreshold',
-      label: 'Statistical anomaly threshold',
+      label: text('dashboard.setting.statisticalAnomalyThreshold', 'Statistical anomaly threshold', {
+        configuredLanguage: settings.uiLanguage
+      }),
       value: settings.statisticalAnomalyThreshold,
       type: 'number',
       editable: false
     },
     {
       id: 'projectConventions.aiAnomalyThreshold',
-      label: 'AI anomaly threshold',
+      label: text('dashboard.setting.aiAnomalyThreshold', 'AI anomaly threshold', {
+        configuredLanguage: settings.uiLanguage
+      }),
       value: settings.aiAnomalyThreshold,
       type: 'number',
       editable: false
     },
     {
       id: 'projectConventions.scope',
-      label: 'Scope',
+      label: text('dashboard.setting.scope', 'Scope', {
+        configuredLanguage: settings.uiLanguage
+      }),
       value: settings.conventionScope,
       type: 'string',
       editable: false
@@ -114,7 +206,12 @@ function mapSettings(settings?: ConventionFeatureConfig): DashboardSettingItem[]
   ];
 }
 
-function boolSetting(id: string, label: string, value: boolean): DashboardSettingItem {
+function boolSetting(
+  _uiLanguage: string,
+  id: string,
+  label: string,
+  value: boolean
+): DashboardSettingItem {
   return {
     id,
     label,

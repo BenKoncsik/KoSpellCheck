@@ -1,6 +1,6 @@
 {
   "SchemaVersion": 1,
-  "GeneratedAtUtc": "2026-03-09T08:27:23.940444Z",
+  "GeneratedAtUtc": "2026-03-09T08:43:06.15318Z",
   "WorkspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples",
   "Scope": "workspace",
   "FilesScanned": 7,
@@ -13,7 +13,7 @@
       "Ratio": 1.0
     }
   ],
-  "FileToPrimaryTypeMatchRate": 0.2857142857142857,
+  "FileToPrimaryTypeMatchRate": 0.14285714285714285,
   "Folders": {
     ".": {
       "FolderPath": ".",
@@ -64,13 +64,8 @@
       "DominantSuffixes": [
         {
           "Value": "ViewModel",
-          "Count": 2,
-          "Ratio": 0.6666666666666666
-        },
-        {
-          "Value": "Model",
-          "Count": 1,
-          "Ratio": 0.3333333333333333
+          "Count": 3,
+          "Ratio": 1.0
         }
       ],
       "DominantPrefixes": [],
@@ -138,16 +133,11 @@
   "GlobalSuffixes": [
     {
       "Value": "ViewModel",
-      "Count": 2,
-      "Ratio": 0.5
+      "Count": 3,
+      "Ratio": 0.75
     },
     {
       "Value": "Factory",
-      "Count": 1,
-      "Ratio": 0.25
-    },
-    {
-      "Value": "Model",
       "Count": 1,
       "Ratio": 0.25
     }
@@ -157,7 +147,7 @@
     "model": 4,
     "servce": 1,
     "auto": 1,
-    "view": 2,
+    "view": 3,
     "people": 1,
     "truck": 1,
     "http": 1,
@@ -166,7 +156,7 @@
   },
   "AbbreviationFrequencies": {
     "auto": 1,
-    "view": 2,
+    "view": 3,
     "http": 1
   },
   "AbbreviationPreferredForms": {},

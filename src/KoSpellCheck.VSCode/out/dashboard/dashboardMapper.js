@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.mapDashboardViewModel = mapDashboardViewModel;
+const sharedUiText_1 = require("../sharedUiText");
 function mapDashboardViewModel(snapshot, logs, examplesByFolder) {
     const overview = mapOverview(snapshot);
     const settings = mapSettings(snapshot.settings);
@@ -25,7 +26,9 @@ function mapOverview(snapshot) {
     const typesScanned = toNumber(profile.TypesScanned) ?? toNumber(summary.TypesScanned) ?? 0;
     const dominantCaseStyle = toStringValue(profile.DominantCaseStyle) ??
         toStringValue(summary.DominantCaseStyle) ??
-        'Unknown';
+        (0, sharedUiText_1.text)('dashboard.value.unknown', 'Unknown', {
+            configuredLanguage: snapshot.settings?.uiLanguage
+        });
     const profileLastUpdatedUtc = toStringValue(profile.GeneratedAtUtc) ?? toStringValue(summary.GeneratedAtUtc);
     const settings = snapshot.settings;
     const coral = snapshot.coralRuntime;
@@ -40,7 +43,9 @@ function mapOverview(snapshot) {
         featureEnabled: settings?.projectConventionMappingEnabled ?? false,
         aiEnabled: settings?.aiNamingAnomalyDetectionEnabled ?? false,
         coralActive: !!coral?.Available,
-        coralDetail: coral?.Detail ?? 'inactive',
+        coralDetail: coral?.Detail ?? (0, sharedUiText_1.text)('dashboard.value.inactive', 'Inactive', {
+            configuredLanguage: snapshot.settings?.uiLanguage
+        }).toLowerCase(),
         inFlightRebuildCount: snapshot.inFlightRebuildCount,
         queuedRebuildCount: snapshot.queuedRebuildCount
     };
@@ -52,46 +57,78 @@ function mapSettings(settings) {
     return [
         {
             id: 'projectConventions.coreCliPath',
-            label: 'Core CLI path',
-            value: settings.coreCliPath ?? '(auto)',
+            label: (0, sharedUiText_1.text)('dashboard.setting.coreCliPath', 'Core CLI path', {
+                configuredLanguage: settings.uiLanguage
+            }),
+            value: settings.coreCliPath ?? (0, sharedUiText_1.text)('dashboard.value.auto', '(auto)', {
+                configuredLanguage: settings.uiLanguage
+            }),
             type: 'string',
             editable: false
         },
-        boolSetting('projectConventions.enabled', 'Project convention mapping', settings.projectConventionMappingEnabled),
-        boolSetting('projectConventions.namingDiagnosticsEnabled', 'Naming diagnostics', settings.namingConventionDiagnosticsEnabled),
-        boolSetting('projectConventions.statisticalAnomalyDetectionEnabled', 'Statistical anomaly detection', settings.statisticalAnomalyDetectionEnabled),
-        boolSetting('projectConventions.aiNamingAnomalyDetectionEnabled', 'AI naming anomaly detection', settings.aiNamingAnomalyDetectionEnabled),
-        boolSetting('projectConventions.useCoralTpuIfAvailable', 'Use Coral TPU if available', settings.useCoralTpuIfAvailable),
-        boolSetting('projectConventions.autoRebuild', 'Auto rebuild convention profile', settings.autoRebuildConventionProfile),
-        boolSetting('projectConventions.analyzeOnSave', 'Analyze on save', settings.analyzeOnSave),
-        boolSetting('projectConventions.analyzeOnRename', 'Analyze on rename', settings.analyzeOnRename),
-        boolSetting('projectConventions.analyzeOnNewFile', 'Analyze on new file', settings.analyzeOnNewFile),
-        boolSetting('projectConventions.ignoreGeneratedCode', 'Ignore generated code', settings.ignoreGeneratedCode),
-        boolSetting('projectConventions.ignoreTestProjects', 'Ignore test projects', settings.ignoreTestProjects),
+        boolSetting(settings.uiLanguage, 'projectConventions.enabled', (0, sharedUiText_1.text)('dashboard.setting.projectConventionMapping', 'Project convention mapping', {
+            configuredLanguage: settings.uiLanguage
+        }), settings.projectConventionMappingEnabled),
+        boolSetting(settings.uiLanguage, 'projectConventions.namingDiagnosticsEnabled', (0, sharedUiText_1.text)('dashboard.setting.namingDiagnostics', 'Naming diagnostics', {
+            configuredLanguage: settings.uiLanguage
+        }), settings.namingConventionDiagnosticsEnabled),
+        boolSetting(settings.uiLanguage, 'projectConventions.statisticalAnomalyDetectionEnabled', (0, sharedUiText_1.text)('dashboard.setting.statisticalAnomalyDetection', 'Statistical anomaly detection', {
+            configuredLanguage: settings.uiLanguage
+        }), settings.statisticalAnomalyDetectionEnabled),
+        boolSetting(settings.uiLanguage, 'projectConventions.aiNamingAnomalyDetectionEnabled', (0, sharedUiText_1.text)('dashboard.setting.aiNamingAnomalyDetection', 'AI naming anomaly detection', {
+            configuredLanguage: settings.uiLanguage
+        }), settings.aiNamingAnomalyDetectionEnabled),
+        boolSetting(settings.uiLanguage, 'projectConventions.useCoralTpuIfAvailable', (0, sharedUiText_1.text)('dashboard.setting.useCoralTpuIfAvailable', 'Use Coral TPU if available', {
+            configuredLanguage: settings.uiLanguage
+        }), settings.useCoralTpuIfAvailable),
+        boolSetting(settings.uiLanguage, 'projectConventions.autoRebuild', (0, sharedUiText_1.text)('dashboard.setting.autoRebuildConventionProfile', 'Auto rebuild convention profile', {
+            configuredLanguage: settings.uiLanguage
+        }), settings.autoRebuildConventionProfile),
+        boolSetting(settings.uiLanguage, 'projectConventions.analyzeOnSave', (0, sharedUiText_1.text)('dashboard.setting.analyzeOnSave', 'Analyze on save', {
+            configuredLanguage: settings.uiLanguage
+        }), settings.analyzeOnSave),
+        boolSetting(settings.uiLanguage, 'projectConventions.analyzeOnRename', (0, sharedUiText_1.text)('dashboard.setting.analyzeOnRename', 'Analyze on rename', {
+            configuredLanguage: settings.uiLanguage
+        }), settings.analyzeOnRename),
+        boolSetting(settings.uiLanguage, 'projectConventions.analyzeOnNewFile', (0, sharedUiText_1.text)('dashboard.setting.analyzeOnNewFile', 'Analyze on new file', {
+            configuredLanguage: settings.uiLanguage
+        }), settings.analyzeOnNewFile),
+        boolSetting(settings.uiLanguage, 'projectConventions.ignoreGeneratedCode', (0, sharedUiText_1.text)('dashboard.setting.ignoreGeneratedCode', 'Ignore generated code', {
+            configuredLanguage: settings.uiLanguage
+        }), settings.ignoreGeneratedCode),
+        boolSetting(settings.uiLanguage, 'projectConventions.ignoreTestProjects', (0, sharedUiText_1.text)('dashboard.setting.ignoreTestProjects', 'Ignore test projects', {
+            configuredLanguage: settings.uiLanguage
+        }), settings.ignoreTestProjects),
         {
             id: 'projectConventions.statisticalAnomalyThreshold',
-            label: 'Statistical anomaly threshold',
+            label: (0, sharedUiText_1.text)('dashboard.setting.statisticalAnomalyThreshold', 'Statistical anomaly threshold', {
+                configuredLanguage: settings.uiLanguage
+            }),
             value: settings.statisticalAnomalyThreshold,
             type: 'number',
             editable: false
         },
         {
             id: 'projectConventions.aiAnomalyThreshold',
-            label: 'AI anomaly threshold',
+            label: (0, sharedUiText_1.text)('dashboard.setting.aiAnomalyThreshold', 'AI anomaly threshold', {
+                configuredLanguage: settings.uiLanguage
+            }),
             value: settings.aiAnomalyThreshold,
             type: 'number',
             editable: false
         },
         {
             id: 'projectConventions.scope',
-            label: 'Scope',
+            label: (0, sharedUiText_1.text)('dashboard.setting.scope', 'Scope', {
+                configuredLanguage: settings.uiLanguage
+            }),
             value: settings.conventionScope,
             type: 'string',
             editable: false
         }
     ];
 }
-function boolSetting(id, label, value) {
+function boolSetting(_uiLanguage, id, label, value) {
     return {
         id,
         label,
