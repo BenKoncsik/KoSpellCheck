@@ -8,6 +8,9 @@
       <Group guid="guidKoSpellCheckDashboardCommandSet" id="KoSpellCheckGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
       </Group>
+      <Group guid="guidKoSpellCheckDashboardCommandSet" id="KoSpellCheckViewGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_VIEW" />
+      </Group>
     </Groups>
 
     <Buttons>
@@ -45,18 +48,33 @@
           <ButtonText>KoSpellCheck: Toggle Spell Checker</ButtonText>
         </Strings>
       </Button>
+
+      <Button guid="guidKoSpellCheckDashboardCommandSet" id="cmdidOpenSettingsFile" priority="0x0150" type="Button">
+        <Parent guid="guidKoSpellCheckDashboardCommandSet" id="KoSpellCheckGroup" />
+        <Strings>
+          <ButtonText>KoSpellCheck: Open Settings File</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
+
+    <CommandPlacements>
+      <CommandPlacement guid="guidKoSpellCheckDashboardCommandSet" id="cmdidOpenDashboard" priority="0x0100">
+        <Parent guid="guidKoSpellCheckDashboardCommandSet" id="KoSpellCheckViewGroup" />
+      </CommandPlacement>
+    </CommandPlacements>
   </Commands>
 
   <Symbols>
     <GuidSymbol name="guidKoSpellCheckDashboardPackage" value="{B3EC2DAA-5989-46CF-9EAA-74B50E38B4C6}" />
     <GuidSymbol name="guidKoSpellCheckDashboardCommandSet" value="{2A2B8A64-0E84-4DA4-B6E0-66B8F5198E27}">
       <IDSymbol name="KoSpellCheckGroup" value="0x1000" />
+      <IDSymbol name="KoSpellCheckViewGroup" value="0x1001" />
       <IDSymbol name="cmdidOpenDashboard" value="0x0100" />
       <IDSymbol name="cmdidRefreshDashboard" value="0x0101" />
       <IDSymbol name="cmdidRebuildConventionProfile" value="0x0102" />
       <IDSymbol name="cmdidClearDashboardLogs" value="0x0103" />
       <IDSymbol name="cmdidToggleSpellChecker" value="0x0104" />
+      <IDSymbol name="cmdidOpenSettingsFile" value="0x0105" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

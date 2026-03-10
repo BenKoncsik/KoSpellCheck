@@ -201,6 +201,7 @@ EOF
 package_vs2022_manual_zip() {
   echo "[pack] non-Windows fallback packaging in use (manual ZIP)."
   echo "[pack] warning: this VSIX was created with fallback packaging and may miss VSIX v3 marker files."
+  echo "[pack] warning: non-Windows fallback builds do not compile VSCT command tables, so VS2022 dashboard/settings menu commands can be unavailable."
   rm -rf "$VSIX_STAGE"
   mkdir -p "$VSIX_STAGE"
   cp "$ROOT/src/KoSpellCheck.VS2022/source.extension.vsixmanifest" "$VSIX_STAGE/extension.vsixmanifest"
@@ -251,10 +252,10 @@ fail_or_manual_vs2022_fallback() {
       return 1
       ;;
     auto|"")
-      echo "[pack] warning: $reason" >&2
-      echo "[pack] warning: continuing with fallback packaging (default behavior)." >&2
-      package_vs2022_manual_zip
-      return 0
+      echo "[pack] error: $reason" >&2
+      echo "[pack] error: refusing non-Windows fallback packaging by default because VS2022 menu commands can be missing." >&2
+      echo "[pack] error: set PACK_ALLOW_UNSAFE_VS2022_MANUAL_ZIP=true to force local-only fallback packaging." >&2
+      return 1
       ;;
     *)
       echo "[pack] error: invalid PACK_ALLOW_UNSAFE_VS2022_MANUAL_ZIP value '$allow_unsafe_raw' (expected true/false/auto)." >&2

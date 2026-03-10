@@ -29,6 +29,7 @@ internal sealed class KoSpellCheckDashboardCommand
         AddCommand(commandService, KoSpellCheckDashboardPackageIds.RebuildConventionProfile, ExecuteRebuildConventionProfile);
         AddCommand(commandService, KoSpellCheckDashboardPackageIds.ClearDashboardLogs, ExecuteClearDashboardLogs);
         AddCommand(commandService, KoSpellCheckDashboardPackageIds.ToggleSpellChecker, ExecuteToggleSpellChecker);
+        AddCommand(commandService, KoSpellCheckDashboardPackageIds.OpenSettingsFile, ExecuteOpenSettingsFile);
     }
 
     public static async Task InitializeAsync(
@@ -141,6 +142,24 @@ internal sealed class KoSpellCheckDashboardCommand
                 ("state", state));
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_package.DisposalToken);
             ShowInfoMessage(updatedMessage);
+        });
+    }
+
+    private void ExecuteOpenSettingsFile(object? sender, EventArgs e)
+    {
+        _ = _package.JoinableTaskFactory.RunAsync(async () =>
+        {
+            var context = await WorkspaceContextResolver.ResolveAsync(_package, _package.DisposalToken).ConfigureAwait(true);
+            if (string.IsNullOrWhiteSpace(context.WorkspaceRoot))
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_package.DisposalToken);
+                ShowInfoMessage(SharedUiText.Get("vs2022.toggleSpellChecker.noWorkspace", "auto"));
+                return;
+            }
+
+            var filePath = DashboardSettingsFileHelper.EnsureSettingsFile(context.WorkspaceRoot!);
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_package.DisposalToken);
+            VsShellUtilities.OpenDocument(_package, filePath);
         });
     }
 

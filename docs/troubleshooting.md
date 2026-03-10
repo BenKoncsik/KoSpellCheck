@@ -11,6 +11,13 @@
 - A VS Code csomag `vsce package` paranccsal készül.
 - Windows + VS2022 esetén ellenőrizd, hogy telepítve van-e a szükséges workload.
 
+## VS2022: nem látszik a dashboard oldalsó panel / nem találod a beállításokat
+
+- A dashboard menüpont: `Tools -> KoSpellCheck Dashboard` (és újabb buildben: `View -> KoSpellCheck Dashboard`).
+- A beállítások workspace-szinten vannak: `.editorconfig` és `kospellcheck.json` (nem teljes Tools/Options page).
+- Gyors elérés: `Tools -> KoSpellCheck: Open Settings File` (létrehozza a `kospellcheck.json` fájlt, ha még nincs).
+- Ha saját gépen, nem-Windows környezetben csomagoltad a VS2022 VSIX-et, előfordulhat, hogy a menüparancsok hiányoznak. Ilyenkor Windowson épített VSIX-et használj.
+
 ## VS2022 telepítésnél: `Found setup instance ... not in launchable state` / `Cannot find setup engine instance`
 
 Ez tipikusan nem VSIX tartalomhiba, hanem a cél Visual Studio instance telepítési állapot-problémája.

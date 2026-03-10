@@ -22,6 +22,8 @@ KoSpellCheck egy offline helyesírás-ellenőrző ökoszisztéma fejlesztői kö
 
 - VS2022 oldalon az MVP Roslyn analyzer + code fix alapú (C# identifier fókusz), amely squiggle + lightbulb javítást ad.
 - A teljes Tools/Options UI panel a következő iterációban bővíthető.
+- VS2022 dashboard megnyitás: `Tools -> KoSpellCheck Dashboard` (újabb buildben `View` menüből is elérhető).
+- VS2022 beállítások: workspace fájlokban (`kospellcheck.json`, `.editorconfig`), gyorsmenü: `Tools -> KoSpellCheck: Open Settings File`.
 - A local typo acceleration jelenleg opcionális capability rétegként van bekötve; ha a kompatibilis lokális runtime/hardver hiányzik, automatikusan fallbackre áll.
 
 ## Local Typo AI Accelerator (optional)

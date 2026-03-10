@@ -279,12 +279,7 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
             return;
         }
 
-        var filePath = Path.Combine(context.WorkspaceRoot!, "kospellcheck.json");
-        if (!File.Exists(filePath))
-        {
-            var payload = "{\n  \"projectConventions\": {\n    \"enabled\": true\n  }\n}\n";
-            File.WriteAllText(filePath, payload);
-        }
+        var filePath = DashboardSettingsFileHelper.EnsureSettingsFile(context.WorkspaceRoot!);
 
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_package.DisposalToken);
         VsShellUtilities.OpenDocument(_package, filePath);

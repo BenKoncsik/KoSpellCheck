@@ -121,7 +121,7 @@ jobs:
         continue-on-error: true
         uses: HaaLeo/publish-vscode-extension@v2
         with:
-          pat: ${{ secrets.VS_MARKETPLACE_PAT }}
+          pat: ${{ secrets.VS_MARKETPLACE_PAT || secrets.VSCE_TOKEN }}
           extensionFile: artifacts/vscode/KoSpellCheck.VSCode.vsix
           registryUrl: https://marketplace.visualstudio.com
 
@@ -156,7 +156,7 @@ jobs:
         with:
           extension-file: artifacts/vsix/KoSpellCheck.VS2022.vsix
           publish-manifest-file: src/KoSpellCheck.VS2022/publishManifest.json
-          personal-access-code: ${{ secrets.VS_MARKETPLACE_PAT }}
+          personal-access-code: ${{ secrets.VS_MARKETPLACE_PAT || secrets.VS_PUBLISHER_ACCESS_TOKEN || secrets.VSCE_TOKEN }}
 
       - name: Publish outcome summary
         if: always()
