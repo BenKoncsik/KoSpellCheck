@@ -1,8 +1,11 @@
+import fs from 'node:fs';
 import assert from 'node:assert';
+import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import {
   computeProjectStorageId,
+  migrateLegacyWorkspaceStorage,
   resolveWorkspaceArtifactPath,
   resolveWorkspaceStorageRoot
 } from '../workspaceStorage';
@@ -40,4 +43,26 @@ test('workspace artifact path relocates .kospellcheck files under configured sto
   );
 
   assert.equal(artifactPath, path.join(storageRoot, 'project-conventions.json'));
+});
+
+test('workspace storage migration copies legacy folder and removes original folder', () => {
+  const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kospellcheck-storage-migrate-'));
+  const configuredStorage = fs.mkdtempSync(path.join(os.tmpdir(), 'kospellcheck-storage-target-'));
+
+  try {
+    const legacyRoot = path.join(workspaceRoot, '.kospellcheck');
+    fs.mkdirSync(legacyRoot, { recursive: true });
+    const legacyFile = path.join(legacyRoot, 'style-profile.json');
+    fs.writeFileSync(legacyFile, '{"ok":true}', 'utf8');
+
+    const migration = migrateLegacyWorkspaceStorage(workspaceRoot, configuredStorage);
+    const movedFile = path.join(migration.resolvedStorageRoot, 'style-profile.json');
+
+    assert.equal(migration.migrated, true);
+    assert.ok(fs.existsSync(movedFile));
+    assert.equal(fs.existsSync(legacyRoot), false);
+  } finally {
+    fs.rmSync(workspaceRoot, { recursive: true, force: true });
+    fs.rmSync(configuredStorage, { recursive: true, force: true });
+  }
 });

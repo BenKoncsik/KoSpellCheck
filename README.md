@@ -137,3 +137,5 @@ kospellcheck_style_learning = true
 ```
 
 Részletes leírás: [docs/configuration.md](./docs/configuration.md)
+
+Megjegyzés: ha `workspaceStoragePath` be van állítva, a korábbi workspace alatti `.kospellcheck` (és legacy `.KoSpellChecker`/`.KoSpellCheck`) tartalma automatikusan átmigrálódik az új, projekt-azonosítós mappába.

@@ -15,6 +15,10 @@ import {
   LocalTypoAccelerationController,
   RuntimeDownloadProgress
 } from './localTypoAcceleration';
+import {
+  migrateLegacyWorkspaceStorage,
+  resolveWorkspaceStorageRoot
+} from './workspaceStorage';
 
 const SOURCE = 'KoSpellCheck';
 
@@ -85,6 +89,7 @@ export function activate(context: vscode.ExtensionContext): void {
   let lastAvailableModelsText = '';
   let lastAvailableModelIds: string | undefined;
   let manualDownloadToggleInProgress = false;
+  const resolvedWorkspaceStorageByRoot = new Map<string, string>();
 
   const updateRuntimeDownloadStatusSetting = async (statusText: string): Promise<void> => {
     const normalized = statusText.trim();
@@ -260,6 +265,43 @@ export function activate(context: vscode.ExtensionContext): void {
     }
 
     await vscode.commands.executeCommand('kospellcheck.downloadLocalTypoRuntime');
+  };
+
+  const migrateAndPublishWorkspaceStorage = async (workspaceFolder: vscode.WorkspaceFolder): Promise<void> => {
+    const workspaceRoot = workspaceFolder.uri.fsPath;
+    const config = loadConfig(workspaceRoot);
+    const migration = migrateLegacyWorkspaceStorage(
+      workspaceRoot,
+      config.workspaceStoragePath,
+      (message) => log(message, workspaceFolder.uri, false)
+    );
+    const resolvedStorageRoot = resolveWorkspaceStorageRoot(workspaceRoot, config.workspaceStoragePath);
+    const previous = resolvedWorkspaceStorageByRoot.get(workspaceRoot);
+    if (previous === resolvedStorageRoot && !migration.migrated) {
+      return;
+    }
+
+    resolvedWorkspaceStorageByRoot.set(workspaceRoot, resolvedStorageRoot);
+    const scopeConfig = vscode.workspace.getConfiguration('kospellcheck', workspaceFolder.uri);
+    try {
+      await scopeConfig.update(
+        'workspaceStorage.resolvedPath',
+        resolvedStorageRoot,
+        vscode.ConfigurationTarget.WorkspaceFolder
+      );
+    } catch (error) {
+      log(
+        `workspace-storage resolvedPath update failed workspace='${workspaceRoot}' reason=${formatError(error)}`,
+        workspaceFolder.uri,
+        true
+      );
+    }
+  };
+
+  const reconcileWorkspaceStorageForAllFolders = (): void => {
+    for (const folder of vscode.workspace.workspaceFolders ?? []) {
+      void migrateAndPublishWorkspaceStorage(folder);
+    }
   };
 
   const styleLearning = new StyleLearningCoordinator(log);
@@ -976,6 +1018,7 @@ export function activate(context: vscode.ExtensionContext): void {
       }
     }),
     vscode.workspace.onDidChangeWorkspaceFolders(() => {
+      reconcileWorkspaceStorageForAllFolders();
       styleLearning.scheduleAllWorkspaceRefreshes('workspace-folders-changed');
     }),
     vscode.workspace.onDidChangeConfiguration((event) => {
@@ -997,8 +1040,10 @@ export function activate(context: vscode.ExtensionContext): void {
         event.affectsConfiguration('kospellcheck') &&
         !event.affectsConfiguration('kospellcheck.localTypoAcceleration.runtimeDownloadStatus') &&
         !event.affectsConfiguration('kospellcheck.localTypoAcceleration.availableModels') &&
-        !event.affectsConfiguration('kospellcheck.localTypoAcceleration.manualDownloadNow')
+        !event.affectsConfiguration('kospellcheck.localTypoAcceleration.manualDownloadNow') &&
+        !event.affectsConfiguration('kospellcheck.workspaceStorage.resolvedPath')
       ) {
+        reconcileWorkspaceStorageForAllFolders();
         styleLearning.scheduleAllWorkspaceRefreshes('settings-changed', 250);
       }
 
@@ -1040,6 +1085,7 @@ export function activate(context: vscode.ExtensionContext): void {
     scheduleDocumentCheck(vscode.window.activeTextEditor.document, 'activation');
   }
 
+  reconcileWorkspaceStorageForAllFolders();
   void tryTriggerManualRuntimeDownloadFromSetting();
   styleLearning.scheduleAllWorkspaceRefreshes('startup');
 }

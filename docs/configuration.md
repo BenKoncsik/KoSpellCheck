@@ -91,6 +91,8 @@ Ha `treatAsHungarianWhenAsciiOnly = true`, akkor a HU szótárra történik ASCI
 - A projekt stílusprofil workspace rootonként épül (`ProjectStyleProfile`).
 - A profil cache alapból: `.kospellcheck/style-profile.json`.
 - Ha `workspaceStoragePath` meg van adva, a `.kospellcheck/*` relatív artifactok átkerülnek a megadott gyökér alá, projektenként külön (`<workspaceStoragePath>/project-<hash>/...`).
+- Beállítás után a korábbi workspace gyökér alatti `.kospellcheck` (és legacy `.KoSpellChecker` / `.KoSpellCheck`) tartalma automatikusan átmozgatódik az új helyre, majd a régi mappa törlődik.
+- VS Code Settings információs mező: `kospellcheck.workspaceStorage.resolvedPath` (itt látható a pontos, feloldott útvonal).
 - A tanulás csak rangsorolást végez a javaslatokra, nem ad új szót a dictionaryhez.
 - `preferTerms` mindig felülírja a tanult stílust.
 

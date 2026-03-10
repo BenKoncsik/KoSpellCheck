@@ -50,6 +50,7 @@ const dashboardLogService_1 = require("./dashboard/dashboardLogService");
 const dashboardProvider_1 = require("./dashboard/dashboardProvider");
 const sharedUiText_1 = require("./sharedUiText");
 const localTypoAcceleration_1 = require("./localTypoAcceleration");
+const workspaceStorage_1 = require("./workspaceStorage");
 const SOURCE = 'KoSpellCheck';
 function activate(context) {
     (0, sharedUiText_1.initializeSharedUiText)(context.extensionPath, vscode.env.language);
@@ -102,6 +103,7 @@ function activate(context) {
     let lastAvailableModelsText = '';
     let lastAvailableModelIds;
     let manualDownloadToggleInProgress = false;
+    const resolvedWorkspaceStorageByRoot = new Map();
     const updateRuntimeDownloadStatusSetting = async (statusText) => {
         const normalized = statusText.trim();
         if (!normalized || normalized === lastRuntimeStatusText) {
@@ -219,6 +221,29 @@ function activate(context) {
             manualDownloadToggleInProgress = false;
         }
         await vscode.commands.executeCommand('kospellcheck.downloadLocalTypoRuntime');
+    };
+    const migrateAndPublishWorkspaceStorage = async (workspaceFolder) => {
+        const workspaceRoot = workspaceFolder.uri.fsPath;
+        const config = (0, config_1.loadConfig)(workspaceRoot);
+        const migration = (0, workspaceStorage_1.migrateLegacyWorkspaceStorage)(workspaceRoot, config.workspaceStoragePath, (message) => log(message, workspaceFolder.uri, false));
+        const resolvedStorageRoot = (0, workspaceStorage_1.resolveWorkspaceStorageRoot)(workspaceRoot, config.workspaceStoragePath);
+        const previous = resolvedWorkspaceStorageByRoot.get(workspaceRoot);
+        if (previous === resolvedStorageRoot && !migration.migrated) {
+            return;
+        }
+        resolvedWorkspaceStorageByRoot.set(workspaceRoot, resolvedStorageRoot);
+        const scopeConfig = vscode.workspace.getConfiguration('kospellcheck', workspaceFolder.uri);
+        try {
+            await scopeConfig.update('workspaceStorage.resolvedPath', resolvedStorageRoot, vscode.ConfigurationTarget.WorkspaceFolder);
+        }
+        catch (error) {
+            log(`workspace-storage resolvedPath update failed workspace='${workspaceRoot}' reason=${formatError(error)}`, workspaceFolder.uri, true);
+        }
+    };
+    const reconcileWorkspaceStorageForAllFolders = () => {
+        for (const folder of vscode.workspace.workspaceFolders ?? []) {
+            void migrateAndPublishWorkspaceStorage(folder);
+        }
     };
     const styleLearning = new styleLearningCoordinator_1.StyleLearningCoordinator(log);
     const typoAcceleration = new localTypoAcceleration_1.LocalTypoAccelerationController(context, context.extensionPath, log, onRuntimeDownloadProgress);
@@ -724,6 +749,7 @@ function activate(context) {
             styleLearning.scheduleWorkspaceRefresh(workspaceFolder.uri.fsPath, 'document-saved');
         }
     }), vscode.workspace.onDidChangeWorkspaceFolders(() => {
+        reconcileWorkspaceStorageForAllFolders();
         styleLearning.scheduleAllWorkspaceRefreshes('workspace-folders-changed');
     }), vscode.workspace.onDidChangeConfiguration((event) => {
         if (event.affectsConfiguration('kospellcheck.localTypoAcceleration.manualDownloadNow')) {
@@ -739,7 +765,9 @@ function activate(context) {
         if (event.affectsConfiguration('kospellcheck') &&
             !event.affectsConfiguration('kospellcheck.localTypoAcceleration.runtimeDownloadStatus') &&
             !event.affectsConfiguration('kospellcheck.localTypoAcceleration.availableModels') &&
-            !event.affectsConfiguration('kospellcheck.localTypoAcceleration.manualDownloadNow')) {
+            !event.affectsConfiguration('kospellcheck.localTypoAcceleration.manualDownloadNow') &&
+            !event.affectsConfiguration('kospellcheck.workspaceStorage.resolvedPath')) {
+            reconcileWorkspaceStorageForAllFolders();
             styleLearning.scheduleAllWorkspaceRefreshes('settings-changed', 250);
         }
         if (event.affectsConfiguration('kospellcheck.enabled')) {
@@ -774,6 +802,7 @@ function activate(context) {
         }
         scheduleDocumentCheck(vscode.window.activeTextEditor.document, 'activation');
     }
+    reconcileWorkspaceStorageForAllFolders();
     void tryTriggerManualRuntimeDownloadFromSetting();
     styleLearning.scheduleAllWorkspaceRefreshes('startup');
 }

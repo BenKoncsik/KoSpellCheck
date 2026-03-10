@@ -49,6 +49,7 @@
   "kospellcheck.config.projectConventions.supportedExtensions.description": "Konvenciószkenneléshez használt fájlkiterjesztések.",
   "kospellcheck.config.projectConventions.useCoralTpuIfAvailable.description": "Ha a helyi AI pontozás engedélyezett, elérhetőség esetén próbálja a Coral TPU gyorsítást; különben CPU fallback.",
   "kospellcheck.config.uiLanguage.description": "A KoSpellCheck futásidejű üzeneteinek és vezérlőpultjának UI nyelve. auto = a VS Code megjelenítési nyelvét követi.",
+  "kospellcheck.config.workspaceStorage.resolvedPath.markdownDescription": "Információs mező, automatikusan frissíti a KoSpellCheck. A pontosan feloldott workspace tárhelymappa útvonalát mutatja (`<beállított workspaceStoragePath>/project-<id>` vagy `<workspace>/.kospellcheck`).",
   "kospellcheck.configuration.title": "KoSpellCheck",
   "kospellcheck.description": "Offline HU+EN helyesírás-ellenőrző kiegészítő kódtudatos tokenizálással és gyorsjavítás-javaslatokkal.",
   "kospellcheck.displayName": "KoSpellCheck",

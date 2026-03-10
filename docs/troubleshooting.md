@@ -11,6 +11,23 @@
 - A VS Code csomag `vsce package` paranccsal készül.
 - Windows + VS2022 esetén ellenőrizd, hogy telepítve van-e a szükséges workload.
 
+## VS2022 telepítésnél: `Found setup instance ... not in launchable state` / `Cannot find setup engine instance`
+
+Ez tipikusan nem VSIX tartalomhiba, hanem a cél Visual Studio instance telepítési állapot-problémája.
+
+Jellemző naplórészlet:
+
+- `Found setup instance <id> but not in launchable state`
+- `Install Error : System.InvalidOperationException: Cannot find setup engine instance`
+
+Lépések:
+
+1. Zárd be teljesen a Visual Studio-t és a Visual Studio Installer-t.
+2. Indítsd el a Visual Studio Installer-t, és a VS2022 instance-en futtasd az `Update` vagy `Repair` műveletet.
+3. Reboot után indítsd el egyszer a VS2022-t normálisan, majd zárd be.
+4. Ezután telepítsd újra a VSIX-et (`artifacts/vsix/KoSpellCheck.VS2022.vsix`).
+5. Ha továbbra is fennáll, futtasd a VSIX telepítőt emelt jogosultsággal, és ellenőrizd, hogy maga a VS2022 instance "launchable" állapotban van-e az Installerben.
+
 ## `Extract: extension/package.json not found inside zip`
 
 Ez akkor történik, ha VS Code-ba nem a VS Code-os VSIX-et telepíted.

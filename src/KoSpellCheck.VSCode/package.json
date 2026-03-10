@@ -159,6 +159,12 @@
           "default": false,
           "description": "%kospellcheck.config.debugLogging.description%"
         },
+        "kospellcheck.workspaceStorage.resolvedPath": {
+          "type": "string",
+          "default": "",
+          "scope": "resource",
+          "markdownDescription": "%kospellcheck.config.workspaceStorage.resolvedPath.markdownDescription%"
+        },
         "kospellcheck.localTypoAcceleration.mode": {
           "type": "string",
           "enum": [

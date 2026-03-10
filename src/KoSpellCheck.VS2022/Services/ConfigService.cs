@@ -107,6 +107,7 @@ internal sealed class ConfigService : IDisposable
     private CacheEntry LoadSettings(string workspaceRoot)
     {
         var config = ConfigLoader.Load(workspaceRoot);
+        WorkspaceStoragePathResolver.MigrateLegacyStorage(workspaceRoot, config.WorkspaceStoragePath);
 
         var editorScope = TryReadEditorConfigScope(Path.Combine(workspaceRoot, ".editorconfig"));
         var jsonScope = TryReadJsonScope(Path.Combine(workspaceRoot, "kospellcheck.json"));

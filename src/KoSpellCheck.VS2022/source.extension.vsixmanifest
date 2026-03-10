@@ -7,7 +7,7 @@
     <Description xml:space="preserve">Offline HU+EN spell checker for C# identifiers with quick fixes.</Description>
     <Tags>spell;hunspell;hungarian;english</Tags>
   </Metadata>
-  <Installation>
+  <Installation AllUsers="false" InstalledByMsi="false">
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0,18.0)">
       <ProductArchitecture>amd64</ProductArchitecture>
     </InstallationTarget>

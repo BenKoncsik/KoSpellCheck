@@ -6,6 +6,12 @@ namespace KoSpellCheck.Core.Storage;
 public static class WorkspaceStoragePathResolver
 {
     private const string DefaultStorageFolderName = ".kospellcheck";
+    private static readonly string[] LegacyStorageFolderNames =
+    {
+        ".kospellcheck",
+        ".KoSpellChecker",
+        ".KoSpellCheck",
+    };
 
     public static string ComputeProjectStorageId(string workspaceRoot)
     {
@@ -57,6 +63,46 @@ public static class WorkspaceStoragePathResolver
             : Path.Combine(storageRoot, relativePath);
     }
 
+    public static IReadOnlyList<string> MigrateLegacyStorage(string workspaceRoot, string? configuredWorkspaceStoragePath)
+    {
+        if (string.IsNullOrWhiteSpace(configuredWorkspaceStoragePath))
+        {
+            return Array.Empty<string>();
+        }
+
+        var migratedFrom = new List<string>();
+        var targetRoot = ResolveWorkspaceStorageRoot(workspaceRoot, configuredWorkspaceStoragePath);
+        var normalizedTargetRoot = NormalizeWorkspaceRoot(targetRoot);
+
+        foreach (var legacyFolderName in LegacyStorageFolderNames)
+        {
+            var sourceRoot = Path.Combine(workspaceRoot, legacyFolderName);
+            if (!Directory.Exists(sourceRoot))
+            {
+                continue;
+            }
+
+            var normalizedSourceRoot = NormalizeWorkspaceRoot(sourceRoot);
+            if (string.Equals(normalizedSourceRoot, normalizedTargetRoot, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            try
+            {
+                CopyDirectoryRecursive(sourceRoot, targetRoot);
+                Directory.Delete(sourceRoot, recursive: true);
+                migratedFrom.Add(sourceRoot);
+            }
+            catch
+            {
+                // Best effort migration, failures are non-fatal.
+            }
+        }
+
+        return migratedFrom;
+    }
+
     private static string NormalizeWorkspaceRoot(string workspaceRoot)
     {
         if (string.IsNullOrWhiteSpace(workspaceRoot))
@@ -93,5 +139,30 @@ public static class WorkspaceStoragePathResolver
         }
 
         return normalized.Replace('/', Path.DirectorySeparatorChar);
+    }
+
+    private static void CopyDirectoryRecursive(string sourceRoot, string targetRoot)
+    {
+        Directory.CreateDirectory(targetRoot);
+
+        foreach (var directoryPath in Directory.GetDirectories(sourceRoot, "*", SearchOption.AllDirectories))
+        {
+            var relativePath = directoryPath.Substring(sourceRoot.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var targetDirectory = Path.Combine(targetRoot, relativePath);
+            Directory.CreateDirectory(targetDirectory);
+        }
+
+        foreach (var sourceFilePath in Directory.GetFiles(sourceRoot, "*", SearchOption.AllDirectories))
+        {
+            var relativePath = sourceFilePath.Substring(sourceRoot.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var targetFilePath = Path.Combine(targetRoot, relativePath);
+            var targetDirectory = Path.GetDirectoryName(targetFilePath);
+            if (!string.IsNullOrWhiteSpace(targetDirectory))
+            {
+                Directory.CreateDirectory(targetDirectory);
+            }
+
+            File.Copy(sourceFilePath, targetFilePath, overwrite: true);
+        }
     }
 }

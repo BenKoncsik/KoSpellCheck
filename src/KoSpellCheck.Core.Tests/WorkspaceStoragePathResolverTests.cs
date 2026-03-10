@@ -46,4 +46,51 @@ public sealed class WorkspaceStoragePathResolverTests
         var expected = Path.Combine(storageRoot, "project-conventions.json");
         Assert.Equal(expected, resolved);
     }
+
+    [Fact]
+    public void MigrateLegacyStorage_CopiesContentAndDeletesLegacyFolder_WhenCustomStorageConfigured()
+    {
+        var workspaceRoot = CreateTempDirectory("KoSpellCheck-Migrate-Workspace-");
+        var configuredStoragePath = CreateTempDirectory("KoSpellCheck-Migrate-Target-");
+        try
+        {
+            var legacyRoot = Path.Combine(workspaceRoot, ".kospellcheck");
+            Directory.CreateDirectory(legacyRoot);
+            var legacyFile = Path.Combine(legacyRoot, "style-profile.json");
+            File.WriteAllText(legacyFile, "{\"ok\":true}");
+
+            var migrated = WorkspaceStoragePathResolver.MigrateLegacyStorage(workspaceRoot, configuredStoragePath);
+            var targetRoot = WorkspaceStoragePathResolver.ResolveWorkspaceStorageRoot(workspaceRoot, configuredStoragePath);
+            var targetFile = Path.Combine(targetRoot, "style-profile.json");
+
+            Assert.Single(migrated);
+            Assert.True(File.Exists(targetFile));
+            Assert.False(Directory.Exists(legacyRoot));
+        }
+        finally
+        {
+            TryDeleteDirectory(workspaceRoot);
+            TryDeleteDirectory(configuredStoragePath);
+        }
+    }
+
+    private static string CreateTempDirectory(string prefix)
+    {
+        return Directory.CreateTempSubdirectory(prefix).FullName;
+    }
+
+    private static void TryDeleteDirectory(string path)
+    {
+        try
+        {
+            if (Directory.Exists(path))
+            {
+                Directory.Delete(path, recursive: true);
+            }
+        }
+        catch
+        {
+            // best effort cleanup
+        }
+    }
 }

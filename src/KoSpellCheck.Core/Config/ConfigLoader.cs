@@ -171,10 +171,6 @@ public static class ConfigLoader
             projectConventions?.Value<double?>("aiAnomalyThreshold")
             ?? json.Value<double?>("aiAnomalyThreshold")
             ?? conventions.AiAnomalyThreshold;
-        conventions.WorkspaceStoragePath =
-            projectConventions?.Value<string>("workspaceStoragePath")
-            ?? json.Value<string>("projectConventionWorkspaceStoragePath")
-            ?? conventions.WorkspaceStoragePath;
         conventions.ConventionProfilePath =
             projectConventions?.Value<string>("profilePath")
             ?? json.Value<string>("projectConventionProfilePath")
@@ -439,9 +435,6 @@ public static class ConfigLoader
             case "kospellcheck_ai_anomaly_threshold":
                 config.ProjectConventions.AiAnomalyThreshold =
                     ParseDouble(value, config.ProjectConventions.AiAnomalyThreshold);
-                break;
-            case "kospellcheck_project_convention_workspace_storage_path":
-                config.ProjectConventions.WorkspaceStoragePath = value;
                 break;
             case "kospellcheck_project_convention_profile_path":
                 config.ProjectConventions.ConventionProfilePath = value;
