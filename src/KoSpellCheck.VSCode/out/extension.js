@@ -324,6 +324,32 @@ function activate(context) {
             scheduleDocumentCheck(editor.document, 'add-word-command');
         }
     });
+    const toggleSpellCheckerCommand = vscode.commands.registerCommand('kospellcheck.toggleSpellChecker', async () => {
+        const uri = vscode.window.activeTextEditor?.document.uri;
+        const uiLanguage = configuredUiLanguage(uri);
+        const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', uri);
+        const current = workspaceConfig.get('enabled', true);
+        const target = uri && vscode.workspace.getWorkspaceFolder(uri)
+            ? vscode.ConfigurationTarget.Workspace
+            : vscode.ConfigurationTarget.Global;
+        await workspaceConfig.update('enabled', !current, target);
+        const toggledState = !current
+            ? (0, sharedUiText_1.text)('general.enabled', 'enabled', { configuredLanguage: uiLanguage })
+            : (0, sharedUiText_1.text)('general.disabled', 'disabled', { configuredLanguage: uiLanguage });
+        vscode.window.showInformationMessage((0, sharedUiText_1.text)('extension.info.spellCheckerToggled', 'KoSpellCheck spell checker is now {state}.', {
+            configuredLanguage: uiLanguage,
+            args: { state: toggledState }
+        }));
+        if (!current) {
+            const editor = vscode.window.activeTextEditor;
+            if (editor) {
+                scheduleDocumentCheck(editor.document, 'spell-checker-toggle-enabled');
+            }
+        }
+        else {
+            diagnostics.clear();
+        }
+    });
     const renameSymbolCommand = vscode.commands.registerCommand('kospellcheck.renameSymbolWithSuggestion', async (uri, range, token, replacement, renameTarget) => {
         if (!uri || !range || !replacement) {
             return;
@@ -679,7 +705,7 @@ function activate(context) {
         }, debounceMs));
         log(`schedule check reason=${reason} debounceMs=${debounceMs}`, document.uri);
     };
-    context.subscriptions.push(diagnostics, output, dashboardLogService, styleLearning, projectConventionFeature, dashboardProvider, codeActionProvider, addWordCommand, renameSymbolCommand, checkLocalTypoAccelerationStatusCommand, downloadLocalTypoRuntimeCommand, pickLocalTypoModelCommand, vscode.workspace.onDidChangeTextDocument((event) => {
+    context.subscriptions.push(diagnostics, output, dashboardLogService, styleLearning, projectConventionFeature, dashboardProvider, codeActionProvider, addWordCommand, renameSymbolCommand, toggleSpellCheckerCommand, checkLocalTypoAccelerationStatusCommand, downloadLocalTypoRuntimeCommand, pickLocalTypoModelCommand, vscode.workspace.onDidChangeTextDocument((event) => {
         const uri = event.document.uri.toString();
         const list = pendingFocusOffsets.get(uri) ?? [];
         for (const change of event.contentChanges) {
@@ -715,6 +741,21 @@ function activate(context) {
             !event.affectsConfiguration('kospellcheck.localTypoAcceleration.availableModels') &&
             !event.affectsConfiguration('kospellcheck.localTypoAcceleration.manualDownloadNow')) {
             styleLearning.scheduleAllWorkspaceRefreshes('settings-changed', 250);
+        }
+        if (event.affectsConfiguration('kospellcheck.enabled')) {
+            const editor = vscode.window.activeTextEditor;
+            if (!editor) {
+                diagnostics.clear();
+                return;
+            }
+            const enabled = vscode.workspace
+                .getConfiguration('kospellcheck', editor.document.uri)
+                .get('enabled', true);
+            if (enabled) {
+                scheduleDocumentCheck(editor.document, 'enabled-setting-changed');
+                return;
+            }
+            diagnostics.clear();
         }
     }), vscode.workspace.onDidCloseTextDocument((document) => {
         diagnostics.delete(document.uri);
