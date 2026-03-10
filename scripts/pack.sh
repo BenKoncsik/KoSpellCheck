@@ -159,6 +159,45 @@ sync_pack_resources() {
   sync_resource_tree "$ROOT/tools/licenses" "$ROOT/src/KoSpellCheck.VS2022/Resources/Licenses"
 }
 
+ensure_vs2022_pkgdef_fallback() {
+  local pkgdef_path="$1"
+
+  if [[ -f "$pkgdef_path" ]]; then
+    return 0
+  fi
+
+  local pkgdef_dir
+  pkgdef_dir="$(dirname "$pkgdef_path")"
+  mkdir -p "$pkgdef_dir"
+
+  cat > "$pkgdef_path" <<'EOF'
+; Fallback-generated pkgdef for non-Windows packaging.
+[$RootKey$\Packages\{b3ec2daa-5989-46cf-9eaa-74b50e38b4c6}]
+@="KoSpellCheck"
+"InprocServer32"="$WinDir$\\System32\\mscoree.dll"
+"Class"="KoSpellCheck.VS2022.Dashboard.KoSpellCheckDashboardPackage"
+"CodeBase"="$PackageFolder$\\KoSpellCheck.VS2022.dll"
+"ID"=dword:00000001
+"MinEdition"="Pro"
+"AllowsBackgroundLoading"=dword:00000001
+"ProductName"="KoSpellCheck (VS2022)"
+
+[$RootKey$\Menus]
+"{b3ec2daa-5989-46cf-9eaa-74b50e38b4c6}"=", 1000, 1"
+
+[$RootKey$\ToolWindows\{8c0dde8b-af41-4ae1-80f4-b94f0e42d4a5}]
+@="KoSpellCheck Dashboard"
+"Package"="{b3ec2daa-5989-46cf-9eaa-74b50e38b4c6}"
+EOF
+
+  if [[ -f "$pkgdef_path" ]]; then
+    echo "[pack] warning: generated fallback pkgdef for non-Windows packaging: $pkgdef_path" >&2
+    return 0
+  fi
+
+  return 1
+}
+
 package_vs2022_manual_zip() {
   echo "[pack] non-Windows fallback packaging in use (manual ZIP)."
   echo "[pack] warning: this VSIX was created with fallback packaging and may miss VSIX v3 marker files."
@@ -374,7 +413,11 @@ set +e
     echo "[pack] using VSSDK CreateVsixContainer (Marketplace-compatible VSIX v3)"
     dotnet msbuild "$VS2022_PROJECT" \
       -t:CreateVsixContainer \
-      -p:Configuration=Release
+      -p:Configuration=Release \
+      -p:IntermediateOutputPath="$VS2022_INTERMEDIATE_PATH" \
+      -p:OutDir="$VS2022_OUTDIR_PATH" \
+      -p:TemplateOutputDirectory="$VS2022_INTERMEDIATE_PATH" \
+      -p:TargetVsixContainerName="KoSpellCheck.VS2022.vsix"
 
     mapfile -d '' VSIX_CANDIDATES < <(find "$ROOT/src/KoSpellCheck.VS2022/bin/Release" -type f -name "KoSpellCheck.VS2022.vsix" -print0)
     if [[ ${#VSIX_CANDIDATES[@]} -eq 0 ]]; then
@@ -410,12 +453,17 @@ set +e
       SOURCE_MANIFEST="src/KoSpellCheck.VS2022/obj/Release/${VS2022_TFM}/extension.vsixmanifest"
       FILES_JSON="src/KoSpellCheck.VS2022/obj/Release/${VS2022_TFM}/files.json"
       PKGDEF_PATH="src/KoSpellCheck.VS2022/obj/Release/${VS2022_TFM}/KoSpellCheck.VS2022.pkgdef"
+      PKGDEF_FULL_PATH="$ROOT/$PKGDEF_PATH"
 
-      if [[ ! -f "$ROOT/$SOURCE_MANIFEST" || ! -f "$ROOT/$FILES_JSON" || ! -f "$ROOT/$PKGDEF_PATH" ]]; then
+      if [[ ! -f "$PKGDEF_FULL_PATH" ]]; then
+        ensure_vs2022_pkgdef_fallback "$PKGDEF_FULL_PATH" || true
+      fi
+
+      if [[ ! -f "$ROOT/$SOURCE_MANIFEST" || ! -f "$ROOT/$FILES_JSON" || ! -f "$PKGDEF_FULL_PATH" ]]; then
         echo "[pack] warning: required VSSDK manifest inputs are missing for ${VS2022_TFM}." >&2
         echo "[pack] warning: sourceManifest='$SOURCE_MANIFEST' exists=$([[ -f "$ROOT/$SOURCE_MANIFEST" ]] && echo true || echo false)" >&2
         echo "[pack] warning: filesJson='$FILES_JSON' exists=$([[ -f "$ROOT/$FILES_JSON" ]] && echo true || echo false)" >&2
-        echo "[pack] warning: pkgdef='$PKGDEF_PATH' exists=$([[ -f "$ROOT/$PKGDEF_PATH" ]] && echo true || echo false)" >&2
+        echo "[pack] warning: pkgdef='$PKGDEF_PATH' exists=$([[ -f "$PKGDEF_FULL_PATH" ]] && echo true || echo false)" >&2
         fail_or_manual_vs2022_fallback "cannot build marketplace-compatible VS2022 VSIX on non-Windows because required VSSDK inputs are missing."
       else
         ln -sfn "$VSSDK_SCHEMAS" "$ROOT/.tmp-vssdk-schemas"

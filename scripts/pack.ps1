@@ -8,6 +8,36 @@ $Vs2022VsixOut = Join-Path $Artifacts 'vsix/KoSpellCheck.VS2022.vsix'
 $LegacyVs2022VsixOut = Join-Path $Artifacts 'vsix/KoSpellCheck.vsix'
 $VsixStage = Join-Path $Artifacts 'vsix/staging'
 $VsCodeExtDir = Join-Path $Root 'src/KoSpellCheck.VSCode'
+$Vs2022Project = Join-Path $Root 'src/KoSpellCheck.VS2022/KoSpellCheck.VS2022.csproj'
+
+function Resolve-VS2022TargetFramework {
+  param(
+    [Parameter(Mandatory = $true)][string]$ProjectPath
+  )
+
+  [xml]$projectXml = Get-Content -LiteralPath $ProjectPath
+  $propertyGroups = @($projectXml.Project.PropertyGroup)
+
+  foreach ($group in $propertyGroups) {
+    $targetFramework = [string]$group.TargetFramework
+    if (-not [string]::IsNullOrWhiteSpace($targetFramework)) {
+      return $targetFramework.Trim()
+    }
+  }
+
+  foreach ($group in $propertyGroups) {
+    $targetFrameworks = [string]$group.TargetFrameworks
+    if (-not [string]::IsNullOrWhiteSpace($targetFrameworks)) {
+      return (($targetFrameworks -split ';')[0]).Trim()
+    }
+  }
+
+  throw "Unable to resolve VS2022 target framework from '$ProjectPath'."
+}
+
+$Vs2022TargetFramework = Resolve-VS2022TargetFramework -ProjectPath $Vs2022Project
+$Vs2022IntermediatePath = "obj/Release/$Vs2022TargetFramework/"
+$Vs2022OutDirPath = "bin/Release/$Vs2022TargetFramework/"
 
 [xml]$propsXml = Get-Content (Join-Path $Root 'Directory.Build.props')
 $versionNodes = @($propsXml.Project.PropertyGroup | Where-Object { $_.Version } | ForEach-Object { [string]$_.Version })
@@ -266,8 +296,13 @@ if (Test-Path $LegacyVs2022VsixOut) {
 }
 Get-ChildItem -Path (Join-Path $Artifacts 'vsix/KoSpellCheck.VS2022-*.vsix') -ErrorAction SilentlyContinue | Remove-Item -Force
 
-$VsProject = Join-Path $Root 'src/KoSpellCheck.VS2022/KoSpellCheck.VS2022.csproj'
-dotnet msbuild $VsProject /t:CreateVsixContainer /p:Configuration=Release
+dotnet msbuild $Vs2022Project `
+  /t:CreateVsixContainer `
+  /p:Configuration=Release `
+  /p:IntermediateOutputPath=$Vs2022IntermediatePath `
+  /p:OutDir=$Vs2022OutDirPath `
+  /p:TemplateOutputDirectory=$Vs2022IntermediatePath `
+  /p:TargetVsixContainerName=KoSpellCheck.VS2022.vsix
 
 $GeneratedVsix = Get-ChildItem -Path (Join-Path $Root 'src/KoSpellCheck.VS2022/bin/Release') -Filter 'KoSpellCheck.VS2022.vsix' -Recurse |
   Sort-Object -Property LastWriteTime -Descending |
