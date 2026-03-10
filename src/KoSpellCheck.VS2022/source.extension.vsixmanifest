@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011">
   <Metadata>
-    <Identity Id="KoSpellCheck.VS2022" Version="0.1.21" Language="en-US" Publisher="KoSpellCheck_V2" />
+    <Identity Id="KoSpellCheck.VS2022" Version="0.1.22" Language="en-US" Publisher="KoSpellCheck_V2" />
     <Author>KoSpellCheck_V2</Author>
     <DisplayName>KoSpellCheck (VS2022)</DisplayName>
     <Description xml:space="preserve">Offline HU+EN spell checker for C# identifiers with quick fixes.</Description>
