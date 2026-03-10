@@ -97,6 +97,246 @@ summary {
   vertical-align: top;
 }
 
+.table th {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.table-convention {
+  table-layout: fixed;
+}
+
+.table-convention .folder-column {
+  width: 52%;
+}
+
+.table-convention .namespace-column {
+  width: 16%;
+}
+
+.table-convention .examples-column {
+  width: 18%;
+}
+
+.table-convention .confidence-column {
+  width: 14%;
+}
+
+.table-convention td {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.synthetic-row {
+  background: color-mix(in srgb, var(--panel) 80%, var(--fg) 20%);
+}
+
+.folder-cell {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding-left: calc(var(--depth) * 12px);
+}
+
+.tree-toggle {
+  min-width: 24px;
+  height: 22px;
+  padding: 0;
+  line-height: 1;
+  border-radius: 6px;
+}
+
+.tree-spacer {
+  display: inline-block;
+  width: 24px;
+  height: 22px;
+}
+
+.folder-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.folder-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.folder-label {
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.folder-badge {
+  font-size: 10px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 6px;
+}
+
+.folder-meta {
+  font-size: 11px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.folder-rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.rule-chip {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 10px;
+  padding: 1px 7px;
+  color: color-mix(in srgb, var(--fg) 85%, var(--muted) 15%);
+  background: color-mix(in srgb, var(--panel) 70%, var(--fg) 30%);
+}
+
+.folder-hints {
+  display: none;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.hint-chip {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 10px;
+  padding: 1px 7px;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--panel) 80%, var(--fg) 20%);
+}
+
+.namespace-value {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.confidence-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.confidence-track {
+  width: 72px;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel) 65%, var(--fg) 35%);
+  overflow: hidden;
+}
+
+.confidence-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: hsl(var(--confidence-hue, 90), 72%, 48%);
+}
+
+.confidence-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.example-chip {
+  display: inline-block;
+  margin-right: 4px;
+  margin-bottom: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 10px;
+  background: color-mix(in srgb, var(--panel) 75%, var(--fg) 25%);
+}
+
+@media (max-width: 720px) {
+  .table-convention thead {
+    display: none;
+  }
+
+  .table-convention,
+  .table-convention tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .table-convention tr {
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 8px;
+    background: color-mix(in srgb, var(--panel) 85%, var(--fg) 15%);
+  }
+
+  .table-convention td {
+    display: block;
+    width: 100%;
+    border-bottom: 0;
+    padding: 4px 0 0 0;
+  }
+
+  .table-convention td::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 2px;
+    color: var(--muted);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .table-convention td.folder-column::before {
+    display: none;
+  }
+
+  .table-convention td.namespace-column,
+  .table-convention td.examples-column {
+    display: none;
+  }
+
+  .table-convention .folder-cell {
+    width: 100%;
+    padding-left: calc(var(--depth) * 10px);
+  }
+
+  .table-convention .folder-rules {
+    display: none;
+  }
+
+  .table-convention .folder-hints {
+    display: flex;
+  }
+
+  .table-convention .tree-toggle {
+    min-width: 22px;
+    height: 20px;
+  }
+
+  .table-convention .folder-meta {
+    font-size: 10px;
+  }
+
+  .table-convention .confidence-cell {
+    justify-content: flex-start;
+  }
+
+  .table-convention .confidence-track {
+    width: 96px;
+  }
+}
+
 .chip {
   display: inline-block;
   border-radius: 999px;

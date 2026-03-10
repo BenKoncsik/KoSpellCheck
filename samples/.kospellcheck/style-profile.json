@@ -1,10 +1,10 @@
 {
   "workspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples",
-  "fingerprint": "0bc691968c5456768670f4909644b60691d02c9b2867ba6c363d7cf39729897a",
+  "fingerprint": "db4067fa209ed3c704fb17c6ab2bbe555a554ee6cc296a822ba8fa09f0499085",
   "profile": {
     "workspaceRoot": "/Users/teszt/GitHub/Visual-studio-Hungarina-spell-check/samples",
-    "createdAtUtc": "2026-03-09T08:43:05.813Z",
-    "updatedAtUtc": "2026-03-09T08:43:05.834Z",
+    "createdAtUtc": "2026-03-10T12:42:39.436Z",
+    "updatedAtUtc": "2026-03-10T12:42:39.492Z",
     "tokenStats": {
       "schemaversion": {
         "totalCount": 8,
@@ -124,9 +124,9 @@
         "confidence": 1
       },
       "model": {
-        "totalCount": 37,
+        "totalCount": 36,
         "variants": {
-          "Model": 33,
+          "Model": 32,
           "model": 4
         },
         "preferredVariant": "Model",
@@ -283,21 +283,21 @@
         "preferredVariant": "GeneratedAtUtc",
         "confidence": 0.7
       },
-      "2026-03-09t08": {
-        "totalCount": 11,
+      "2026-03-10t12": {
+        "totalCount": 8,
         "variants": {
-          "2026-03-09T08": 9,
-          "2026-03-09t08": 2
+          "2026-03-10T12": 7,
+          "2026-03-10t12": 1
         },
-        "preferredVariant": "2026-03-09T08",
-        "confidence": 1
+        "preferredVariant": "2026-03-10T12",
+        "confidence": 0.8
       },
-      "04.938359z": {
+      "39.355472z": {
         "totalCount": 2,
         "variants": {
-          "04.938359Z": 2
+          "39.355472Z": 2
         },
-        "preferredVariant": "04.938359Z",
+        "preferredVariant": "39.355472Z",
         "confidence": 0.2
       },
       "workspaceroot": {
@@ -527,10 +527,10 @@
         "confidence": 0.5
       },
       "totalcount": {
-        "totalCount": 492,
+        "totalCount": 522,
         "variants": {
           "TotalCount": 2,
-          "totalCount": 488,
+          "totalCount": 518,
           "totalcount": 2
         },
         "preferredVariant": "totalCount",
@@ -699,9 +699,9 @@
         "confidence": 1
       },
       "count": {
-        "totalCount": 517,
+        "totalCount": 547,
         "variants": {
-          "Count": 515,
+          "Count": 545,
           "count": 2
         },
         "preferredVariant": "Count",
@@ -923,13 +923,13 @@
         "confidence": 0.8
       },
       "truck": {
-        "totalCount": 10,
+        "totalCount": 9,
         "variants": {
-          "truck": 4,
+          "truck": 3,
           "Truck": 6
         },
         "preferredVariant": "Truck",
-        "confidence": 1
+        "confidence": 0.9
       },
       "http": {
         "totalCount": 42,
@@ -1004,19 +1004,19 @@
         "confidence": 0.7
       },
       "total": {
-        "totalCount": 494,
+        "totalCount": 524,
         "variants": {
           "Total": 3,
-          "total": 491
+          "total": 521
         },
         "preferredVariant": "total",
         "confidence": 1
       },
       "confidence": {
-        "totalCount": 496,
+        "totalCount": 526,
         "variants": {
           "Confidence": 7,
-          "confidence": 489
+          "confidence": 519
         },
         "preferredVariant": "confidence",
         "confidence": 1
@@ -1192,12 +1192,12 @@
         "preferredVariant": "Query",
         "confidence": 0.5
       },
-      "04.95944z": {
+      "39.37167z": {
         "totalCount": 1,
         "variants": {
-          "04.95944Z": 1
+          "39.37167Z": 1
         },
-        "preferredVariant": "04.95944Z",
+        "preferredVariant": "39.37167Z",
         "confidence": 0.1
       },
       "fingerprint": {
@@ -1281,13 +1281,14 @@
         "preferredVariant": "Pattern",
         "confidence": 0.7
       },
-      "04.594z": {
-        "totalCount": 1,
+      "21.916z": {
+        "totalCount": 5,
         "variants": {
-          "04.594Z": 1
+          "21.916Z": 2,
+          "21.916z": 3
         },
-        "preferredVariant": "04.594Z",
-        "confidence": 0.1
+        "preferredVariant": "21.916z",
+        "confidence": 0.5
       },
       "updatedatutc": {
         "totalCount": 7,
@@ -1299,12 +1300,12 @@
         "preferredVariant": "updatedAtUtc",
         "confidence": 0.7
       },
-      "04.629z": {
+      "21.969z": {
         "totalCount": 1,
         "variants": {
-          "04.629Z": 1
+          "21.969Z": 1
         },
-        "preferredVariant": "04.629Z",
+        "preferredVariant": "21.969Z",
         "confidence": 0.1
       },
       "tokenstats": {
@@ -1318,56 +1319,299 @@
         "confidence": 0.7
       },
       "preferredvariant": {
-        "totalCount": 491,
+        "totalCount": 521,
         "variants": {
-          "preferredVariant": 488,
+          "preferredVariant": 518,
           "PreferredVariant": 1,
           "preferredvariant": 2
         },
         "preferredVariant": "preferredVariant",
         "confidence": 1
       },
-      "34.269807z": {
+      "01.753854z": {
         "totalCount": 3,
         "variants": {
-          "34.269807z": 1,
-          "34.269807Z": 2
+          "01.753854z": 1,
+          "01.753854Z": 2
         },
-        "preferredVariant": "34.269807Z",
+        "preferredVariant": "01.753854Z",
         "confidence": 0.3
+      },
+      "01.774349z": {
+        "totalCount": 3,
+        "variants": {
+          "01.774349z": 1,
+          "01.774349Z": 2
+        },
+        "preferredVariant": "01.774349Z",
+        "confidence": 0.3
+      },
+      "01.357z": {
+        "totalCount": 3,
+        "variants": {
+          "01.357z": 1,
+          "01.357Z": 2
+        },
+        "preferredVariant": "01.357Z",
+        "confidence": 0.3
+      },
+      "01.413z": {
+        "totalCount": 3,
+        "variants": {
+          "01.413z": 1,
+          "01.413Z": 2
+        },
+        "preferredVariant": "01.413Z",
+        "confidence": 0.3
+      },
+      "2026-03-10t10": {
+        "totalCount": 4,
+        "variants": {
+          "2026-03-10t10": 3,
+          "2026-03-10T10": 1
+        },
+        "preferredVariant": "2026-03-10t10",
+        "confidence": 0.4
+      },
+      "37.423761z": {
+        "totalCount": 4,
+        "variants": {
+          "37.423761z": 3,
+          "37.423761Z": 1
+        },
+        "preferredVariant": "37.423761z",
+        "confidence": 0.4
+      },
+      "37.442968z": {
+        "totalCount": 4,
+        "variants": {
+          "37.442968z": 3,
+          "37.442968Z": 1
+        },
+        "preferredVariant": "37.442968z",
+        "confidence": 0.4
+      },
+      "23.709z": {
+        "totalCount": 4,
+        "variants": {
+          "23.709z": 2,
+          "23.709Z": 2
+        },
+        "preferredVariant": "23.709z",
+        "confidence": 0.4
+      },
+      "23.742z": {
+        "totalCount": 4,
+        "variants": {
+          "23.742z": 2,
+          "23.742Z": 2
+        },
+        "preferredVariant": "23.742z",
+        "confidence": 0.4
+      },
+      "37.519z": {
+        "totalCount": 4,
+        "variants": {
+          "37.519z": 3,
+          "37.519Z": 1
+        },
+        "preferredVariant": "37.519z",
+        "confidence": 0.4
+      },
+      "37.564z": {
+        "totalCount": 4,
+        "variants": {
+          "37.564z": 3,
+          "37.564Z": 1
+        },
+        "preferredVariant": "37.564z",
+        "confidence": 0.4
+      },
+      "2026-03-10t08": {
+        "totalCount": 4,
+        "variants": {
+          "2026-03-10t08": 3,
+          "2026-03-10T08": 1
+        },
+        "preferredVariant": "2026-03-10t08",
+        "confidence": 0.4
+      },
+      "07.742z": {
+        "totalCount": 4,
+        "variants": {
+          "07.742z": 3,
+          "07.742Z": 1
+        },
+        "preferredVariant": "07.742z",
+        "confidence": 0.4
+      },
+      "09.044z": {
+        "totalCount": 4,
+        "variants": {
+          "09.044z": 3,
+          "09.044Z": 1
+        },
+        "preferredVariant": "09.044z",
+        "confidence": 0.4
+      },
+      "07.624913z": {
+        "totalCount": 4,
+        "variants": {
+          "07.624913z": 3,
+          "07.624913Z": 1
+        },
+        "preferredVariant": "07.624913z",
+        "confidence": 0.4
+      },
+      "07.805545z": {
+        "totalCount": 4,
+        "variants": {
+          "07.805545z": 3,
+          "07.805545Z": 1
+        },
+        "preferredVariant": "07.805545z",
+        "confidence": 0.4
+      },
+      "28.053z": {
+        "totalCount": 4,
+        "variants": {
+          "28.053z": 3,
+          "28.053Z": 1
+        },
+        "preferredVariant": "28.053z",
+        "confidence": 0.4
+      },
+      "29.507z": {
+        "totalCount": 4,
+        "variants": {
+          "29.507z": 3,
+          "29.507Z": 1
+        },
+        "preferredVariant": "29.507z",
+        "confidence": 0.4
+      },
+      "2026-03-09t08": {
+        "totalCount": 4,
+        "variants": {
+          "2026-03-09t08": 3,
+          "2026-03-09T08": 1
+        },
+        "preferredVariant": "2026-03-09t08",
+        "confidence": 0.4
+      },
+      "06.15318z": {
+        "totalCount": 4,
+        "variants": {
+          "06.15318z": 3,
+          "06.15318Z": 1
+        },
+        "preferredVariant": "06.15318z",
+        "confidence": 0.4
+      },
+      "06.170004z": {
+        "totalCount": 4,
+        "variants": {
+          "06.170004z": 3,
+          "06.170004Z": 1
+        },
+        "preferredVariant": "06.170004z",
+        "confidence": 0.4
+      },
+      "05.813z": {
+        "totalCount": 4,
+        "variants": {
+          "05.813z": 3,
+          "05.813Z": 1
+        },
+        "preferredVariant": "05.813z",
+        "confidence": 0.4
+      },
+      "05.834z": {
+        "totalCount": 4,
+        "variants": {
+          "05.834z": 3,
+          "05.834Z": 1
+        },
+        "preferredVariant": "05.834z",
+        "confidence": 0.4
+      },
+      "04.938359z": {
+        "totalCount": 4,
+        "variants": {
+          "04.938359z": 3,
+          "04.938359Z": 1
+        },
+        "preferredVariant": "04.938359z",
+        "confidence": 0.4
+      },
+      "04.95944z": {
+        "totalCount": 4,
+        "variants": {
+          "04.95944z": 3,
+          "04.95944Z": 1
+        },
+        "preferredVariant": "04.95944z",
+        "confidence": 0.4
+      },
+      "04.594z": {
+        "totalCount": 4,
+        "variants": {
+          "04.594z": 3,
+          "04.594Z": 1
+        },
+        "preferredVariant": "04.594z",
+        "confidence": 0.4
+      },
+      "04.629z": {
+        "totalCount": 4,
+        "variants": {
+          "04.629z": 3,
+          "04.629Z": 1
+        },
+        "preferredVariant": "04.629z",
+        "confidence": 0.4
+      },
+      "34.269807z": {
+        "totalCount": 4,
+        "variants": {
+          "34.269807z": 3,
+          "34.269807Z": 1
+        },
+        "preferredVariant": "34.269807z",
+        "confidence": 0.4
       },
       "34.292245z": {
-        "totalCount": 3,
+        "totalCount": 4,
         "variants": {
-          "34.292245z": 1,
-          "34.292245Z": 2
+          "34.292245z": 3,
+          "34.292245Z": 1
         },
-        "preferredVariant": "34.292245Z",
-        "confidence": 0.3
+        "preferredVariant": "34.292245z",
+        "confidence": 0.4
       },
       "34.297z": {
-        "totalCount": 3,
+        "totalCount": 4,
         "variants": {
-          "34.297z": 1,
-          "34.297Z": 2
+          "34.297z": 3,
+          "34.297Z": 1
         },
-        "preferredVariant": "34.297Z",
-        "confidence": 0.3
+        "preferredVariant": "34.297z",
+        "confidence": 0.4
       },
       "34.341z": {
-        "totalCount": 3,
+        "totalCount": 4,
         "variants": {
-          "34.341z": 1,
-          "34.341Z": 2
+          "34.341z": 3,
+          "34.341Z": 1
         },
-        "preferredVariant": "34.341Z",
-        "confidence": 0.3
+        "preferredVariant": "34.341z",
+        "confidence": 0.4
       },
       "23.940444z": {
         "totalCount": 4,
         "variants": {
-          "23.940444z": 2,
-          "23.940444Z": 2
+          "23.940444z": 3,
+          "23.940444Z": 1
         },
         "preferredVariant": "23.940444z",
         "confidence": 0.4
@@ -1375,8 +1619,8 @@
       "23.958502z": {
         "totalCount": 4,
         "variants": {
-          "23.958502z": 2,
-          "23.958502Z": 2
+          "23.958502z": 3,
+          "23.958502Z": 1
         },
         "preferredVariant": "23.958502z",
         "confidence": 0.4
@@ -1384,8 +1628,8 @@
       "07.994z": {
         "totalCount": 4,
         "variants": {
-          "07.994z": 2,
-          "07.994Z": 2
+          "07.994z": 3,
+          "07.994Z": 1
         },
         "preferredVariant": "07.994z",
         "confidence": 0.4
@@ -1393,8 +1637,8 @@
       "08.017z": {
         "totalCount": 4,
         "variants": {
-          "08.017z": 2,
-          "08.017Z": 2
+          "08.017z": 3,
+          "08.017Z": 1
         },
         "preferredVariant": "08.017z",
         "confidence": 0.4
@@ -1883,15 +2127,6 @@
           "12.573Z": 1
         },
         "preferredVariant": "12.573z",
-        "confidence": 0.4
-      },
-      "21.916z": {
-        "totalCount": 4,
-        "variants": {
-          "21.916z": 3,
-          "21.916Z": 1
-        },
-        "preferredVariant": "21.916z",
         "confidence": 0.4
       },
       "21.928z": {
@@ -3127,40 +3362,67 @@
         "confidence": 0.5
       },
       "59.335z": {
-        "totalCount": 5,
+        "totalCount": 4,
         "variants": {
-          "59.335z": 2,
-          "59.335Z": 3
+          "59.335z": 3,
+          "59.335Z": 1
         },
-        "preferredVariant": "59.335Z",
-        "confidence": 0.5
+        "preferredVariant": "59.335z",
+        "confidence": 0.4
       },
       "59.351z": {
-        "totalCount": 5,
+        "totalCount": 4,
         "variants": {
-          "59.351z": 2,
-          "59.351Z": 3
+          "59.351z": 3,
+          "59.351Z": 1
         },
-        "preferredVariant": "59.351Z",
-        "confidence": 0.5
+        "preferredVariant": "59.351z",
+        "confidence": 0.4
       },
       "truckmodel": {
         "totalCount": 4,
         "variants": {
-          "TruckModel": 2,
-          "truckmodel": 2
+          "TruckModel": 1,
+          "truckmodel": 3
         },
         "preferredVariant": "truckmodel",
         "confidence": 0.4
       },
       "truckviewmodel": {
-        "totalCount": 4,
+        "totalCount": 5,
         "variants": {
           "TruckViewModel": 3,
-          "truckviewmodel": 1
+          "truckviewmodel": 2
         },
         "preferredVariant": "TruckViewModel",
-        "confidence": 0.4
+        "confidence": 0.5
+      },
+      "2026-03-09t09": {
+        "totalCount": 6,
+        "variants": {
+          "2026-03-09t09": 2,
+          "2026-03-09T09": 4
+        },
+        "preferredVariant": "2026-03-09T09",
+        "confidence": 0.6
+      },
+      "38.245z": {
+        "totalCount": 5,
+        "variants": {
+          "38.245z": 2,
+          "38.245Z": 3
+        },
+        "preferredVariant": "38.245Z",
+        "confidence": 0.5
+      },
+      "38.258z": {
+        "totalCount": 5,
+        "variants": {
+          "38.258z": 2,
+          "38.258Z": 3
+        },
+        "preferredVariant": "38.258Z",
+        "confidence": 0.5
       },
       "profile": {
         "totalCount": 5,
@@ -3189,27 +3451,27 @@
         "confidence": 0.9
       },
       "variants": {
-        "totalCount": 490,
+        "totalCount": 520,
         "variants": {
-          "variants": 489,
+          "variants": 519,
           "Variants": 1
         },
         "preferredVariant": "variants",
         "confidence": 1
       },
       "preferred": {
-        "totalCount": 493,
+        "totalCount": 523,
         "variants": {
-          "preferred": 491,
+          "preferred": 521,
           "Preferred": 2
         },
         "preferredVariant": "preferred",
         "confidence": 1
       },
       "variant": {
-        "totalCount": 493,
+        "totalCount": 523,
         "variants": {
-          "Variant": 491,
+          "Variant": 521,
           "variant": 2
         },
         "preferredVariant": "Variant",

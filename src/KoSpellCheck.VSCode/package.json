@@ -38,6 +38,8 @@
     "node_modules/nspell/**",
     "node_modules/is-buffer/**",
     "package.json",
+    "package.nls.json",
+    "package.nls.hu.json",
     "LICENSE",
     "README.md"
   ],

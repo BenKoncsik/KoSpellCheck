@@ -379,6 +379,7 @@ class KoSpellCheckDashboardProvider {
             valueInactive: (0, sharedUiText_1.text)('dashboard.value.inactive', 'Inactive', { configuredLanguage }),
             valueInFlight: (0, sharedUiText_1.text)('dashboard.value.inFlight', 'In-flight', { configuredLanguage }),
             valueQueued: (0, sharedUiText_1.text)('dashboard.value.queued', 'Queued', { configuredLanguage }),
+            valueAuto: (0, sharedUiText_1.text)('dashboard.value.auto', '(auto)', { configuredLanguage }),
             valueNotAvailable: (0, sharedUiText_1.text)('general.notAvailable', 'n/a', { configuredLanguage }),
             valueUnknown: (0, sharedUiText_1.text)('dashboard.value.unknown', 'Unknown', { configuredLanguage }),
             metaLastRefresh: (0, sharedUiText_1.text)('dashboard.meta.lastRefresh', 'Last refresh:', { configuredLanguage }),
