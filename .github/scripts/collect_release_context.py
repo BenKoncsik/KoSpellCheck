@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence
+
+GITHUB_API_BASE = "https://api.github.com"
+DOH_URL = "https://1.1.1.1/dns-query"
 
 
 def run(cmd: List[str], cwd: Optional[Path] = None) -> str:
@@ -22,9 +26,84 @@ def run(cmd: List[str], cwd: Optional[Path] = None) -> str:
     return result.stdout.strip()
 
 
-def gh_api_json(endpoint: str) -> Any:
-    out = run(["gh", "api", endpoint])
+def resolve_github_tokens() -> List[str]:
+    tokens: List[str] = []
+    for name in ("GH_TOKEN", "GITHUB_TOKEN"):
+        value = os.getenv(name, "").strip()
+        if value and value not in tokens:
+            tokens.append(value)
+
+    result = subprocess.run(
+        ["gh", "auth", "token"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if result.returncode == 0:
+        token = result.stdout.strip()
+        if token and token not in tokens:
+            tokens.append(token)
+    return tokens
+
+
+def curl_api_json_with_token(endpoint: str, token: Optional[str]) -> Any:
+    cmd = [
+        "curl",
+        "-fsSL",
+        "--max-time",
+        "45",
+        "--retry",
+        "2",
+        "--retry-delay",
+        "2",
+        "--doh-url",
+        DOH_URL,
+        "-H",
+        "Accept: application/vnd.github+json",
+        "-H",
+        "X-GitHub-Api-Version: 2022-11-28",
+        "-H",
+        "User-Agent: KoSpellCheck-ReleaseWatcher/1.0",
+    ]
+    if token:
+        cmd.extend(["-H", f"Authorization: Bearer {token}"])
+
+    cmd.append(f"{GITHUB_API_BASE}/{endpoint.lstrip('/')}")
+    out = run(cmd)
     return json.loads(out)
+
+
+def curl_api_json(endpoint: str) -> Any:
+    tokens: Sequence[Optional[str]] = [*resolve_github_tokens(), None]
+    last_error: Optional[Exception] = None
+    for token in tokens:
+        try:
+            return curl_api_json_with_token(endpoint, token=token)
+        except Exception as exc:
+            last_error = exc
+            message = str(exc)
+            if "401" in message or "403" in message or "Bad credentials" in message:
+                continue
+            raise
+
+    if last_error:
+        raise last_error
+    raise RuntimeError("No API response from curl fallback")
+
+
+def gh_api_json(endpoint: str) -> Any:
+    try:
+        out = run(["gh", "api", endpoint])
+        return json.loads(out)
+    except Exception as gh_exc:
+        try:
+            return curl_api_json(endpoint)
+        except Exception as curl_exc:
+            raise RuntimeError(
+                "GitHub API failed via gh and curl fallback.\n"
+                f"[gh] {gh_exc}\n"
+                f"[curl] {curl_exc}"
+            ) from curl_exc
 
 
 def ensure_tag(repo_path: Path, tag: str) -> bool:
