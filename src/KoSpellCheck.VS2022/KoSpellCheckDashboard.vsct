@@ -57,12 +57,13 @@
       </Button>
     </Buttons>
 
-    <CommandPlacements>
-      <CommandPlacement guid="guidKoSpellCheckDashboardCommandSet" id="cmdidOpenDashboard" priority="0x0100">
-        <Parent guid="guidKoSpellCheckDashboardCommandSet" id="KoSpellCheckViewGroup" />
-      </CommandPlacement>
-    </CommandPlacements>
   </Commands>
+
+  <CommandPlacements>
+    <CommandPlacement guid="guidKoSpellCheckDashboardCommandSet" id="cmdidOpenDashboard" priority="0x0100">
+      <Parent guid="guidKoSpellCheckDashboardCommandSet" id="KoSpellCheckViewGroup" />
+    </CommandPlacement>
+  </CommandPlacements>
 
   <Symbols>
     <GuidSymbol name="guidKoSpellCheckDashboardPackage" value="{B3EC2DAA-5989-46CF-9EAA-74B50E38B4C6}" />
