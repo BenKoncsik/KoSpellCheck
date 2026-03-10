@@ -3,6 +3,7 @@ import path from 'node:path';
 import * as vscode from 'vscode';
 import { loadConfig } from '../config';
 import { text } from '../sharedUiText';
+import { resolveWorkspaceArtifactPath } from '../workspaceStorage';
 import {
   CoreCliAnalyzeRequest,
   CoreCliIgnoreRequest,
@@ -47,6 +48,7 @@ export interface ConventionFeatureConfig {
   minEvidenceCount: number;
   statisticalAnomalyThreshold: number;
   aiAnomalyThreshold: number;
+  workspaceStoragePath: string;
   profilePath: string;
   profileCachePath: string;
   anomalyModelPath: string;
@@ -246,11 +248,11 @@ export class ProjectConventionFeature implements vscode.Disposable {
     }
 
     const config = this.resolveConfig(scope.storageRoot, uri ?? vscode.window.activeTextEditor?.document.uri);
-    const profilePath = resolveArtifactPath(scope.storageRoot, config.profilePath);
-    const summaryPath = resolveArtifactPath(scope.storageRoot, config.scanSummaryPath);
-    const cachePath = resolveArtifactPath(scope.storageRoot, config.profileCachePath);
-    const anomalyModelPath = resolveArtifactPath(scope.storageRoot, config.anomalyModelPath);
-    const ignoreListPath = resolveArtifactPath(scope.storageRoot, config.ignoreListPath);
+    const profilePath = resolveArtifactPath(scope.storageRoot, config.workspaceStoragePath, config.profilePath);
+    const summaryPath = resolveArtifactPath(scope.storageRoot, config.workspaceStoragePath, config.scanSummaryPath);
+    const cachePath = resolveArtifactPath(scope.storageRoot, config.workspaceStoragePath, config.profileCachePath);
+    const anomalyModelPath = resolveArtifactPath(scope.storageRoot, config.workspaceStoragePath, config.anomalyModelPath);
+    const ignoreListPath = resolveArtifactPath(scope.storageRoot, config.workspaceStoragePath, config.ignoreListPath);
     const state = this.scopeStates.get(scope.scopeKey);
     const profile = state?.profile ?? this.readJsonArtifact(profilePath);
     const summary = this.readJsonArtifact(summaryPath);
@@ -308,7 +310,7 @@ export class ProjectConventionFeature implements vscode.Disposable {
         }
 
         const config = this.resolveConfig(scope.storageRoot, vscode.window.activeTextEditor?.document.uri);
-        const profilePath = resolveArtifactPath(scope.storageRoot, config.profilePath);
+        const profilePath = resolveArtifactPath(scope.storageRoot, config.workspaceStoragePath, config.profilePath);
         if (!fs.existsSync(profilePath)) {
           vscode.window.showInformationMessage(
             text(
@@ -1236,6 +1238,7 @@ export class ProjectConventionFeature implements vscode.Disposable {
         loaded.statisticalAnomalyThreshold
       ),
       aiAnomalyThreshold: settings.get<number>('projectConventions.aiAnomalyThreshold', loaded.aiAnomalyThreshold),
+      workspaceStoragePath: loaded.workspaceStoragePath,
       profilePath: settings.get<string>('projectConventions.profilePath', loaded.projectConventionProfilePath),
       profileCachePath: settings.get<string>(
         'projectConventions.profileCachePath',
@@ -1277,6 +1280,7 @@ export class ProjectConventionFeature implements vscode.Disposable {
       MinEvidenceCount: config.minEvidenceCount,
       StatisticalAnomalyThreshold: config.statisticalAnomalyThreshold,
       AiAnomalyThreshold: config.aiAnomalyThreshold,
+      WorkspaceStoragePath: config.workspaceStoragePath,
       ConventionProfilePath: config.profilePath,
       ConventionProfileCachePath: config.profileCachePath,
       ConventionAnomalyModelPath: config.anomalyModelPath,
@@ -1351,9 +1355,17 @@ export class ProjectConventionFeature implements vscode.Disposable {
   }
 }
 
-function resolveArtifactPath(workspaceRoot: string, configuredPath: string): string {
-  const target = configuredPath?.trim() || '.kospellcheck/project-conventions.json';
-  return path.isAbsolute(target) ? target : path.join(workspaceRoot, target);
+function resolveArtifactPath(
+  workspaceRoot: string,
+  workspaceStoragePath: string,
+  configuredPath: string
+): string {
+  return resolveWorkspaceArtifactPath(
+    workspaceRoot,
+    workspaceStoragePath,
+    configuredPath,
+    '.kospellcheck/project-conventions.json'
+  );
 }
 
 function toRange(document: vscode.TextDocument, line: number, column: number): vscode.Range {

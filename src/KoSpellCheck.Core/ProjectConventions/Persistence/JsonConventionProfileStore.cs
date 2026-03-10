@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using KoSpellCheck.Core.ProjectConventions.Abstractions;
 using KoSpellCheck.Core.ProjectConventions.Models;
+using KoSpellCheck.Core.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -16,15 +17,15 @@ public sealed class JsonConventionProfileStore : IConventionProfileStore
         Converters = { new StringEnumConverter() },
     };
 
-    public ProjectConventionProfile? LoadProfile(string workspaceRoot, string configuredPath)
+    public ProjectConventionProfile? LoadProfile(string workspaceRoot, string configuredPath, string? workspaceStoragePath = null)
     {
-        var path = ResolveArtifactPath(workspaceRoot, configuredPath);
+        var path = ResolveArtifactPath(workspaceRoot, configuredPath, workspaceStoragePath);
         return ReadJson<ProjectConventionProfile>(path);
     }
 
-    public ConventionIgnoreList LoadIgnoreList(string workspaceRoot, string configuredPath)
+    public ConventionIgnoreList LoadIgnoreList(string workspaceRoot, string configuredPath, string? workspaceStoragePath = null)
     {
-        var path = ResolveArtifactPath(workspaceRoot, configuredPath);
+        var path = ResolveArtifactPath(workspaceRoot, configuredPath, workspaceStoragePath);
         var loaded = ReadJson<ConventionIgnoreList>(path);
         if (loaded != null && loaded.SchemaVersion == 1)
         {
@@ -40,6 +41,7 @@ public sealed class JsonConventionProfileStore : IConventionProfileStore
 
     public void SaveArtifacts(
         string workspaceRoot,
+        string? workspaceStoragePath,
         string profilePath,
         ProjectConventionProfile profile,
         string summaryPath,
@@ -49,16 +51,20 @@ public sealed class JsonConventionProfileStore : IConventionProfileStore
         string anomalyModelPath,
         LightweightAnomalyModel anomalyModel)
     {
-        WriteJson(ResolveArtifactPath(workspaceRoot, profilePath), profile, skipIfExists: false);
-        WriteJson(ResolveArtifactPath(workspaceRoot, summaryPath), summary, skipIfExists: false);
-        WriteJson(ResolveArtifactPath(workspaceRoot, cachePath), cache, skipIfExists: false);
-        WriteJson(ResolveArtifactPath(workspaceRoot, anomalyModelPath), anomalyModel, skipIfExists: true);
+        WriteJson(ResolveArtifactPath(workspaceRoot, profilePath, workspaceStoragePath), profile, skipIfExists: false);
+        WriteJson(ResolveArtifactPath(workspaceRoot, summaryPath, workspaceStoragePath), summary, skipIfExists: false);
+        WriteJson(ResolveArtifactPath(workspaceRoot, cachePath, workspaceStoragePath), cache, skipIfExists: false);
+        WriteJson(ResolveArtifactPath(workspaceRoot, anomalyModelPath, workspaceStoragePath), anomalyModel, skipIfExists: true);
     }
 
-    public void AppendIgnoreEntry(string workspaceRoot, string configuredPath, ConventionIgnoreEntry entry)
+    public void AppendIgnoreEntry(
+        string workspaceRoot,
+        string configuredPath,
+        ConventionIgnoreEntry entry,
+        string? workspaceStoragePath = null)
     {
-        var path = ResolveArtifactPath(workspaceRoot, configuredPath);
-        var list = LoadIgnoreList(workspaceRoot, configuredPath);
+        var path = ResolveArtifactPath(workspaceRoot, configuredPath, workspaceStoragePath);
+        var list = LoadIgnoreList(workspaceRoot, configuredPath, workspaceStoragePath);
 
         var exists = list.Entries.Any(item =>
             string.Equals(item.RuleId, entry.RuleId, StringComparison.Ordinal) &&
@@ -74,15 +80,13 @@ public sealed class JsonConventionProfileStore : IConventionProfileStore
         WriteJson(path, list, skipIfExists: false);
     }
 
-    public static string ResolveArtifactPath(string workspaceRoot, string configuredPath)
+    public static string ResolveArtifactPath(string workspaceRoot, string configuredPath, string? workspaceStoragePath = null)
     {
-        var target = string.IsNullOrWhiteSpace(configuredPath)
-            ? ".kospellcheck/project-conventions.json"
-            : configuredPath.Trim();
-
-        return Path.IsPathRooted(target)
-            ? target
-            : Path.Combine(workspaceRoot, target);
+        return WorkspaceStoragePathResolver.ResolveArtifactPath(
+            workspaceRoot,
+            workspaceStoragePath,
+            configuredPath,
+            ".kospellcheck/project-conventions.json");
     }
 
     public static bool IsIgnored(ConventionIgnoreList ignoreList, string ruleId, string relativePath, string folderPath)

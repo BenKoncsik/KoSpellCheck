@@ -75,6 +75,7 @@ public static class ConfigLoader
             json.Value<int?>("ignoreAllCapsLengthThreshold") ?? config.IgnoreAllCapsLengthThreshold;
         config.SuggestionsMax = json.Value<int?>("suggestionsMax") ?? config.SuggestionsMax;
         config.MaxTokensPerDocument = json.Value<int?>("maxTokensPerDocument") ?? config.MaxTokensPerDocument;
+        config.WorkspaceStoragePath = json.Value<string>("workspaceStoragePath") ?? config.WorkspaceStoragePath;
         config.StyleLearningEnabled = json.Value<bool?>("styleLearningEnabled") ?? config.StyleLearningEnabled;
         config.StyleLearningMaxFiles = json.Value<int?>("styleLearningMaxFiles") ?? config.StyleLearningMaxFiles;
         config.StyleLearningMaxTokens = json.Value<int?>("styleLearningMaxTokens") ?? config.StyleLearningMaxTokens;
@@ -104,6 +105,7 @@ public static class ConfigLoader
 
         var projectConventions = json["projectConventions"] as JObject;
         var conventions = config.ProjectConventions.Clone();
+        conventions.WorkspaceStoragePath = config.WorkspaceStoragePath;
 
         conventions.EnableProjectConventionMapping =
             projectConventions?.Value<bool?>("enabled")
@@ -169,6 +171,10 @@ public static class ConfigLoader
             projectConventions?.Value<double?>("aiAnomalyThreshold")
             ?? json.Value<double?>("aiAnomalyThreshold")
             ?? conventions.AiAnomalyThreshold;
+        conventions.WorkspaceStoragePath =
+            projectConventions?.Value<string>("workspaceStoragePath")
+            ?? json.Value<string>("projectConventionWorkspaceStoragePath")
+            ?? conventions.WorkspaceStoragePath;
         conventions.ConventionProfilePath =
             projectConventions?.Value<string>("profilePath")
             ?? json.Value<string>("projectConventionProfilePath")
@@ -316,6 +322,10 @@ public static class ConfigLoader
             case "kospellcheck_suggestions_max":
                 config.SuggestionsMax = ParseInt(value, config.SuggestionsMax);
                 break;
+            case "kospellcheck_workspace_storage_path":
+                config.WorkspaceStoragePath = value;
+                config.ProjectConventions.WorkspaceStoragePath = value;
+                break;
             case "kospellcheck_prefer_terms":
                 config.PreferTerms = ParsePreferTerms(value);
                 break;
@@ -429,6 +439,9 @@ public static class ConfigLoader
             case "kospellcheck_ai_anomaly_threshold":
                 config.ProjectConventions.AiAnomalyThreshold =
                     ParseDouble(value, config.ProjectConventions.AiAnomalyThreshold);
+                break;
+            case "kospellcheck_project_convention_workspace_storage_path":
+                config.ProjectConventions.WorkspaceStoragePath = value;
                 break;
             case "kospellcheck_project_convention_profile_path":
                 config.ProjectConventions.ConventionProfilePath = value;

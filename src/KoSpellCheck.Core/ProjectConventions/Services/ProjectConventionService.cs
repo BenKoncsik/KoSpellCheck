@@ -76,15 +76,28 @@ public sealed class ProjectConventionService : IProjectConventionProfiler, IProj
             Fingerprint = JsonConventionProfileStore.BuildFingerprint(filePaths),
         };
 
-        var profilePath = JsonConventionProfileStore.ResolveArtifactPath(request.WorkspaceRoot, options.ConventionProfilePath);
-        var summaryPath = JsonConventionProfileStore.ResolveArtifactPath(request.WorkspaceRoot, options.ConventionScanSummaryPath);
-        var cachePath = JsonConventionProfileStore.ResolveArtifactPath(request.WorkspaceRoot, options.ConventionProfileCachePath);
-        var anomalyModelPath = JsonConventionProfileStore.ResolveArtifactPath(request.WorkspaceRoot, options.ConventionAnomalyModelPath);
+        var profilePath = JsonConventionProfileStore.ResolveArtifactPath(
+            request.WorkspaceRoot,
+            options.ConventionProfilePath,
+            options.WorkspaceStoragePath);
+        var summaryPath = JsonConventionProfileStore.ResolveArtifactPath(
+            request.WorkspaceRoot,
+            options.ConventionScanSummaryPath,
+            options.WorkspaceStoragePath);
+        var cachePath = JsonConventionProfileStore.ResolveArtifactPath(
+            request.WorkspaceRoot,
+            options.ConventionProfileCachePath,
+            options.WorkspaceStoragePath);
+        var anomalyModelPath = JsonConventionProfileStore.ResolveArtifactPath(
+            request.WorkspaceRoot,
+            options.ConventionAnomalyModelPath,
+            options.WorkspaceStoragePath);
 
         if (request.PersistArtifacts)
         {
             _profileStore.SaveArtifacts(
                 request.WorkspaceRoot,
+                options.WorkspaceStoragePath,
                 options.ConventionProfilePath,
                 profile,
                 options.ConventionScanSummaryPath,
@@ -121,7 +134,10 @@ public sealed class ProjectConventionService : IProjectConventionProfiler, IProj
         }
 
         var options = request.Options?.Clone() ?? new ProjectConventionOptions();
-        var profile = request.Profile ?? _profileStore.LoadProfile(request.WorkspaceRoot, options.ConventionProfilePath);
+        var profile = request.Profile ?? _profileStore.LoadProfile(
+            request.WorkspaceRoot,
+            options.ConventionProfilePath,
+            options.WorkspaceStoragePath);
         if (profile == null)
         {
             var build = BuildProfile(new ConventionProfileBuildRequest
@@ -134,7 +150,10 @@ public sealed class ProjectConventionService : IProjectConventionProfiler, IProj
             profile = build.Profile;
         }
 
-        var ignoreList = request.IgnoreList ?? _profileStore.LoadIgnoreList(request.WorkspaceRoot, options.ConventionIgnoreListPath);
+        var ignoreList = request.IgnoreList ?? _profileStore.LoadIgnoreList(
+            request.WorkspaceRoot,
+            options.ConventionIgnoreListPath,
+            options.WorkspaceStoragePath);
 
         var fullPath = Path.IsPathRooted(request.FilePath)
             ? request.FilePath
@@ -209,7 +228,10 @@ public sealed class ProjectConventionService : IProjectConventionProfiler, IProj
         AiAnomalyScore? aiScore = null;
         if (options.EnableAiNamingAnomalyDetection)
         {
-            var model = LoadAnomalyModel(request.WorkspaceRoot, options.ConventionAnomalyModelPath);
+            var model = LoadAnomalyModel(
+                request.WorkspaceRoot,
+                options.ConventionAnomalyModelPath,
+                options.WorkspaceStoragePath);
             aiScore = _aiConventionScorer.Score(vector, model, request.CoralRuntime, options.UseCoralTpuIfAvailable);
             if (aiScore != null && aiScore.Score >= options.AiAnomalyThreshold)
             {
@@ -263,12 +285,15 @@ public sealed class ProjectConventionService : IProjectConventionProfiler, IProj
             Scope = scope,
             Target = target,
             CreatedAtUtc = DateTime.UtcNow,
-        });
+        }, options.WorkspaceStoragePath);
     }
 
-    private static LightweightAnomalyModel LoadAnomalyModel(string workspaceRoot, string configuredPath)
+    private static LightweightAnomalyModel LoadAnomalyModel(
+        string workspaceRoot,
+        string configuredPath,
+        string? workspaceStoragePath)
     {
-        var path = JsonConventionProfileStore.ResolveArtifactPath(workspaceRoot, configuredPath);
+        var path = JsonConventionProfileStore.ResolveArtifactPath(workspaceRoot, configuredPath, workspaceStoragePath);
         try
         {
             if (!File.Exists(path))

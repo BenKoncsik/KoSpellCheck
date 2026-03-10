@@ -35,6 +35,7 @@ const dashboardMapper_1 = require("../dashboard/dashboardMapper");
             minEvidenceCount: 2,
             statisticalAnomalyThreshold: 0.6,
             aiAnomalyThreshold: 0.7,
+            workspaceStoragePath: '',
             profilePath: '.kospellcheck/project-conventions.json',
             profileCachePath: '.kospellcheck/project-profile-cache.json',
             anomalyModelPath: '.kospellcheck/project-anomaly-model.json',

@@ -1,4 +1,5 @@
 using KoSpellCheck.Core.Config;
+using KoSpellCheck.Core.Storage;
 
 namespace KoSpellCheck.Core.Style;
 
@@ -21,6 +22,8 @@ public sealed class StyleLearningOptions
 
     public int IgnoreAllCapsLengthThreshold { get; set; } = 4;
 
+    public string WorkspaceStoragePath { get; set; } = string.Empty;
+
     public ISet<string> IgnoreFolders { get; set; } =
         new HashSet<string>(
             new[] { "bin", "obj", "node_modules", ".git", ".vs", "artifacts" },
@@ -28,14 +31,11 @@ public sealed class StyleLearningOptions
 
     public string ResolveCachePath(string workspaceRoot)
     {
-        if (string.IsNullOrWhiteSpace(CachePath))
-        {
-            return Path.Combine(workspaceRoot, ".kospellcheck", "style-profile.json");
-        }
-
-        return Path.IsPathRooted(CachePath)
-            ? CachePath
-            : Path.Combine(workspaceRoot, CachePath);
+        return WorkspaceStoragePathResolver.ResolveArtifactPath(
+            workspaceRoot,
+            WorkspaceStoragePath,
+            CachePath,
+            ".kospellcheck/style-profile.json");
     }
 
     public string BuildOptionsFingerprint()
@@ -48,6 +48,7 @@ public sealed class StyleLearningOptions
             TimeBudgetMs,
             MinTokenLength,
             IgnoreAllCapsLengthThreshold,
+            WorkspaceStoragePath,
             string.Join(",", FileExtensions.OrderBy(v => v, StringComparer.OrdinalIgnoreCase)),
             CachePath,
             string.Join(",", IgnoreFolders.OrderBy(v => v, StringComparer.OrdinalIgnoreCase)));
@@ -71,6 +72,7 @@ public sealed class StyleLearningOptions
                 : config.StyleLearningCachePath,
             MinTokenLength = Math.Max(1, config.StyleLearningMinTokenLength),
             IgnoreAllCapsLengthThreshold = Math.Max(1, config.IgnoreAllCapsLengthThreshold),
+            WorkspaceStoragePath = config.WorkspaceStoragePath,
             IgnoreFolders = new HashSet<string>(
                 config.StyleLearningIgnoreFolders.Where(v => !string.IsNullOrWhiteSpace(v)),
                 StringComparer.OrdinalIgnoreCase),

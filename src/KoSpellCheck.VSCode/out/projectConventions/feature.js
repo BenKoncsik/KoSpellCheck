@@ -42,6 +42,7 @@ const node_path_1 = __importDefault(require("node:path"));
 const vscode = __importStar(require("vscode"));
 const config_1 = require("../config");
 const sharedUiText_1 = require("../sharedUiText");
+const workspaceStorage_1 = require("../workspaceStorage");
 const coreCliClient_1 = require("./adapters/coreCliClient");
 const SOURCE = 'KoSpellCheck.Conventions';
 class ProjectConventionFeature {
@@ -103,11 +104,11 @@ class ProjectConventionFeature {
             };
         }
         const config = this.resolveConfig(scope.storageRoot, uri ?? vscode.window.activeTextEditor?.document.uri);
-        const profilePath = resolveArtifactPath(scope.storageRoot, config.profilePath);
-        const summaryPath = resolveArtifactPath(scope.storageRoot, config.scanSummaryPath);
-        const cachePath = resolveArtifactPath(scope.storageRoot, config.profileCachePath);
-        const anomalyModelPath = resolveArtifactPath(scope.storageRoot, config.anomalyModelPath);
-        const ignoreListPath = resolveArtifactPath(scope.storageRoot, config.ignoreListPath);
+        const profilePath = resolveArtifactPath(scope.storageRoot, config.workspaceStoragePath, config.profilePath);
+        const summaryPath = resolveArtifactPath(scope.storageRoot, config.workspaceStoragePath, config.scanSummaryPath);
+        const cachePath = resolveArtifactPath(scope.storageRoot, config.workspaceStoragePath, config.profileCachePath);
+        const anomalyModelPath = resolveArtifactPath(scope.storageRoot, config.workspaceStoragePath, config.anomalyModelPath);
+        const ignoreListPath = resolveArtifactPath(scope.storageRoot, config.workspaceStoragePath, config.ignoreListPath);
         const state = this.scopeStates.get(scope.scopeKey);
         const profile = state?.profile ?? this.readJsonArtifact(profilePath);
         const summary = this.readJsonArtifact(summaryPath);
@@ -152,7 +153,7 @@ class ProjectConventionFeature {
                 return;
             }
             const config = this.resolveConfig(scope.storageRoot, vscode.window.activeTextEditor?.document.uri);
-            const profilePath = resolveArtifactPath(scope.storageRoot, config.profilePath);
+            const profilePath = resolveArtifactPath(scope.storageRoot, config.workspaceStoragePath, config.profilePath);
             if (!node_fs_1.default.existsSync(profilePath)) {
                 vscode.window.showInformationMessage((0, sharedUiText_1.text)('conventions.info.noLearnedProfile', 'KoSpellCheck: no learned convention profile found yet. Run "Rebuild Convention Profile" first.', {
                     configuredLanguage: config.uiLanguage
@@ -819,6 +820,7 @@ class ProjectConventionFeature {
             minEvidenceCount: settings.get('projectConventions.minEvidenceCount', loaded.projectConventionMinEvidenceCount),
             statisticalAnomalyThreshold: settings.get('projectConventions.statisticalAnomalyThreshold', loaded.statisticalAnomalyThreshold),
             aiAnomalyThreshold: settings.get('projectConventions.aiAnomalyThreshold', loaded.aiAnomalyThreshold),
+            workspaceStoragePath: loaded.workspaceStoragePath,
             profilePath: settings.get('projectConventions.profilePath', loaded.projectConventionProfilePath),
             profileCachePath: settings.get('projectConventions.profileCachePath', loaded.projectConventionProfileCachePath),
             anomalyModelPath: settings.get('projectConventions.anomalyModelPath', loaded.projectConventionAnomalyModelPath),
@@ -847,6 +849,7 @@ class ProjectConventionFeature {
             MinEvidenceCount: config.minEvidenceCount,
             StatisticalAnomalyThreshold: config.statisticalAnomalyThreshold,
             AiAnomalyThreshold: config.aiAnomalyThreshold,
+            WorkspaceStoragePath: config.workspaceStoragePath,
             ConventionProfilePath: config.profilePath,
             ConventionProfileCachePath: config.profileCachePath,
             ConventionAnomalyModelPath: config.anomalyModelPath,
@@ -912,9 +915,8 @@ class ProjectConventionFeature {
     }
 }
 exports.ProjectConventionFeature = ProjectConventionFeature;
-function resolveArtifactPath(workspaceRoot, configuredPath) {
-    const target = configuredPath?.trim() || '.kospellcheck/project-conventions.json';
-    return node_path_1.default.isAbsolute(target) ? target : node_path_1.default.join(workspaceRoot, target);
+function resolveArtifactPath(workspaceRoot, workspaceStoragePath, configuredPath) {
+    return (0, workspaceStorage_1.resolveWorkspaceArtifactPath)(workspaceRoot, workspaceStoragePath, configuredPath, '.kospellcheck/project-conventions.json');
 }
 function toRange(document, line, column) {
     const safeLine = Math.max(0, Math.min(line, Math.max(0, document.lineCount - 1)));

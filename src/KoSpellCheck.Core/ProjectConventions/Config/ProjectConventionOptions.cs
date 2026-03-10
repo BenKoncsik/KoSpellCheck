@@ -48,6 +48,8 @@ public sealed class ProjectConventionOptions
 
     public double AiAnomalyThreshold { get; set; } = 0.70;
 
+    public string WorkspaceStoragePath { get; set; } = string.Empty;
+
     public string ConventionProfilePath { get; set; } = ".kospellcheck/project-conventions.json";
 
     public string ConventionProfileCachePath { get; set; } = ".kospellcheck/project-profile-cache.json";
@@ -81,6 +83,7 @@ public sealed class ProjectConventionOptions
             MinEvidenceCount = MinEvidenceCount,
             StatisticalAnomalyThreshold = StatisticalAnomalyThreshold,
             AiAnomalyThreshold = AiAnomalyThreshold,
+            WorkspaceStoragePath = WorkspaceStoragePath,
             ConventionProfilePath = ConventionProfilePath,
             ConventionProfileCachePath = ConventionProfileCachePath,
             ConventionAnomalyModelPath = ConventionAnomalyModelPath,

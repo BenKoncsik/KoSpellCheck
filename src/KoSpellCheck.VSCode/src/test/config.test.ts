@@ -18,6 +18,7 @@ test('default config enables local typo acceleration auto mode', () => {
   assert.equal(config.statisticalAnomalyDetectionEnabled, true);
   assert.equal(config.aiNamingAnomalyDetectionEnabled, false);
   assert.equal(config.useCoralTpuIfAvailable, false);
+  assert.equal(config.workspaceStoragePath, '');
 });
 
 test('loadConfig reads local typo acceleration settings from kospellcheck.json', () => {
@@ -73,6 +74,46 @@ test('loadConfig reads local typo acceleration settings from .editorconfig', () 
     assert.equal(config.localTypoAccelerationShowDetectionPrompt, false);
     assert.equal(config.localTypoAccelerationVerboseLogging, true);
     assert.equal(config.localTypoAccelerationAutoDownloadRuntime, false);
+  } finally {
+    fs.rmSync(workspaceRoot, { recursive: true, force: true });
+  }
+});
+
+test('loadConfig reads workspace storage path from kospellcheck.json', () => {
+  const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kospellcheck-storage-json-'));
+
+  try {
+    fs.writeFileSync(
+      path.join(workspaceRoot, 'kospellcheck.json'),
+      JSON.stringify(
+        {
+          workspaceStoragePath: '/tmp/ko-storage'
+        },
+        null,
+        2
+      )
+    );
+
+    const config = loadConfig(workspaceRoot);
+    assert.equal(config.workspaceStoragePath, '/tmp/ko-storage');
+  } finally {
+    fs.rmSync(workspaceRoot, { recursive: true, force: true });
+  }
+});
+
+test('loadConfig reads workspace storage path from .editorconfig', () => {
+  const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kospellcheck-storage-editorconfig-'));
+
+  try {
+    fs.writeFileSync(
+      path.join(workspaceRoot, '.editorconfig'),
+      [
+        'kospellcheck_workspace_storage_path = /tmp/ko-storage-editorconfig'
+      ].join('\n')
+    );
+
+    const config = loadConfig(workspaceRoot);
+    assert.equal(config.workspaceStoragePath, '/tmp/ko-storage-editorconfig');
   } finally {
     fs.rmSync(workspaceRoot, { recursive: true, force: true });
   }

@@ -22,6 +22,7 @@ const config_1 = require("../config");
     node_assert_1.default.equal(config.statisticalAnomalyDetectionEnabled, true);
     node_assert_1.default.equal(config.aiNamingAnomalyDetectionEnabled, false);
     node_assert_1.default.equal(config.useCoralTpuIfAvailable, false);
+    node_assert_1.default.equal(config.workspaceStoragePath, '');
 });
 (0, node_test_1.default)('loadConfig reads local typo acceleration settings from kospellcheck.json', () => {
     const workspaceRoot = node_fs_1.default.mkdtempSync(node_path_1.default.join(node_os_1.default.tmpdir(), 'kospellcheck-config-'));
@@ -62,6 +63,32 @@ const config_1 = require("../config");
         node_assert_1.default.equal(config.localTypoAccelerationShowDetectionPrompt, false);
         node_assert_1.default.equal(config.localTypoAccelerationVerboseLogging, true);
         node_assert_1.default.equal(config.localTypoAccelerationAutoDownloadRuntime, false);
+    }
+    finally {
+        node_fs_1.default.rmSync(workspaceRoot, { recursive: true, force: true });
+    }
+});
+(0, node_test_1.default)('loadConfig reads workspace storage path from kospellcheck.json', () => {
+    const workspaceRoot = node_fs_1.default.mkdtempSync(node_path_1.default.join(node_os_1.default.tmpdir(), 'kospellcheck-storage-json-'));
+    try {
+        node_fs_1.default.writeFileSync(node_path_1.default.join(workspaceRoot, 'kospellcheck.json'), JSON.stringify({
+            workspaceStoragePath: '/tmp/ko-storage'
+        }, null, 2));
+        const config = (0, config_1.loadConfig)(workspaceRoot);
+        node_assert_1.default.equal(config.workspaceStoragePath, '/tmp/ko-storage');
+    }
+    finally {
+        node_fs_1.default.rmSync(workspaceRoot, { recursive: true, force: true });
+    }
+});
+(0, node_test_1.default)('loadConfig reads workspace storage path from .editorconfig', () => {
+    const workspaceRoot = node_fs_1.default.mkdtempSync(node_path_1.default.join(node_os_1.default.tmpdir(), 'kospellcheck-storage-editorconfig-'));
+    try {
+        node_fs_1.default.writeFileSync(node_path_1.default.join(workspaceRoot, '.editorconfig'), [
+            'kospellcheck_workspace_storage_path = /tmp/ko-storage-editorconfig'
+        ].join('\n'));
+        const config = (0, config_1.loadConfig)(workspaceRoot);
+        node_assert_1.default.equal(config.workspaceStoragePath, '/tmp/ko-storage-editorconfig');
     }
     finally {
         node_fs_1.default.rmSync(workspaceRoot, { recursive: true, force: true });

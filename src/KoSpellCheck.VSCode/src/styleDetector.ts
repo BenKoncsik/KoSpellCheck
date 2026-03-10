@@ -5,6 +5,7 @@ import { compileIgnorePatterns } from './config';
 import { isAllCaps, normalize } from './normalization';
 import { scanCandidateSpans, tokenize } from './tokenizer';
 import { KoSpellCheckConfig, ProjectStyleProfile, TokenStyleStats } from './types';
+import { resolveWorkspaceArtifactPath } from './workspaceStorage';
 
 const numberRegex = /^\d+(\.\d+)?$/;
 const guidRegex = /^[{(]?[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}[)}]?$/;
@@ -53,7 +54,7 @@ export async function detectProjectStyleProfile(
   ].join('|');
 
   const fingerprint = await buildFingerprint(workspaceRoot, selected, optionsFingerprint);
-  const cachePath = resolveCachePath(workspaceRoot, config.styleLearningCachePath);
+  const cachePath = resolveCachePath(workspaceRoot, config);
   const cached = await tryLoadCache(cachePath, workspaceRoot, fingerprint);
   if (cached) {
     return cached;
@@ -108,16 +109,13 @@ export async function detectProjectStyleProfile(
   return profile;
 }
 
-function resolveCachePath(workspaceRoot: string, configuredPath: string): string {
-  if (!configuredPath?.trim()) {
-    return path.join(workspaceRoot, '.kospellcheck', 'style-profile.json');
-  }
-
-  if (path.isAbsolute(configuredPath)) {
-    return configuredPath;
-  }
-
-  return path.join(workspaceRoot, configuredPath);
+function resolveCachePath(workspaceRoot: string, config: KoSpellCheckConfig): string {
+  return resolveWorkspaceArtifactPath(
+    workspaceRoot,
+    config.workspaceStoragePath,
+    config.styleLearningCachePath,
+    '.kospellcheck/style-profile.json'
+  );
 }
 
 function createEmptyProfile(workspaceRoot: string): ProjectStyleProfile {

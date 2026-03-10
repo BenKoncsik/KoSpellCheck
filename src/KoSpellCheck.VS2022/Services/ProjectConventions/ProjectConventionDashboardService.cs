@@ -261,8 +261,14 @@ internal sealed class ProjectConventionDashboardService
 
         var config = ConfigLoader.Load(workspaceRoot);
         var options = config.ProjectConventions.Clone();
-        var profilePath = JsonConventionProfileStore.ResolveArtifactPath(workspaceRoot, options.ConventionProfilePath);
-        var summaryPath = JsonConventionProfileStore.ResolveArtifactPath(workspaceRoot, options.ConventionScanSummaryPath);
+        var profilePath = JsonConventionProfileStore.ResolveArtifactPath(
+            workspaceRoot,
+            options.ConventionProfilePath,
+            options.WorkspaceStoragePath);
+        var summaryPath = JsonConventionProfileStore.ResolveArtifactPath(
+            workspaceRoot,
+            options.ConventionScanSummaryPath,
+            options.WorkspaceStoragePath);
 
         WorkspaceState state;
         lock (_gate)

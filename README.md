@@ -109,6 +109,7 @@ kospellcheck_allow_mixed_languages = true
 kospellcheck_treat_as_hungarian_when_ascii_only = true
 kospellcheck_ignore_words = Async,SignalR,STM32
 kospellcheck_prefer_terms = model:modell
+kospellcheck_workspace_storage_path = /Users/you/.kospellcheck-workspaces
 kospellcheck_style_learning = true
 ```
 
@@ -122,6 +123,7 @@ kospellcheck_style_learning = true
   "preferTerms": {
     "model": "modell"
   },
+  "workspaceStoragePath": "/Users/you/.kospellcheck-workspaces",
   "styleLearningEnabled": true,
   "localTypoAcceleration": {
     "mode": "auto",

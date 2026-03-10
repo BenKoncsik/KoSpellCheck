@@ -66,6 +66,7 @@ export interface KoSpellCheckConfig {
   ignoreAllCapsLengthThreshold: number;
   suggestionsMax: number;
   maxTokensPerDocument: number;
+  workspaceStoragePath: string;
   styleLearningEnabled: boolean;
   styleLearningMaxFiles: number;
   styleLearningMaxTokens: number;

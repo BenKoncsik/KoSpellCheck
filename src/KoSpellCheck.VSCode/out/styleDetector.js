@@ -10,6 +10,7 @@ const node_path_1 = __importDefault(require("node:path"));
 const config_1 = require("./config");
 const normalization_1 = require("./normalization");
 const tokenizer_1 = require("./tokenizer");
+const workspaceStorage_1 = require("./workspaceStorage");
 const numberRegex = /^\d+(\.\d+)?$/;
 const guidRegex = /^[{(]?[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}[)}]?$/;
 const hexRegex = /^(0x)?[0-9a-fA-F]{8,}$/;
@@ -41,7 +42,7 @@ async function detectProjectStyleProfile(workspaceRoot, filePaths, config) {
         [...ignoreFolders].sort().join(',')
     ].join('|');
     const fingerprint = await buildFingerprint(workspaceRoot, selected, optionsFingerprint);
-    const cachePath = resolveCachePath(workspaceRoot, config.styleLearningCachePath);
+    const cachePath = resolveCachePath(workspaceRoot, config);
     const cached = await tryLoadCache(cachePath, workspaceRoot, fingerprint);
     if (cached) {
         return cached;
@@ -87,14 +88,8 @@ async function detectProjectStyleProfile(workspaceRoot, filePaths, config) {
     await trySaveCache(cachePath, fingerprint, profile);
     return profile;
 }
-function resolveCachePath(workspaceRoot, configuredPath) {
-    if (!configuredPath?.trim()) {
-        return node_path_1.default.join(workspaceRoot, '.kospellcheck', 'style-profile.json');
-    }
-    if (node_path_1.default.isAbsolute(configuredPath)) {
-        return configuredPath;
-    }
-    return node_path_1.default.join(workspaceRoot, configuredPath);
+function resolveCachePath(workspaceRoot, config) {
+    return (0, workspaceStorage_1.resolveWorkspaceArtifactPath)(workspaceRoot, config.workspaceStoragePath, config.styleLearningCachePath, '.kospellcheck/style-profile.json');
 }
 function createEmptyProfile(workspaceRoot) {
     const now = new Date().toISOString();

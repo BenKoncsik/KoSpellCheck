@@ -21,6 +21,7 @@ A JSON felülírja az `.editorconfig` értékeit.
 - `kospellcheck_ignore_all_caps_length_threshold = 4`
 - `kospellcheck_suggestions_max = 5`
 - `kospellcheck_prefer_terms = model:modell,endpoint:végpont`
+- `kospellcheck_workspace_storage_path = /abs/path/to/storage`
 - `kospellcheck_style_learning = true|false`
 - `kospellcheck_style_learning_max_files = 2000`
 - `kospellcheck_style_learning_max_tokens = 200000`
@@ -45,6 +46,7 @@ A JSON felülírja az `.editorconfig` értékeit.
   "preferTerms": {
     "model": "modell"
   },
+  "workspaceStoragePath": "/abs/path/to/storage",
   "treatAsHungarianWhenAsciiOnly": true,
   "ignoreWords": ["Async", "SignalR", "STM32"],
   "projectDictionary": ["KoSpellCheck"],
@@ -88,6 +90,7 @@ Ha `treatAsHungarianWhenAsciiOnly = true`, akkor a HU szótárra történik ASCI
 
 - A projekt stílusprofil workspace rootonként épül (`ProjectStyleProfile`).
 - A profil cache alapból: `.kospellcheck/style-profile.json`.
+- Ha `workspaceStoragePath` meg van adva, a `.kospellcheck/*` relatív artifactok átkerülnek a megadott gyökér alá, projektenként külön (`<workspaceStoragePath>/project-<hash>/...`).
 - A tanulás csak rangsorolást végez a javaslatokra, nem ad új szót a dictionaryhez.
 - `preferTerms` mindig felülírja a tanult stílust.
 

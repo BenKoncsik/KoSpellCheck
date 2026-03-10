@@ -4,12 +4,13 @@ namespace KoSpellCheck.Core.ProjectConventions.Abstractions;
 
 public interface IConventionProfileStore
 {
-    ProjectConventionProfile? LoadProfile(string workspaceRoot, string configuredPath);
+    ProjectConventionProfile? LoadProfile(string workspaceRoot, string configuredPath, string? workspaceStoragePath = null);
 
-    ConventionIgnoreList LoadIgnoreList(string workspaceRoot, string configuredPath);
+    ConventionIgnoreList LoadIgnoreList(string workspaceRoot, string configuredPath, string? workspaceStoragePath = null);
 
     void SaveArtifacts(
         string workspaceRoot,
+        string? workspaceStoragePath,
         string profilePath,
         ProjectConventionProfile profile,
         string summaryPath,
@@ -19,5 +20,9 @@ public interface IConventionProfileStore
         string anomalyModelPath,
         LightweightAnomalyModel anomalyModel);
 
-    void AppendIgnoreEntry(string workspaceRoot, string configuredPath, ConventionIgnoreEntry entry);
+    void AppendIgnoreEntry(
+        string workspaceRoot,
+        string configuredPath,
+        ConventionIgnoreEntry entry,
+        string? workspaceStoragePath = null);
 }

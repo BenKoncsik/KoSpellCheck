@@ -27,6 +27,7 @@ const DEFAULT_CONFIG = {
     ignoreAllCapsLengthThreshold: 4,
     suggestionsMax: 5,
     maxTokensPerDocument: 2000,
+    workspaceStoragePath: '',
     styleLearningEnabled: true,
     styleLearningMaxFiles: 2000,
     styleLearningMaxTokens: 200000,
@@ -148,6 +149,9 @@ function applyEditorConfig(config, content) {
                 break;
             case 'kospellcheck_suggestions_max':
                 config.suggestionsMax = parseIntOr(value, config.suggestionsMax);
+                break;
+            case 'kospellcheck_workspace_storage_path':
+                config.workspaceStoragePath = value;
                 break;
             case 'kospellcheck_prefer_terms':
                 config.preferTerms = parsePreferTerms(value);
@@ -304,6 +308,9 @@ function applyJsonConfig(config, input) {
         config.suggestionsMax = input.suggestionsMax;
     if (typeof input.maxTokensPerDocument === 'number')
         config.maxTokensPerDocument = input.maxTokensPerDocument;
+    if (typeof input.workspaceStoragePath === 'string') {
+        config.workspaceStoragePath = input.workspaceStoragePath;
+    }
     if (typeof input.styleLearningEnabled === 'boolean')
         config.styleLearningEnabled = input.styleLearningEnabled;
     if (typeof input.styleLearningMaxFiles === 'number')

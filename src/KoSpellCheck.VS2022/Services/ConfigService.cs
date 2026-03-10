@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.IO;
 using KoSpellCheck.Core.Config;
+using KoSpellCheck.Core.Storage;
 using Microsoft.VisualStudio.Text;
 using Newtonsoft.Json.Linq;
 
@@ -59,7 +60,12 @@ internal sealed class ConfigService : IDisposable
 
         var filePath = GetFilePath(textBuffer);
         var workspaceRoot = ResolveWorkspaceRoot(filePath);
-        var dictionaryPath = Path.Combine(workspaceRoot, ".kospellcheck", "project.dict");
+        var config = ConfigLoader.Load(workspaceRoot);
+        var dictionaryPath = WorkspaceStoragePathResolver.ResolveArtifactPath(
+            workspaceRoot,
+            config.WorkspaceStoragePath,
+            ".kospellcheck/project.dict",
+            ".kospellcheck/project.dict");
 
         Directory.CreateDirectory(Path.GetDirectoryName(dictionaryPath) ?? workspaceRoot);
 
@@ -106,7 +112,11 @@ internal sealed class ConfigService : IDisposable
         var jsonScope = TryReadJsonScope(Path.Combine(workspaceRoot, "kospellcheck.json"));
         var scope = jsonScope ?? editorScope ?? SpellCheckScope.Identifiers;
 
-        var projectDictionaryPath = Path.Combine(workspaceRoot, ".kospellcheck", "project.dict");
+        var projectDictionaryPath = WorkspaceStoragePathResolver.ResolveArtifactPath(
+            workspaceRoot,
+            config.WorkspaceStoragePath,
+            ".kospellcheck/project.dict",
+            ".kospellcheck/project.dict");
         if (File.Exists(projectDictionaryPath))
         {
             foreach (var line in File.ReadAllLines(projectDictionaryPath))

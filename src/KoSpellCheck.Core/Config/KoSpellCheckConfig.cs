@@ -40,6 +40,8 @@ public sealed class KoSpellCheckConfig
 
     public int MaxTokensPerDocument { get; set; } = 2000;
 
+    public string WorkspaceStoragePath { get; set; } = string.Empty;
+
     public bool StyleLearningEnabled { get; set; } = true;
 
     public int StyleLearningMaxFiles { get; set; } = 2000;
@@ -90,6 +92,7 @@ public sealed class KoSpellCheckConfig
             IgnoreAllCapsLengthThreshold = IgnoreAllCapsLengthThreshold,
             SuggestionsMax = SuggestionsMax,
             MaxTokensPerDocument = MaxTokensPerDocument,
+            WorkspaceStoragePath = WorkspaceStoragePath,
             StyleLearningEnabled = StyleLearningEnabled,
             StyleLearningMaxFiles = StyleLearningMaxFiles,
             StyleLearningMaxTokens = StyleLearningMaxTokens,
