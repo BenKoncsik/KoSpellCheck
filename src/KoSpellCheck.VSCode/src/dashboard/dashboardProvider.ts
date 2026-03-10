@@ -442,6 +442,7 @@ export class KoSpellCheckDashboardProvider implements vscode.WebviewViewProvider
       valueInactive: text('dashboard.value.inactive', 'Inactive', { configuredLanguage }),
       valueInFlight: text('dashboard.value.inFlight', 'In-flight', { configuredLanguage }),
       valueQueued: text('dashboard.value.queued', 'Queued', { configuredLanguage }),
+      valueAuto: text('dashboard.value.auto', '(auto)', { configuredLanguage }),
       valueNotAvailable: text('general.notAvailable', 'n/a', { configuredLanguage }),
       valueUnknown: text('dashboard.value.unknown', 'Unknown', { configuredLanguage }),
       metaLastRefresh: text('dashboard.meta.lastRefresh', 'Last refresh:', { configuredLanguage }),

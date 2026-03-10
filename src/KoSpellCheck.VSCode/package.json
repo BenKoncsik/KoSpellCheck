@@ -2,7 +2,7 @@
   "name": "kospellcheck",
   "displayName": "%kospellcheck.displayName%",
   "description": "%kospellcheck.description%",
-  "version": "0.1.15",
+  "version": "0.1.50000",
   "publisher": "KoSpellCheckV2",
   "license": "MIT",
   "engines": {
@@ -38,6 +38,8 @@
     "node_modules/nspell/**",
     "node_modules/is-buffer/**",
     "package.json",
+    "package.nls.json",
+    "package.nls.hu.json",
     "LICENSE",
     "README.md"
   ],
