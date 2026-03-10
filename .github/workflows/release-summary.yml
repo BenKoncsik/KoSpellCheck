@@ -92,8 +92,8 @@ jobs:
           from pathlib import Path
           import os
 
-          start = "<!-- kospellcheck-release-summary:start -->"
-          end = "<!-- kospellcheck-release-summary:end -->"
+          start = "<!-- kospellcheck-release-summary-base:start -->"
+          end = "<!-- kospellcheck-release-summary-base:end -->"
 
           old = os.environ.get("OLD_BODY", "")
           summary = Path("/tmp/release-summary.md").read_text(encoding="utf-8").strip()
