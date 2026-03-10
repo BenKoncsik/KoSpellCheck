@@ -1,0 +1,97 @@
+name: release-summary
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Release tag to summarize (optional, defaults to latest release)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-summary-${{ github.event.release.tag_name || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  update-release-summary:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure Python is available
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Fetch tags
+        run: git fetch --tags --force
+
+      - name: Build release context
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${{ github.event.release.tag_name || inputs.tag_name }}"
+          if [[ -z "${TAG}" ]]; then
+            TAG="$(gh release list --limit 1 --json tagName -q '.[0].tagName')"
+          fi
+          python3 .github/scripts/collect_release_context.py \
+            "${{ github.repository }}" \
+            --repo-path . \
+            --latest-tag "${TAG}" \
+            --output /tmp/release-context.json
+
+      - name: Generate bilingual summary
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+        run: |
+          python3 .github/scripts/generate_bilingual_release_summary.py \
+            --input /tmp/release-context.json \
+            --output /tmp/release-summary.md
+
+      - name: Merge summary into release body
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${{ github.event.release.tag_name || inputs.tag_name }}"
+          if [[ -z "${TAG}" ]]; then
+            TAG="$(gh release list --limit 1 --json tagName -q '.[0].tagName')"
+          fi
+
+          OLD_BODY="$(gh release view "$TAG" --json body -q .body)"
+          export OLD_BODY
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+
+          start = "<!-- kospellcheck-release-summary:start -->"
+          end = "<!-- kospellcheck-release-summary:end -->"
+
+          old = os.environ.get("OLD_BODY", "")
+          summary = Path("/tmp/release-summary.md").read_text(encoding="utf-8").strip()
+          block = f"{start}\n\n{summary}\n\n{end}"
+
+          s = old.find(start)
+          e = old.find(end)
+          if s != -1 and e != -1 and e >= s:
+              e += len(end)
+              merged = (old[:s].rstrip() + "\n\n" + block).strip() + "\n"
+          else:
+              merged = (old.rstrip() + "\n\n---\n\n" + block).strip() + "\n"
+
+          Path('/tmp/new-release-body.md').write_text(merged, encoding='utf-8')
+          PY
+
+          gh release edit "$TAG" --notes-file /tmp/new-release-body.md
