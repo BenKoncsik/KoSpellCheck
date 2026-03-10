@@ -411,6 +411,19 @@ set +e
 
   if [[ "${OS:-}" == "Windows_NT" ]]; then
     echo "[pack] using VSSDK CreateVsixContainer (Marketplace-compatible VSIX v3)"
+    PKGDEF_PATH="src/KoSpellCheck.VS2022/obj/Release/${VS2022_TFM}/KoSpellCheck.VS2022.pkgdef"
+
+    dotnet msbuild "$VS2022_PROJECT" \
+      -t:GeneratePkgDef \
+      -p:Configuration=Release \
+      -p:IntermediateOutputPath="$VS2022_INTERMEDIATE_PATH" \
+      -p:OutDir="$VS2022_OUTDIR_PATH"
+
+    if [[ ! -f "$ROOT/$PKGDEF_PATH" ]]; then
+      echo "[pack] expected VS2022 pkgdef not found after GeneratePkgDef: $PKGDEF_PATH" >&2
+      exit 1
+    fi
+
     dotnet msbuild "$VS2022_PROJECT" \
       -t:CreateVsixContainer \
       -p:Configuration=Release \

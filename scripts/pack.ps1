@@ -296,6 +296,17 @@ if (Test-Path $LegacyVs2022VsixOut) {
 }
 Get-ChildItem -Path (Join-Path $Artifacts 'vsix/KoSpellCheck.VS2022-*.vsix') -ErrorAction SilentlyContinue | Remove-Item -Force
 
+$Vs2022PkgDefPath = Join-Path $Root "src/KoSpellCheck.VS2022/obj/Release/$Vs2022TargetFramework/KoSpellCheck.VS2022.pkgdef"
+dotnet msbuild $Vs2022Project `
+  /t:GeneratePkgDef `
+  /p:Configuration=Release `
+  /p:IntermediateOutputPath=$Vs2022IntermediatePath `
+  /p:OutDir=$Vs2022OutDirPath
+
+if (-not (Test-Path -LiteralPath $Vs2022PkgDefPath)) {
+  throw "Expected VS2022 pkgdef not found after GeneratePkgDef: $Vs2022PkgDefPath"
+}
+
 dotnet msbuild $Vs2022Project `
   /t:CreateVsixContainer `
   /p:Configuration=Release `
