@@ -161,7 +161,7 @@ sync_pack_resources() {
 
 package_vs2022_manual_zip() {
   echo "[pack] non-Windows fallback packaging in use (manual ZIP)."
-  echo "[pack] warning: this VSIX may be rejected by Visual Studio Marketplace; install mono + Microsoft.VSSDK.BuildTools to enable VSIX v3 packaging."
+  echo "[pack] warning: this VSIX was created with fallback packaging and may miss VSIX v3 marker files."
   rm -rf "$VSIX_STAGE"
   mkdir -p "$VSIX_STAGE"
   cp "$ROOT/src/KoSpellCheck.VS2022/source.extension.vsixmanifest" "$VSIX_STAGE/extension.vsixmanifest"
@@ -191,6 +191,37 @@ package_vs2022_manual_zip() {
     ditto -c -k --sequesterRsrc --keepParent . "$VS2022_VSIX_OUT"
   fi
   popd >/dev/null
+}
+
+fail_or_manual_vs2022_fallback() {
+  local reason="$1"
+  local allow_unsafe_raw="${PACK_ALLOW_UNSAFE_VS2022_MANUAL_ZIP:-auto}"
+  local allow_unsafe
+  allow_unsafe="$(printf '%s' "$allow_unsafe_raw" | tr '[:upper:]' '[:lower:]')"
+
+  case "$allow_unsafe" in
+    true|1|yes|on)
+      echo "[pack] warning: $reason" >&2
+      echo "[pack] warning: PACK_ALLOW_UNSAFE_VS2022_MANUAL_ZIP=true, continuing with local-only fallback packaging." >&2
+      package_vs2022_manual_zip
+      return 0
+      ;;
+    false|0|no|off)
+      echo "[pack] error: $reason" >&2
+      echo "[pack] error: PACK_ALLOW_UNSAFE_VS2022_MANUAL_ZIP=false, refusing local-only fallback packaging." >&2
+      return 1
+      ;;
+    auto|"")
+      echo "[pack] warning: $reason" >&2
+      echo "[pack] warning: continuing with fallback packaging (default behavior)." >&2
+      package_vs2022_manual_zip
+      return 0
+      ;;
+    *)
+      echo "[pack] error: invalid PACK_ALLOW_UNSAFE_VS2022_MANUAL_ZIP value '$allow_unsafe_raw' (expected true/false/auto)." >&2
+      return 1
+      ;;
+  esac
 }
 
 validate_vsix_content_types() {
@@ -284,7 +315,7 @@ validate_vsix_marketplace_markers() {
     fi
 
     echo "[pack] warning: generated VS2022 VSIX is missing VSIX v3 marker files (${missing[*]})." >&2
-    echo "[pack] warning: this package may install locally, but Visual Studio Marketplace upload will likely fail." >&2
+    echo "[pack] warning: Visual Studio Marketplace upload compatibility may vary with current validation rules." >&2
   fi
 }
 
@@ -385,7 +416,7 @@ set +e
         echo "[pack] warning: sourceManifest='$SOURCE_MANIFEST' exists=$([[ -f "$ROOT/$SOURCE_MANIFEST" ]] && echo true || echo false)" >&2
         echo "[pack] warning: filesJson='$FILES_JSON' exists=$([[ -f "$ROOT/$FILES_JSON" ]] && echo true || echo false)" >&2
         echo "[pack] warning: pkgdef='$PKGDEF_PATH' exists=$([[ -f "$ROOT/$PKGDEF_PATH" ]] && echo true || echo false)" >&2
-        package_vs2022_manual_zip
+        fail_or_manual_vs2022_fallback "cannot build marketplace-compatible VS2022 VSIX on non-Windows because required VSSDK inputs are missing."
       else
         ln -sfn "$VSSDK_SCHEMAS" "$ROOT/.tmp-vssdk-schemas"
 
@@ -403,14 +434,13 @@ set +e
         rm -f "$ROOT/.tmp-vssdk-schemas"
 
         if [[ "$VSIXUTIL_STATUS" -ne 0 ]]; then
-          echo "[pack] warning: VsixUtil packaging failed (status=$VSIXUTIL_STATUS); falling back to manual ZIP packaging." >&2
-          package_vs2022_manual_zip
+          fail_or_manual_vs2022_fallback "VsixUtil packaging failed (status=$VSIXUTIL_STATUS)."
         else
           VSIX_MARKER_STRICT="true"
         fi
       fi
     else
-      package_vs2022_manual_zip
+      fail_or_manual_vs2022_fallback "mono + Microsoft.VSSDK.BuildTools not found; marketplace-compatible VSIX v3 packaging is unavailable."
     fi
   fi
 

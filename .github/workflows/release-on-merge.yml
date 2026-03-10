@@ -53,11 +53,17 @@ jobs:
 
       - name: Package extensions
         shell: bash
-        env:
-          PACK_ALLOW_VS2022_FAILURE: true
         run: |
           chmod +x scripts/pack.sh
           ./scripts/pack.sh
+
+      - name: Verify release artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f artifacts/vscode/KoSpellCheck.VSCode.vsix
+          test -f artifacts/vsix/KoSpellCheck.VS2022.vsix
+          ls -lh artifacts/vscode/KoSpellCheck.VSCode.vsix artifacts/vsix/KoSpellCheck.VS2022.vsix
 
       - name: Cleanup generated files
         shell: bash
@@ -105,10 +111,10 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.ensure_tag.outputs.tag_name }}
-          fail_on_unmatched_files: false
+          fail_on_unmatched_files: true
           files: |
-            artifacts/vscode/KoSpellCheck.VSCode-${{ steps.version.outputs.version }}.vsix
-            artifacts/vsix/KoSpellCheck.VS2022-${{ steps.version.outputs.version }}.vsix
+            artifacts/vscode/KoSpellCheck.VSCode.vsix
+            artifacts/vsix/KoSpellCheck.VS2022.vsix
 
       - name: Publish to VS Code Marketplace
         id: publish_vscode
@@ -116,7 +122,7 @@ jobs:
         uses: HaaLeo/publish-vscode-extension@v2
         with:
           pat: ${{ secrets.VS_MARKETPLACE_PAT }}
-          extensionFile: artifacts/vscode/KoSpellCheck.VSCode-${{ steps.version.outputs.version }}.vsix
+          extensionFile: artifacts/vscode/KoSpellCheck.VSCode.vsix
           registryUrl: https://marketplace.visualstudio.com
 
       - name: VS publish preflight diagnostics
@@ -144,11 +150,11 @@ jobs:
 
       - name: Publish to Visual Studio Marketplace
         id: publish_vs2022
-        if: ${{ hashFiles(format('artifacts/vsix/KoSpellCheck.VS2022-{0}.vsix', steps.version.outputs.version)) != '' }}
+        if: ${{ hashFiles('artifacts/vsix/KoSpellCheck.VS2022.vsix') != '' }}
         continue-on-error: true
         uses: cezarypiatek/VsixPublisherAction@1.1
         with:
-          extension-file: artifacts/vsix/KoSpellCheck.VS2022-${{ steps.version.outputs.version }}.vsix
+          extension-file: artifacts/vsix/KoSpellCheck.VS2022.vsix
           publish-manifest-file: src/KoSpellCheck.VS2022/publishManifest.json
           personal-access-code: ${{ secrets.VS_MARKETPLACE_PAT }}
 
@@ -156,7 +162,7 @@ jobs:
         if: always()
         shell: bash
         run: |
-          VS2022_VSIX="artifacts/vsix/KoSpellCheck.VS2022-${{ steps.version.outputs.version }}.vsix"
+          VS2022_VSIX="artifacts/vsix/KoSpellCheck.VS2022.vsix"
           VS2022_ARTIFACT_EXISTS="false"
           if [[ -f "$VS2022_VSIX" ]]; then
             VS2022_ARTIFACT_EXISTS="true"
