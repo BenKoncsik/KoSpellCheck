@@ -11,6 +11,7 @@
   "kospellcheck.command.refreshConventionMap": "KoSpellCheck: Refresh Convention Map",
   "kospellcheck.command.refreshDashboard": "KoSpellCheck: Refresh Dashboard",
   "kospellcheck.command.showLearnedConventions": "KoSpellCheck: Show Learned Conventions",
+  "kospellcheck.command.toggleSpellChecker": "KoSpellCheck: Toggle Spell Checker",
   "kospellcheck.config.debounceMs.description": "Debounce delay for document re-check.",
   "kospellcheck.config.debugLogging.description": "Enable verbose KoSpellCheck debug logs in Output panel.",
   "kospellcheck.config.enabled.description": "Enable KoSpellCheck diagnostics.",

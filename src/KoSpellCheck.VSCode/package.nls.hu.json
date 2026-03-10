@@ -11,6 +11,7 @@
   "kospellcheck.command.refreshConventionMap": "KoSpellCheck: Konvenciótérkép frissítése",
   "kospellcheck.command.refreshDashboard": "KoSpellCheck: Vezérlőpult frissítése",
   "kospellcheck.command.showLearnedConventions": "KoSpellCheck: Tanult konvenciók megjelenítése",
+  "kospellcheck.command.toggleSpellChecker": "KoSpellCheck: Helyesírás-ellenőrző ki/bekapcsolása",
   "kospellcheck.config.debounceMs.description": "Késleltetés dokumentum újraellenőrzés előtt (debounce).",
   "kospellcheck.config.debugLogging.description": "Részletes KoSpellCheck debug naplózás engedélyezése az Output panelen.",
   "kospellcheck.config.enabled.description": "KoSpellCheck diagnosztikák engedélyezése.",

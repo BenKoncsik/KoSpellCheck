@@ -431,6 +431,40 @@ export function activate(context: vscode.ExtensionContext): void {
     }
   );
 
+  const toggleSpellCheckerCommand = vscode.commands.registerCommand(
+    'kospellcheck.toggleSpellChecker',
+    async () => {
+      const uri = vscode.window.activeTextEditor?.document.uri;
+      const uiLanguage = configuredUiLanguage(uri);
+      const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', uri);
+      const current = workspaceConfig.get<boolean>('enabled', true);
+      const target = uri && vscode.workspace.getWorkspaceFolder(uri)
+        ? vscode.ConfigurationTarget.Workspace
+        : vscode.ConfigurationTarget.Global;
+
+      await workspaceConfig.update('enabled', !current, target);
+
+      const toggledState = !current
+        ? text('general.enabled', 'enabled', { configuredLanguage: uiLanguage })
+        : text('general.disabled', 'disabled', { configuredLanguage: uiLanguage });
+      vscode.window.showInformationMessage(
+        text('extension.info.spellCheckerToggled', 'KoSpellCheck spell checker is now {state}.', {
+          configuredLanguage: uiLanguage,
+          args: { state: toggledState }
+        })
+      );
+
+      if (!current) {
+        const editor = vscode.window.activeTextEditor;
+        if (editor) {
+          scheduleDocumentCheck(editor.document, 'spell-checker-toggle-enabled');
+        }
+      } else {
+        diagnostics.clear();
+      }
+    }
+  );
+
   const renameSymbolCommand = vscode.commands.registerCommand(
     'kospellcheck.renameSymbolWithSuggestion',
     async (
@@ -916,6 +950,7 @@ export function activate(context: vscode.ExtensionContext): void {
     codeActionProvider,
     addWordCommand,
     renameSymbolCommand,
+    toggleSpellCheckerCommand,
     checkLocalTypoAccelerationStatusCommand,
     downloadLocalTypoRuntimeCommand,
     pickLocalTypoModelCommand,
@@ -965,6 +1000,24 @@ export function activate(context: vscode.ExtensionContext): void {
         !event.affectsConfiguration('kospellcheck.localTypoAcceleration.manualDownloadNow')
       ) {
         styleLearning.scheduleAllWorkspaceRefreshes('settings-changed', 250);
+      }
+
+      if (event.affectsConfiguration('kospellcheck.enabled')) {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+          diagnostics.clear();
+          return;
+        }
+
+        const enabled = vscode.workspace
+          .getConfiguration('kospellcheck', editor.document.uri)
+          .get<boolean>('enabled', true);
+        if (enabled) {
+          scheduleDocumentCheck(editor.document, 'enabled-setting-changed');
+          return;
+        }
+
+        diagnostics.clear();
       }
     }),
     vscode.workspace.onDidCloseTextDocument((document) => {

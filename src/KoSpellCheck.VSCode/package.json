@@ -18,6 +18,7 @@
     "onLanguage:typescript",
     "onLanguage:javascript",
     "onCommand:kospellcheck.addWordToProjectDictionary",
+    "onCommand:kospellcheck.toggleSpellChecker",
     "onCommand:kospellcheck.checkLocalTypoAccelerationStatus",
     "onCommand:kospellcheck.downloadLocalTypoRuntime",
     "onCommand:kospellcheck.pickLocalTypoModel",
@@ -48,6 +49,10 @@
       {
         "command": "kospellcheck.addWordToProjectDictionary",
         "title": "%kospellcheck.command.addWordToProjectDictionary%"
+      },
+      {
+        "command": "kospellcheck.toggleSpellChecker",
+        "title": "%kospellcheck.command.toggleSpellChecker%"
       },
       {
         "command": "kospellcheck.checkLocalTypoAccelerationStatus",
