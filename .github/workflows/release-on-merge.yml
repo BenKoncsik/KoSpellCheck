@@ -124,6 +124,18 @@ jobs:
           pat: ${{ secrets.VS_MARKETPLACE_PAT || secrets.VSCE_TOKEN }}
           extensionFile: artifacts/vscode/KoSpellCheck.VSCode.vsix
           registryUrl: https://marketplace.visualstudio.com
+          skipDuplicate: true
+
+      - name: Publish to VS Code Marketplace (retry once)
+        id: publish_vscode_retry
+        if: ${{ steps.publish_vscode.outcome == 'failure' }}
+        continue-on-error: true
+        uses: HaaLeo/publish-vscode-extension@v2
+        with:
+          pat: ${{ secrets.VS_MARKETPLACE_PAT || secrets.VSCE_TOKEN }}
+          extensionFile: artifacts/vscode/KoSpellCheck.VSCode.vsix
+          registryUrl: https://marketplace.visualstudio.com
+          skipDuplicate: true
 
       - name: VS publish preflight diagnostics
         shell: bash
@@ -168,14 +180,15 @@ jobs:
             VS2022_ARTIFACT_EXISTS="true"
           fi
 
-          echo "VS Code marketplace publish outcome: ${{ steps.publish_vscode.outcome }}"
+          echo "VS Code marketplace publish outcome (first): ${{ steps.publish_vscode.outcome }}"
+          echo "VS Code marketplace publish outcome (retry): ${{ steps.publish_vscode_retry.outcome }}"
           echo "Visual Studio marketplace publish outcome: ${{ steps.publish_vs2022.outcome }}"
 
           if [[ "$VS2022_ARTIFACT_EXISTS" != "true" ]]; then
             echo "::warning::VS2022 artifact is missing ($VS2022_VSIX), so Visual Studio Marketplace publish was skipped."
           fi
 
-          if [[ "${{ steps.publish_vscode.outcome }}" != "success" ]]; then
+          if [[ "${{ steps.publish_vscode.outcome }}" != "success" && "${{ steps.publish_vscode_retry.outcome }}" != "success" ]]; then
             echo "::warning::VS Code Marketplace publish failed, but git tag and GitHub release were still created."
           fi
 
