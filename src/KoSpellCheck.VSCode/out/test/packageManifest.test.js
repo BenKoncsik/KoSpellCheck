@@ -14,5 +14,6 @@ const node_test_1 = __importDefault(require("node:test"));
     node_assert_1.default.ok(configuration, 'contributes.configuration must exist');
     node_assert_1.default.equal(configuration?.scope, 'window', 'contributes.configuration.scope must remain window so settings stay visible in Workspace scope');
     node_assert_1.default.ok(Object.keys(configuration?.properties ?? {}).length > 1, 'manifest should expose multiple extension settings');
+    node_assert_1.default.ok(Object.prototype.hasOwnProperty.call(configuration?.properties ?? {}, 'kospellcheck.workspaceStoragePath'), 'manifest must expose kospellcheck.workspaceStoragePath so users can configure a shared storage root once');
 });
 //# sourceMappingURL=packageManifest.test.js.map

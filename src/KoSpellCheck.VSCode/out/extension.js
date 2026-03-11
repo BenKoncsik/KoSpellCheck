@@ -51,6 +51,7 @@ const dashboardProvider_1 = require("./dashboard/dashboardProvider");
 const sharedUiText_1 = require("./sharedUiText");
 const localTypoAcceleration_1 = require("./localTypoAcceleration");
 const workspaceStorage_1 = require("./workspaceStorage");
+const settings_1 = require("./settings");
 const SOURCE = 'KoSpellCheck';
 function activate(context) {
     (0, sharedUiText_1.initializeSharedUiText)(context.extensionPath, vscode.env.language);
@@ -225,8 +226,11 @@ function activate(context) {
     const migrateAndPublishWorkspaceStorage = async (workspaceFolder) => {
         const workspaceRoot = workspaceFolder.uri.fsPath;
         const config = (0, config_1.loadConfig)(workspaceRoot);
-        const migration = (0, workspaceStorage_1.migrateLegacyWorkspaceStorage)(workspaceRoot, config.workspaceStoragePath, (message) => log(message, workspaceFolder.uri, false));
-        const resolvedStorageRoot = (0, workspaceStorage_1.resolveWorkspaceStorageRoot)(workspaceRoot, config.workspaceStoragePath);
+        const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', workspaceFolder.uri);
+        const globalConfig = vscode.workspace.getConfiguration(undefined, workspaceFolder.uri);
+        const workspaceStoragePath = (0, settings_1.resolveWorkspaceStoragePathFromSettings)(workspaceConfig, globalConfig, config.workspaceStoragePath);
+        const migration = (0, workspaceStorage_1.migrateLegacyWorkspaceStorage)(workspaceRoot, workspaceStoragePath, (message) => log(message, workspaceFolder.uri, false));
+        const resolvedStorageRoot = (0, workspaceStorage_1.resolveWorkspaceStorageRoot)(workspaceRoot, workspaceStoragePath);
         const previous = resolvedWorkspaceStorageByRoot.get(workspaceRoot);
         if (previous === resolvedStorageRoot && !migration.migrated) {
             return;
@@ -635,6 +639,7 @@ function activate(context) {
         const config = (0, config_1.loadConfig)(workspaceFolder?.uri.fsPath);
         const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', document.uri);
         const globalConfig = vscode.workspace.getConfiguration(undefined, document.uri);
+        config.workspaceStoragePath = (0, settings_1.resolveWorkspaceStoragePathFromSettings)(workspaceConfig, globalConfig, config.workspaceStoragePath);
         const settingEnabled = workspaceConfig.get('enabled', true);
         config.enabled = config.enabled && settingEnabled;
         const settingUiLanguage = workspaceConfig.get('uiLanguage');

@@ -41,6 +41,7 @@ const node_fs_1 = __importDefault(require("node:fs"));
 const node_path_1 = __importDefault(require("node:path"));
 const vscode = __importStar(require("vscode"));
 const config_1 = require("../config");
+const settings_1 = require("../settings");
 const sharedUiText_1 = require("../sharedUiText");
 const workspaceStorage_1 = require("../workspaceStorage");
 const coreCliClient_1 = require("./adapters/coreCliClient");
@@ -798,6 +799,8 @@ class ProjectConventionFeature {
     resolveConfig(workspaceRoot, uri) {
         const loaded = (0, config_1.loadConfig)(workspaceRoot);
         const settings = vscode.workspace.getConfiguration('kospellcheck', uri);
+        const globalConfig = vscode.workspace.getConfiguration(undefined, uri);
+        const workspaceStoragePath = (0, settings_1.resolveWorkspaceStoragePathFromSettings)(settings, globalConfig, loaded.workspaceStoragePath);
         return {
             uiLanguage: settings.get('uiLanguage', loaded.uiLanguage),
             coreCliPath: settings.get('projectConventions.coreCliPath', '').trim() || undefined,
@@ -820,7 +823,7 @@ class ProjectConventionFeature {
             minEvidenceCount: settings.get('projectConventions.minEvidenceCount', loaded.projectConventionMinEvidenceCount),
             statisticalAnomalyThreshold: settings.get('projectConventions.statisticalAnomalyThreshold', loaded.statisticalAnomalyThreshold),
             aiAnomalyThreshold: settings.get('projectConventions.aiAnomalyThreshold', loaded.aiAnomalyThreshold),
-            workspaceStoragePath: loaded.workspaceStoragePath,
+            workspaceStoragePath,
             profilePath: settings.get('projectConventions.profilePath', loaded.projectConventionProfilePath),
             profileCachePath: settings.get('projectConventions.profileCachePath', loaded.projectConventionProfileCachePath),
             anomalyModelPath: settings.get('projectConventions.anomalyModelPath', loaded.projectConventionAnomalyModelPath),

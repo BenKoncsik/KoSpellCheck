@@ -37,6 +37,7 @@ exports.StyleLearningCoordinator = void 0;
 const vscode = __importStar(require("vscode"));
 const config_1 = require("./config");
 const styleDetector_1 = require("./styleDetector");
+const settings_1 = require("./settings");
 class StyleLearningCoordinator {
     constructor(log) {
         this.profilesByWorkspace = new Map();
@@ -95,9 +96,11 @@ class StyleLearningCoordinator {
     }
     async doRefreshWorkspace(workspaceRoot, reason) {
         const config = (0, config_1.loadConfig)(workspaceRoot);
-        const settingEnabled = vscode.workspace
-            .getConfiguration('kospellcheck', vscode.Uri.file(workspaceRoot))
-            .get('enabled', true);
+        const uri = vscode.Uri.file(workspaceRoot);
+        const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', uri);
+        const globalConfig = vscode.workspace.getConfiguration(undefined, uri);
+        config.workspaceStoragePath = (0, settings_1.resolveWorkspaceStoragePathFromSettings)(workspaceConfig, globalConfig, config.workspaceStoragePath);
+        const settingEnabled = workspaceConfig.get('enabled', true);
         if (!settingEnabled || !config.enabled || !config.styleLearningEnabled) {
             this.profilesByWorkspace.delete(workspaceRoot);
             this.log(`style-learning disabled workspace=${workspaceRoot} reason=${reason}`);
