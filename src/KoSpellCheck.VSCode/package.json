@@ -160,6 +160,11 @@
           "default": false,
           "description": "%kospellcheck.config.debugLogging.description%"
         },
+        "kospellcheck.workspaceStoragePath": {
+          "type": "string",
+          "default": "",
+          "description": "%kospellcheck.config.workspaceStoragePath.description%"
+        },
         "kospellcheck.workspaceStorage.resolvedPath": {
           "type": "string",
           "default": "",

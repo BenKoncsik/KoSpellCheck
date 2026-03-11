@@ -19,6 +19,7 @@ import {
   migrateLegacyWorkspaceStorage,
   resolveWorkspaceStorageRoot
 } from './workspaceStorage';
+import { resolveWorkspaceStoragePathFromSettings } from './settings';
 
 const SOURCE = 'KoSpellCheck';
 
@@ -270,12 +271,19 @@ export function activate(context: vscode.ExtensionContext): void {
   const migrateAndPublishWorkspaceStorage = async (workspaceFolder: vscode.WorkspaceFolder): Promise<void> => {
     const workspaceRoot = workspaceFolder.uri.fsPath;
     const config = loadConfig(workspaceRoot);
+    const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', workspaceFolder.uri);
+    const globalConfig = vscode.workspace.getConfiguration(undefined, workspaceFolder.uri);
+    const workspaceStoragePath = resolveWorkspaceStoragePathFromSettings(
+      workspaceConfig,
+      globalConfig,
+      config.workspaceStoragePath
+    );
     const migration = migrateLegacyWorkspaceStorage(
       workspaceRoot,
-      config.workspaceStoragePath,
+      workspaceStoragePath,
       (message) => log(message, workspaceFolder.uri, false)
     );
-    const resolvedStorageRoot = resolveWorkspaceStorageRoot(workspaceRoot, config.workspaceStoragePath);
+    const resolvedStorageRoot = resolveWorkspaceStorageRoot(workspaceRoot, workspaceStoragePath);
     const previous = resolvedWorkspaceStorageByRoot.get(workspaceRoot);
     if (previous === resolvedStorageRoot && !migration.migrated) {
       return;
@@ -848,6 +856,11 @@ export function activate(context: vscode.ExtensionContext): void {
     const config = loadConfig(workspaceFolder?.uri.fsPath);
     const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', document.uri);
     const globalConfig = vscode.workspace.getConfiguration(undefined, document.uri);
+    config.workspaceStoragePath = resolveWorkspaceStoragePathFromSettings(
+      workspaceConfig,
+      globalConfig,
+      config.workspaceStoragePath
+    );
     const settingEnabled = workspaceConfig.get<boolean>('enabled', true);
     config.enabled = config.enabled && settingEnabled;
     const settingUiLanguage = workspaceConfig.get<string>('uiLanguage');

@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import * as vscode from 'vscode';
 import { loadConfig } from '../config';
+import { resolveWorkspaceStoragePathFromSettings } from '../settings';
 import { text } from '../sharedUiText';
 import { resolveWorkspaceArtifactPath } from '../workspaceStorage';
 import {
@@ -1176,6 +1177,12 @@ export class ProjectConventionFeature implements vscode.Disposable {
   private resolveConfig(workspaceRoot: string, uri?: vscode.Uri): ConventionFeatureConfig {
     const loaded = loadConfig(workspaceRoot);
     const settings = vscode.workspace.getConfiguration('kospellcheck', uri);
+    const globalConfig = vscode.workspace.getConfiguration(undefined, uri);
+    const workspaceStoragePath = resolveWorkspaceStoragePathFromSettings(
+      settings,
+      globalConfig,
+      loaded.workspaceStoragePath
+    );
 
     return {
       uiLanguage: settings.get<string>('uiLanguage', loaded.uiLanguage),
@@ -1238,7 +1245,7 @@ export class ProjectConventionFeature implements vscode.Disposable {
         loaded.statisticalAnomalyThreshold
       ),
       aiAnomalyThreshold: settings.get<number>('projectConventions.aiAnomalyThreshold', loaded.aiAnomalyThreshold),
-      workspaceStoragePath: loaded.workspaceStoragePath,
+      workspaceStoragePath,
       profilePath: settings.get<string>('projectConventions.profilePath', loaded.projectConventionProfilePath),
       profileCachePath: settings.get<string>(
         'projectConventions.profileCachePath',

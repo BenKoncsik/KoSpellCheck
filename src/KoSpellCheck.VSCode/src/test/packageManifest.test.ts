@@ -25,4 +25,11 @@ test('VS Code manifest configuration defaults to window scope', () => {
     Object.keys(configuration?.properties ?? {}).length > 1,
     'manifest should expose multiple extension settings'
   );
+  assert.ok(
+    Object.prototype.hasOwnProperty.call(
+      configuration?.properties ?? {},
+      'kospellcheck.workspaceStoragePath'
+    ),
+    'manifest must expose kospellcheck.workspaceStoragePath so users can configure a shared storage root once'
+  );
 });

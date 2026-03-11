@@ -5,7 +5,8 @@ namespace KoSpellCheck.VS2022.Dashboard;
 internal static class DashboardSettingsFileHelper
 {
     private const string SettingsFileName = "kospellcheck.json";
-    private const string DefaultSettingsPayload = "{\n  \"projectConventions\": {\n    \"enabled\": true\n  }\n}\n";
+    private const string DefaultSettingsPayload =
+        "{\n  \"workspaceStoragePath\": \"\",\n  \"projectConventions\": {\n    \"enabled\": true\n  }\n}\n";
 
     public static string EnsureSettingsFile(string workspaceRoot)
     {

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { loadConfig } from './config';
 import { detectProjectStyleProfile } from './styleDetector';
+import { resolveWorkspaceStoragePathFromSettings } from './settings';
 import { ProjectStyleProfile } from './types';
 
 type Logger = (message: string, uri?: vscode.Uri, force?: boolean) => void;
@@ -80,9 +81,15 @@ export class StyleLearningCoordinator implements vscode.Disposable {
 
   private async doRefreshWorkspace(workspaceRoot: string, reason: string): Promise<void> {
     const config = loadConfig(workspaceRoot);
-    const settingEnabled = vscode.workspace
-      .getConfiguration('kospellcheck', vscode.Uri.file(workspaceRoot))
-      .get<boolean>('enabled', true);
+    const uri = vscode.Uri.file(workspaceRoot);
+    const workspaceConfig = vscode.workspace.getConfiguration('kospellcheck', uri);
+    const globalConfig = vscode.workspace.getConfiguration(undefined, uri);
+    config.workspaceStoragePath = resolveWorkspaceStoragePathFromSettings(
+      workspaceConfig,
+      globalConfig,
+      config.workspaceStoragePath
+    );
+    const settingEnabled = workspaceConfig.get<boolean>('enabled', true);
     if (!settingEnabled || !config.enabled || !config.styleLearningEnabled) {
       this.profilesByWorkspace.delete(workspaceRoot);
       this.log(`style-learning disabled workspace=${workspaceRoot} reason=${reason}`);

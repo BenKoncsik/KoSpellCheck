@@ -75,7 +75,11 @@ public static class ConfigLoader
             json.Value<int?>("ignoreAllCapsLengthThreshold") ?? config.IgnoreAllCapsLengthThreshold;
         config.SuggestionsMax = json.Value<int?>("suggestionsMax") ?? config.SuggestionsMax;
         config.MaxTokensPerDocument = json.Value<int?>("maxTokensPerDocument") ?? config.MaxTokensPerDocument;
-        config.WorkspaceStoragePath = json.Value<string>("workspaceStoragePath") ?? config.WorkspaceStoragePath;
+        var workspaceStoragePathFromRoot = json.Value<string>("workspaceStoragePath");
+        if (workspaceStoragePathFromRoot is not null)
+        {
+            config.WorkspaceStoragePath = workspaceStoragePathFromRoot;
+        }
         config.StyleLearningEnabled = json.Value<bool?>("styleLearningEnabled") ?? config.StyleLearningEnabled;
         config.StyleLearningMaxFiles = json.Value<int?>("styleLearningMaxFiles") ?? config.StyleLearningMaxFiles;
         config.StyleLearningMaxTokens = json.Value<int?>("styleLearningMaxTokens") ?? config.StyleLearningMaxTokens;
@@ -105,7 +109,13 @@ public static class ConfigLoader
 
         var projectConventions = json["projectConventions"] as JObject;
         var conventions = config.ProjectConventions.Clone();
-        conventions.WorkspaceStoragePath = config.WorkspaceStoragePath;
+        var resolvedWorkspaceStoragePath =
+            projectConventions?.Value<string>("workspaceStoragePath")
+            ?? workspaceStoragePathFromRoot
+            ?? config.WorkspaceStoragePath
+            ?? string.Empty;
+        config.WorkspaceStoragePath = resolvedWorkspaceStoragePath;
+        conventions.WorkspaceStoragePath = resolvedWorkspaceStoragePath;
 
         conventions.EnableProjectConventionMapping =
             projectConventions?.Value<bool?>("enabled")
