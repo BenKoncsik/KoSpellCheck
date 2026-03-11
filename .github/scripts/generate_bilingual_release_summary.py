@@ -41,6 +41,18 @@ def _safe_dict(value: Any) -> Dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
 
+def has_hungarian_diacritics(text: str) -> bool:
+    return any(ch in text for ch in "áéíóöőúüűÁÉÍÓÖŐÚÜŰ")
+
+
+def assert_hungarian_diacritics(summary_text: str) -> None:
+    if "## Magyar" not in summary_text:
+        raise RuntimeError("Generated output is missing '## Magyar' section")
+    hu_part = summary_text.split("## Magyar", 1)[1]
+    if not has_hungarian_diacritics(hu_part):
+        raise RuntimeError("Hungarian section appears to be missing diacritics")
+
+
 def build_fallback_summary(context: Dict[str, Any]) -> str:
     latest = _safe_dict(context.get("latest_release"))
     previous = _safe_dict(context.get("previous_release"))
@@ -103,28 +115,28 @@ def build_fallback_summary(context: Dict[str, Any]) -> str:
         "",
         "## Magyar",
         "",
-        "### Mi valtozott",
-        f"- Osszehasonlitott tartomany: `{compare_range}`",
-        f"- Diff osszegzes: {shortstat}",
-        f"- Commit darabszam (rogzitett): {commit_count}",
-        f"- Modositott fajlok (rogzitett): {changed_count}",
+        "### Mi változott",
+        f"- Összehasonlított tartomány: `{compare_range}`",
+        f"- Diff összegzés: {shortstat}",
+        f"- Commit darabszám (rögzített): {commit_count}",
+        f"- Módosított fájlok (rögzített): {changed_count}",
         "",
-        "### Uj funkciok",
+        "### Új funkciók",
     ])
     en_lines.extend([f"- {line}" for line in commit_subjects[:3]])
     en_lines.extend([
         "",
-        "### Hibajavitasok es minosegi fejlesztesek",
+        "### Hibajavítások és minőségi fejlesztések",
     ])
-    en_lines.extend([f"- {line}" for line in commit_subjects[3:5] or ["Nincs kulon javitas-jellegu commit a top elemekben."]])
+    en_lines.extend([f"- {line}" for line in commit_subjects[3:5] or ["Nincs külön javítás-jellegű commit a top elemekben."]])
     en_lines.extend([
         "",
-        "### Varhato hatas es migracios megjegyzesek",
-        "- Erintett teruletek ellenorzese telepites elott:",
+        "### Várható hatás és migrációs megjegyzések",
+        "- Érintett területek ellenőrzése telepítés előtt:",
     ])
     en_lines.extend([f"- {line}" for line in path_bullets])
     en_lines.extend([
-        "- Ha ez az elso osszegzett release, kezeld bazis osszegzeskent.",
+        "- Ha ez az első összegzett release, kezeld bázis összegzésként.",
         "",
     ])
 
@@ -167,12 +179,14 @@ def try_openai_summary(context: Dict[str, Any], model: str, timeout: int) -> str
         "You generate concise bilingual (English then Hungarian) software release summaries. "
         "Ground all claims in provided JSON context. Use headings exactly: "
         "English/What changed/New features/Fixes and quality improvements/Potential impact and migration notes "
-        "and Hungarian equivalents."
+        "and Hungarian equivalents. Hungarian text must use proper Hungarian diacritics "
+        "(á, é, í, ó, ö, ő, ú, ü, ű). Never transliterate Hungarian to ASCII."
     )
 
     user_prompt = (
         "Generate EN+HU summary from this context JSON. Keep technical names unchanged. "
-        "If data is missing, state that explicitly.\n\n"
+        "If data is missing, state that explicitly. "
+        "Hungarian section must contain correct Hungarian diacritics.\n\n"
         + json.dumps(context, ensure_ascii=False)
     )
 
@@ -203,6 +217,7 @@ def try_openai_summary(context: Dict[str, Any], model: str, timeout: int) -> str
     text = _extract_output_text(payload)
     if not text:
         raise RuntimeError("OpenAI response did not contain output text")
+    assert_hungarian_diacritics(text)
     return text
 
 
@@ -240,6 +255,12 @@ def main() -> int:
 
     if not summary_text.strip():
         summary_text = build_fallback_summary(context)
+    else:
+        try:
+            assert_hungarian_diacritics(summary_text)
+        except Exception as exc:
+            print(f"Generated summary failed HU diacritics check, using fallback: {exc}", file=sys.stderr)
+            summary_text = build_fallback_summary(context)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(summary_text.strip() + "\n", encoding="utf-8")
