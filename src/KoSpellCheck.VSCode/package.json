@@ -133,6 +133,7 @@
     },
     "configuration": {
       "title": "%kospellcheck.configuration.title%",
+      "scope": "window",
       "properties": {
         "kospellcheck.enabled": {
           "type": "boolean",
