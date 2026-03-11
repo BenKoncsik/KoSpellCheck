@@ -4,6 +4,7 @@ using EnvDTE;
 using EnvDTE80;
 using KoSpellCheck.Core.Config;
 using KoSpellCheck.Core.Localization;
+using KoSpellCheck.VS2022.Services;
 using KoSpellCheck.VS2022.Services.ProjectConventions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -17,7 +18,9 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
 {
     private readonly KoSpellCheckDashboardPackage _package;
     private readonly ProjectConventionDashboardService _dashboardService;
+    private readonly TelemetryLogger _telemetry;
     private readonly DispatcherTimer _refreshTimer;
+    private bool _isDashboardStateSubscribed;
 
     private readonly TextBlock _statusText;
     private TextBlock _overviewText = null!;
@@ -40,50 +43,62 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
     {
         _package = package;
         _dashboardService = dashboardService;
-        _dashboardService.StateChanged += OnDashboardStateChanged;
-
-        var root = new DockPanel();
-        var toolbar = BuildToolbar();
-        DockPanel.SetDock(toolbar, Dock.Top);
-        root.Children.Add(toolbar);
-
-        _statusText = new TextBlock
-        {
-            Margin = new Thickness(10, 4, 10, 8),
-            TextWrapping = TextWrapping.Wrap,
-        };
-        DockPanel.SetDock(_statusText, Dock.Top);
-        root.Children.Add(_statusText);
-
-        var scroll = new ScrollViewer
-        {
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-            Content = BuildSections(),
-        };
-        root.Children.Add(scroll);
-
-        Content = root;
-
-        Loaded += OnLoaded;
-        Unloaded += OnUnloaded;
-
+        _telemetry = package.Telemetry;
         _refreshTimer = new DispatcherTimer
         {
             Interval = TimeSpan.FromSeconds(8),
         };
-        _refreshTimer.Tick += (_, _) =>
+        _refreshTimer.Tick += OnRefreshTimerTick;
+
+        try
         {
-            if (_disposed)
+            _dashboardService.StateChanged += OnDashboardStateChanged;
+            _isDashboardStateSubscribed = true;
+
+            var root = new DockPanel();
+            var toolbar = BuildToolbar();
+            DockPanel.SetDock(toolbar, Dock.Top);
+            root.Children.Add(toolbar);
+
+            _statusText = new TextBlock
             {
-                return;
+                Margin = new Thickness(10, 4, 10, 8),
+                TextWrapping = TextWrapping.Wrap,
+            };
+            DockPanel.SetDock(_statusText, Dock.Top);
+            root.Children.Add(_statusText);
+
+            var scroll = new ScrollViewer
+            {
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                Content = BuildSections(),
+            };
+            root.Children.Add(scroll);
+
+            Content = root;
+
+            Loaded += OnLoaded;
+            Unloaded += OnUnloaded;
+        }
+        catch (Exception ex)
+        {
+            _telemetry.Error($"Dashboard control constructor failed with HResult=0x{ex.HResult:X8}.", ex);
+            if (_isDashboardStateSubscribed)
+            {
+                _dashboardService.StateChanged -= OnDashboardStateChanged;
+                _isDashboardStateSubscribed = false;
             }
 
-            _package.JoinableTaskFactory.RunAsync(async () =>
+            _statusText = new TextBlock
             {
-                await RefreshAsync(deepScan: false).ConfigureAwait(false);
-            });
-        };
+                Margin = new Thickness(10, 4, 10, 8),
+                TextWrapping = TextWrapping.Wrap,
+            };
+            Content = CreateFallbackContent(
+                SharedUiText.Get("dashboard.serviceUnavailable", "auto"),
+                SharedUiText.Get("vs2022.dashboard.toolWindowCreateFailed", "auto"));
+        }
     }
 
     public void Dispose()
@@ -95,7 +110,11 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
 
         _disposed = true;
         _refreshTimer.Stop();
-        _dashboardService.StateChanged -= OnDashboardStateChanged;
+        if (_isDashboardStateSubscribed)
+        {
+            _dashboardService.StateChanged -= OnDashboardStateChanged;
+            _isDashboardStateSubscribed = false;
+        }
     }
 
     private UIElement BuildToolbar()
@@ -304,30 +323,77 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
 
     private async void OnDashboardStateChanged(object? sender, EventArgs e)
     {
-        if (_disposed)
+        if (_disposed || !_isDashboardStateSubscribed)
         {
             return;
         }
 
-        var root = _currentWorkspaceRoot;
-        if (string.IsNullOrWhiteSpace(root))
+        try
         {
-            return;
-        }
+            var root = _currentWorkspaceRoot;
+            if (string.IsNullOrWhiteSpace(root))
+            {
+                return;
+            }
 
-        var snapshot = _dashboardService.GetSnapshot(root!);
-        await Dispatcher.InvokeAsync(() => ApplySnapshot(snapshot));
+            var snapshot = _dashboardService.GetSnapshot(root!);
+            await Dispatcher.InvokeAsync(() => ApplySnapshot(snapshot));
+        }
+        catch (OperationCanceledException)
+        {
+            _telemetry.Info("Dashboard state update canceled.");
+        }
+        catch (Exception ex)
+        {
+            _telemetry.Error($"Dashboard state update failed with HResult=0x{ex.HResult:X8}.", ex);
+        }
     }
 
     private async void OnLoaded(object sender, RoutedEventArgs e)
     {
-        await RefreshAsync(deepScan: true).ConfigureAwait(false);
-        _refreshTimer.Start();
+        try
+        {
+            await RefreshAsync(deepScan: true).ConfigureAwait(false);
+            _refreshTimer.Start();
+        }
+        catch (OperationCanceledException)
+        {
+            _telemetry.Info("Dashboard initial refresh canceled.");
+        }
+        catch (Exception ex)
+        {
+            _telemetry.Error($"Dashboard initial refresh failed with HResult=0x{ex.HResult:X8}.", ex);
+            UpdateStatus(SharedUiText.Get("dashboard.serviceUnavailable", "auto"));
+        }
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
         _refreshTimer.Stop();
+    }
+
+    private void OnRefreshTimerTick(object? sender, EventArgs e)
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _ = _package.JoinableTaskFactory.RunAsync(async () =>
+        {
+            try
+            {
+                await RefreshAsync(deepScan: false).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                _telemetry.Info("Dashboard periodic refresh canceled.");
+            }
+            catch (Exception ex)
+            {
+                _telemetry.Error($"Dashboard periodic refresh failed with HResult=0x{ex.HResult:X8}.", ex);
+            }
+        });
     }
 
     private void ApplySnapshot(ConventionDashboardSnapshot snapshot)
@@ -419,5 +485,29 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
     {
         var value = SharedUiText.Get(key, uiLanguage, args);
         return string.Equals(value, key, StringComparison.Ordinal) ? fallback : value;
+    }
+
+    private static UIElement CreateFallbackContent(string header, string detail)
+    {
+        var panel = new StackPanel
+        {
+            Margin = new Thickness(10),
+        };
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = header,
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(0, 0, 0, 6),
+        });
+
+        panel.Children.Add(new TextBlock
+        {
+            Text = detail,
+            TextWrapping = TextWrapping.Wrap,
+            Opacity = 0.85,
+        });
+
+        return panel;
     }
 }

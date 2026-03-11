@@ -53,10 +53,17 @@ internal sealed class KoSpellCheckDashboardCommand
         {
             try
             {
-                await _package.ShowDashboardToolWindowAsync().ConfigureAwait(true);
+                var shown = await _package.ShowDashboardToolWindowAsync().ConfigureAwait(true);
+                if (!shown)
+                {
+                    _package.Telemetry.Info("Dashboard open command finished without an active tool window.");
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_package.DisposalToken);
+                    ShowWarningMessage(SharedUiText.Get("vs2022.dashboard.toolWindowCreateFailed", "auto"));
+                }
             }
             catch (Exception ex)
             {
+                _package.Telemetry.Error($"Dashboard open command failed with HResult=0x{ex.HResult:X8}.", ex);
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_package.DisposalToken);
                 var message = $"{SharedUiText.Get("vs2022.dashboard.toolWindowCreateFailed", "auto")} ({ex.Message})";
                 ShowWarningMessage(message);
@@ -68,26 +75,44 @@ internal sealed class KoSpellCheckDashboardCommand
     {
         _ = _package.JoinableTaskFactory.RunAsync(async () =>
         {
-            var dashboardService = await _package.EnsureDashboardServiceAsync(_package.DisposalToken).ConfigureAwait(true);
-            if (dashboardService == null)
+            try
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_package.DisposalToken);
-                ShowWarningMessage(SharedUiText.Get("dashboard.serviceUnavailable", "auto"));
-                return;
-            }
+                var dashboardService = await _package.EnsureDashboardServiceAsync(_package.DisposalToken).ConfigureAwait(true);
+                if (dashboardService == null)
+                {
+                    _package.Telemetry.Info("Dashboard refresh command skipped: dashboard service unavailable.");
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_package.DisposalToken);
+                    ShowWarningMessage(SharedUiText.Get("dashboard.serviceUnavailable", "auto"));
+                    return;
+                }
 
-            var context = await WorkspaceContextResolver.ResolveAsync(_package, _package.DisposalToken).ConfigureAwait(true);
-            if (string.IsNullOrWhiteSpace(context.WorkspaceRoot))
+                var context = await WorkspaceContextResolver.ResolveAsync(_package, _package.DisposalToken).ConfigureAwait(true);
+                if (string.IsNullOrWhiteSpace(context.WorkspaceRoot))
+                {
+                    _package.Telemetry.Info("Dashboard refresh command skipped: workspace root not found.");
+                    return;
+                }
+
+                await dashboardService.RefreshWorkspaceAsync(
+                    context.WorkspaceRoot!,
+                    context.ActiveFilePath,
+                    deepScan: true,
+                    _package.DisposalToken).ConfigureAwait(false);
+
+                var shown = await _package.ShowDashboardToolWindowAsync().ConfigureAwait(true);
+                if (!shown)
+                {
+                    _package.Telemetry.Info("Dashboard refresh command could not show tool window.");
+                }
+            }
+            catch (OperationCanceledException)
             {
-                return;
+                _package.Telemetry.Info("Dashboard refresh command canceled.");
             }
-
-            await dashboardService.RefreshWorkspaceAsync(
-                context.WorkspaceRoot!,
-                context.ActiveFilePath,
-                deepScan: true,
-                _package.DisposalToken).ConfigureAwait(false);
-            await _package.ShowDashboardToolWindowAsync().ConfigureAwait(true);
+            catch (Exception ex)
+            {
+                _package.Telemetry.Error($"Dashboard refresh command failed with HResult=0x{ex.HResult:X8}.", ex);
+            }
         });
     }
 
@@ -95,27 +120,45 @@ internal sealed class KoSpellCheckDashboardCommand
     {
         _ = _package.JoinableTaskFactory.RunAsync(async () =>
         {
-            var dashboardService = await _package.EnsureDashboardServiceAsync(_package.DisposalToken).ConfigureAwait(true);
-            if (dashboardService == null)
+            try
             {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_package.DisposalToken);
-                ShowWarningMessage(SharedUiText.Get("dashboard.serviceUnavailable", "auto"));
-                return;
-            }
+                var dashboardService = await _package.EnsureDashboardServiceAsync(_package.DisposalToken).ConfigureAwait(true);
+                if (dashboardService == null)
+                {
+                    _package.Telemetry.Info("Dashboard rebuild command skipped: dashboard service unavailable.");
+                    await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_package.DisposalToken);
+                    ShowWarningMessage(SharedUiText.Get("dashboard.serviceUnavailable", "auto"));
+                    return;
+                }
 
-            var context = await WorkspaceContextResolver.ResolveAsync(_package, _package.DisposalToken).ConfigureAwait(true);
-            if (string.IsNullOrWhiteSpace(context.WorkspaceRoot))
+                var context = await WorkspaceContextResolver.ResolveAsync(_package, _package.DisposalToken).ConfigureAwait(true);
+                if (string.IsNullOrWhiteSpace(context.WorkspaceRoot))
+                {
+                    _package.Telemetry.Info("Dashboard rebuild command skipped: workspace root not found.");
+                    return;
+                }
+
+                await dashboardService.RebuildWorkspaceAsync(context.WorkspaceRoot!, _package.DisposalToken).ConfigureAwait(false);
+                await dashboardService.RefreshWorkspaceAsync(
+                    context.WorkspaceRoot!,
+                    context.ActiveFilePath,
+                    deepScan: true,
+                    _package.DisposalToken).ConfigureAwait(false);
+
+                var shown = await _package.ShowDashboardToolWindowAsync().ConfigureAwait(true);
+                if (!shown)
+                {
+                    _package.Telemetry.Info("Dashboard rebuild command could not show tool window.");
+                }
+            }
+            catch (OperationCanceledException)
             {
-                return;
+                _package.Telemetry.Info("Dashboard rebuild command canceled.");
             }
-
-            await dashboardService.RebuildWorkspaceAsync(context.WorkspaceRoot!, _package.DisposalToken).ConfigureAwait(false);
-            await dashboardService.RefreshWorkspaceAsync(
-                context.WorkspaceRoot!,
-                context.ActiveFilePath,
-                deepScan: true,
-                _package.DisposalToken).ConfigureAwait(false);
-            await _package.ShowDashboardToolWindowAsync().ConfigureAwait(true);
+            catch (Exception ex)
+            {
+                _package.Telemetry.Error($"Dashboard rebuild command failed with HResult=0x{ex.HResult:X8}.", ex);
+            }
         });
     }
 
