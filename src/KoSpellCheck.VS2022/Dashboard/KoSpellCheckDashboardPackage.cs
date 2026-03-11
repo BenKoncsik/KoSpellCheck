@@ -24,26 +24,38 @@ public sealed class KoSpellCheckDashboardPackage : AsyncPackage
         await base.InitializeAsync(cancellationToken, progress);
 
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-        var componentModel = await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true) as IComponentModel;
-        var textDocumentFactory = componentModel?.GetService<ITextDocumentFactoryService>();
-        if (textDocumentFactory == null)
-        {
-            return;
-        }
-
-        var services = SpellServiceRegistry.GetServices(textDocumentFactory);
-        DashboardService = services.ProjectConventionDashboardService;
-
-        await KoSpellCheckDashboardCommand.InitializeAsync(this, DashboardService).ConfigureAwait(true);
+        _ = await EnsureDashboardServiceAsync(cancellationToken).ConfigureAwait(true);
+        await KoSpellCheckDashboardCommand.InitializeAsync(this).ConfigureAwait(true);
     }
 
     internal async Task ShowDashboardToolWindowAsync()
     {
+        _ = await EnsureDashboardServiceAsync(DisposalToken).ConfigureAwait(true);
         var pane = await ShowToolWindowAsync(typeof(KoSpellCheckDashboardToolWindow), 0, true, DisposalToken).ConfigureAwait(true);
         if (pane?.Frame == null)
         {
             throw new InvalidOperationException(
                 SharedUiText.Get("vs2022.dashboard.toolWindowCreateFailed", "auto"));
         }
+    }
+
+    internal async Task<ProjectConventionDashboardService?> EnsureDashboardServiceAsync(CancellationToken cancellationToken)
+    {
+        if (DashboardService != null)
+        {
+            return DashboardService;
+        }
+
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        var componentModel = await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true) as IComponentModel;
+        var textDocumentFactory = componentModel?.GetService<ITextDocumentFactoryService>();
+        if (textDocumentFactory == null)
+        {
+            return null;
+        }
+
+        var services = SpellServiceRegistry.GetServices(textDocumentFactory);
+        DashboardService = services.ProjectConventionDashboardService;
+        return DashboardService;
     }
 }

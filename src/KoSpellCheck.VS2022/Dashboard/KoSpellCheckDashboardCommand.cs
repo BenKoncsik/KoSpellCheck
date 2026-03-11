@@ -1,7 +1,6 @@
 using System.ComponentModel.Design;
 using KoSpellCheck.Core.Config;
 using KoSpellCheck.Core.Localization;
-using KoSpellCheck.VS2022.Services.ProjectConventions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -14,15 +13,12 @@ namespace KoSpellCheck.VS2022.Dashboard;
 internal sealed class KoSpellCheckDashboardCommand
 {
     private readonly KoSpellCheckDashboardPackage _package;
-    private readonly ProjectConventionDashboardService _dashboardService;
 
     private KoSpellCheckDashboardCommand(
         KoSpellCheckDashboardPackage package,
-        ProjectConventionDashboardService dashboardService,
         OleMenuCommandService commandService)
     {
         _package = package;
-        _dashboardService = dashboardService;
 
         AddCommand(commandService, KoSpellCheckDashboardPackageIds.OpenDashboard, ExecuteOpenDashboard);
         AddCommand(commandService, KoSpellCheckDashboardPackageIds.RefreshDashboard, ExecuteRefreshDashboard);
@@ -32,9 +28,7 @@ internal sealed class KoSpellCheckDashboardCommand
         AddCommand(commandService, KoSpellCheckDashboardPackageIds.OpenSettingsFile, ExecuteOpenSettingsFile);
     }
 
-    public static async Task InitializeAsync(
-        KoSpellCheckDashboardPackage package,
-        ProjectConventionDashboardService dashboardService)
+    public static async Task InitializeAsync(KoSpellCheckDashboardPackage package)
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
         var commandService = await package.GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true) as OleMenuCommandService;
@@ -43,7 +37,7 @@ internal sealed class KoSpellCheckDashboardCommand
             return;
         }
 
-        _ = new KoSpellCheckDashboardCommand(package, dashboardService, commandService);
+        _ = new KoSpellCheckDashboardCommand(package, commandService);
     }
 
     private static void AddCommand(OleMenuCommandService commandService, int commandId, EventHandler handler)
@@ -57,7 +51,16 @@ internal sealed class KoSpellCheckDashboardCommand
     {
         _ = _package.JoinableTaskFactory.RunAsync(async () =>
         {
-            await _package.ShowDashboardToolWindowAsync().ConfigureAwait(true);
+            try
+            {
+                await _package.ShowDashboardToolWindowAsync().ConfigureAwait(true);
+            }
+            catch (Exception ex)
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_package.DisposalToken);
+                var message = $"{SharedUiText.Get("vs2022.dashboard.toolWindowCreateFailed", "auto")} ({ex.Message})";
+                ShowWarningMessage(message);
+            }
         });
     }
 
@@ -65,13 +68,21 @@ internal sealed class KoSpellCheckDashboardCommand
     {
         _ = _package.JoinableTaskFactory.RunAsync(async () =>
         {
+            var dashboardService = await _package.EnsureDashboardServiceAsync(_package.DisposalToken).ConfigureAwait(true);
+            if (dashboardService == null)
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_package.DisposalToken);
+                ShowWarningMessage(SharedUiText.Get("dashboard.serviceUnavailable", "auto"));
+                return;
+            }
+
             var context = await WorkspaceContextResolver.ResolveAsync(_package, _package.DisposalToken).ConfigureAwait(true);
             if (string.IsNullOrWhiteSpace(context.WorkspaceRoot))
             {
                 return;
             }
 
-            await _dashboardService.RefreshWorkspaceAsync(
+            await dashboardService.RefreshWorkspaceAsync(
                 context.WorkspaceRoot!,
                 context.ActiveFilePath,
                 deepScan: true,
@@ -84,14 +95,22 @@ internal sealed class KoSpellCheckDashboardCommand
     {
         _ = _package.JoinableTaskFactory.RunAsync(async () =>
         {
+            var dashboardService = await _package.EnsureDashboardServiceAsync(_package.DisposalToken).ConfigureAwait(true);
+            if (dashboardService == null)
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_package.DisposalToken);
+                ShowWarningMessage(SharedUiText.Get("dashboard.serviceUnavailable", "auto"));
+                return;
+            }
+
             var context = await WorkspaceContextResolver.ResolveAsync(_package, _package.DisposalToken).ConfigureAwait(true);
             if (string.IsNullOrWhiteSpace(context.WorkspaceRoot))
             {
                 return;
             }
 
-            await _dashboardService.RebuildWorkspaceAsync(context.WorkspaceRoot!, _package.DisposalToken).ConfigureAwait(false);
-            await _dashboardService.RefreshWorkspaceAsync(
+            await dashboardService.RebuildWorkspaceAsync(context.WorkspaceRoot!, _package.DisposalToken).ConfigureAwait(false);
+            await dashboardService.RefreshWorkspaceAsync(
                 context.WorkspaceRoot!,
                 context.ActiveFilePath,
                 deepScan: true,
@@ -102,7 +121,11 @@ internal sealed class KoSpellCheckDashboardCommand
 
     private void ExecuteClearDashboardLogs(object? sender, EventArgs e)
     {
-        _dashboardService.ClearLogs();
+        _ = _package.JoinableTaskFactory.RunAsync(async () =>
+        {
+            var dashboardService = await _package.EnsureDashboardServiceAsync(_package.DisposalToken).ConfigureAwait(true);
+            dashboardService?.ClearLogs();
+        });
     }
 
     private void ExecuteToggleSpellChecker(object? sender, EventArgs e)
