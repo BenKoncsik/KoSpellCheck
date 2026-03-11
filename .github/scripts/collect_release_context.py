@@ -91,11 +91,22 @@ def maybe_fetch_tags(repo_path: Path, should_fetch: bool) -> None:
         run(["git", "fetch", "--tags", "--force"], cwd=repo_path)
 
 
-def build_payload(owner_repo: str, repo_path: Optional[Path], fetch_tags: bool, commit_limit: int, file_limit: int) -> Dict[str, Any]:
-    latest = gh_api_json(f"repos/{owner_repo}/releases/latest")
+def build_payload(
+    owner_repo: str,
+    repo_path: Optional[Path],
+    fetch_tags: bool,
+    commit_limit: int,
+    file_limit: int,
+    latest_tag_override: Optional[str] = None,
+) -> Dict[str, Any]:
+    latest: Dict[str, Any]
+    if latest_tag_override:
+        latest = gh_api_json(f"repos/{owner_repo}/releases/tags/{latest_tag_override}")
+    else:
+        latest = gh_api_json(f"repos/{owner_repo}/releases/latest")
     releases = gh_api_json(f"repos/{owner_repo}/releases?per_page=10")
 
-    latest_tag = latest.get("tag_name")
+    latest_tag = str(latest.get("tag_name") or "").strip()
     previous = next((r for r in releases if r.get("tag_name") and r.get("tag_name") != latest_tag), None)
     previous_tag = previous.get("tag_name") if previous else None
 
@@ -182,6 +193,10 @@ def main() -> int:
         "--output",
         help="Optional output file path. Prints to stdout when omitted.",
     )
+    parser.add_argument(
+        "--latest-tag",
+        help="Optional latest release tag override (e.g. v1.2.3).",
+    )
 
     args = parser.parse_args()
 
@@ -197,6 +212,7 @@ def main() -> int:
             fetch_tags=args.fetch_tags,
             commit_limit=args.commit_limit,
             file_limit=args.file_limit,
+            latest_tag_override=args.latest_tag,
         )
     except Exception as exc:
         print(str(exc), file=sys.stderr)

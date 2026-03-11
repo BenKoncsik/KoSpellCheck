@@ -208,7 +208,13 @@ def try_openai_summary(context: Dict[str, Any], model: str, timeout: int) -> str
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Generate bilingual EN+HU release summary from collected context.")
-    parser.add_argument("--context-file", default="/tmp/release-context.json", help="Path to collected context JSON")
+    parser.add_argument(
+        "--context-file",
+        "--input",
+        dest="context_file",
+        default="/tmp/release-context.json",
+        help="Path to collected context JSON",
+    )
     parser.add_argument("--output", default="/tmp/release-summary.md", help="Output markdown path")
     parser.add_argument("--model", default=os.getenv("OPENAI_MODEL", "gpt-4.1-mini"), help="OpenAI model name")
     parser.add_argument("--timeout-seconds", type=int, default=45, help="OpenAI HTTP timeout")
