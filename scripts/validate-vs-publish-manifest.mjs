@@ -45,10 +45,10 @@ if (typeof publisher !== 'string' || publisher.trim().length === 0) {
 }
 
 const publisherNormalized = publisher.trim();
-const allowedPublisherPattern = /^[A-Za-z0-9][A-Za-z0-9_-]*$/;
+const allowedPublisherPattern = /^[A-Za-z0-9][A-Za-z0-9-]*$/;
 if (!allowedPublisherPattern.test(publisherNormalized)) {
   fail(
-    `publisher '${publisherNormalized}' is invalid. Allowed: A-Z, a-z, 0-9, '-', '_' and it must start with alphanumeric.`
+    `publisher '${publisherNormalized}' is invalid. Allowed: A-Z, a-z, 0-9, '-' and it must start with alphanumeric.`
   );
 }
 
