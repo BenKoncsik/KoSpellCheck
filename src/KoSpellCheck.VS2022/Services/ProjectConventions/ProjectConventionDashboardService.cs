@@ -116,7 +116,11 @@ internal sealed class ProjectConventionDashboardService
         }
     }
 
-    public async Task RefreshWorkspaceAsync(string workspaceRoot, string? activeFilePath, bool deepScan, CancellationToken cancellationToken)
+    public async Task RefreshWorkspaceAsync(
+        string workspaceRoot,
+        string? activeFilePath,
+        bool deepScan,
+        CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(workspaceRoot))
         {
@@ -369,12 +373,14 @@ internal sealed class ProjectConventionDashboardService
         await RebuildWorkspaceAsync(workspaceRoot, cancellationToken).ConfigureAwait(false);
     }
 
-    private Task DeepScanWorkspaceAsync(string workspaceRoot, ProjectConventionOptions options, CancellationToken cancellationToken)
+    private Task DeepScanWorkspaceAsync(
+        string workspaceRoot,
+        ProjectConventionOptions options,
+        CancellationToken cancellationToken)
     {
         var state = GetOrCreateState(workspaceRoot);
         var filePaths = _workspaceFileProvider
             .EnumerateFiles(workspaceRoot, options)
-            .Take(Math.Min(Math.Max(50, options.MaxFiles), 220))
             .ToList();
 
         var diagnosticsByFile = new Dictionary<string, List<ConventionDashboardDiagnosticItem>>(StringComparer.OrdinalIgnoreCase);

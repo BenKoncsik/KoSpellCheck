@@ -130,6 +130,7 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
         panel.Children.Add(CreateButton(T("dashboard.toolbar.refresh", "Refresh Dashboard"), async () => await RefreshAsync(deepScan: true).ConfigureAwait(false)));
         panel.Children.Add(CreateButton(T("dashboard.toolbar.rebuild", "Rebuild Convention Profile"), async () => await RebuildAsync().ConfigureAwait(false)));
         panel.Children.Add(CreateButton(T("dashboard.toolbar.refreshMap", "Refresh Convention Map"), async () => await RefreshAsync(deepScan: true).ConfigureAwait(false)));
+        panel.Children.Add(CreateButton(T("dashboard.toolbar.forceUnusedSearch", "Force Unused Type Search"), async () => await RefreshAsync(deepScan: true).ConfigureAwait(false)));
         panel.Children.Add(CreateButton(T("dashboard.toolbar.clearLogs", "Clear Logs"), async () =>
         {
             _dashboardService.ClearLogs();
@@ -313,7 +314,11 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
         }
 
         _currentWorkspaceRoot = context.WorkspaceRoot;
-        await _dashboardService.RefreshWorkspaceAsync(context.WorkspaceRoot!, context.ActiveFilePath, deepScan, _package.DisposalToken).ConfigureAwait(false);
+        await _dashboardService.RefreshWorkspaceAsync(
+            context.WorkspaceRoot!,
+            context.ActiveFilePath,
+            deepScan,
+            _package.DisposalToken).ConfigureAwait(false);
         ApplySnapshot(_dashboardService.GetSnapshot(context.WorkspaceRoot!));
     }
 

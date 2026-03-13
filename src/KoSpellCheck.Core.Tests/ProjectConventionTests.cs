@@ -313,6 +313,52 @@ public sealed class ProjectConventionTests
     }
 
     [Fact]
+    public void Analyzer_reports_KO_SPC_UNUSED_100_when_interface_has_no_real_usage()
+    {
+        var root = CreateTempWorkspace();
+        try
+        {
+            WriteFile(root, "Contracts/ICar.cs", "namespace App.Contracts; public interface ICar {}");
+            WriteFile(root, "Domain/Car.cs", "namespace App.Domain; public sealed class Car {}");
+
+            var service = new ProjectConventionService();
+            var profile = service.BuildProfile(new ConventionProfileBuildRequest
+            {
+                WorkspaceRoot = root,
+                Scope = "workspace",
+                Options = new ProjectConventionOptions
+                {
+                    MinEvidenceCount = 1,
+                },
+                PersistArtifacts = false,
+            }).Profile;
+
+            var analysis = service.Analyze(new ConventionAnalysisRequest
+            {
+                WorkspaceRoot = root,
+                FilePath = Path.Combine(root, "Contracts", "ICar.cs"),
+                FileContent = "namespace App.Contracts; public interface ICar {}",
+                Profile = profile,
+                IgnoreList = new ConventionIgnoreList(),
+                Options = new ProjectConventionOptions
+                {
+                    MinEvidenceCount = 1,
+                    EnableStatisticalAnomalyDetection = false,
+                    EnableAiNamingAnomalyDetection = false,
+                },
+            });
+
+            var unused = Assert.Single(analysis.Analysis.Diagnostics, d => d.RuleId == "KO_SPC_UNUSED_100");
+            Assert.Equal(ConventionSeverity.Warning, unused.Severity);
+            Assert.DoesNotContain(analysis.Analysis.Diagnostics, d => d.RuleId == "KO_SPC_UNUSED_110");
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
     public void Analyzer_reports_KO_SPC_UNUSED_110_when_type_is_only_used_by_tests()
     {
         var root = CreateTempWorkspace();

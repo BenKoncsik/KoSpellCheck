@@ -893,6 +893,21 @@ public sealed class DotNetTypeUsageAnalyzer
 
     private static TypeUsageFacts CreateUnknownUsage(TypeDeclarationCandidate declaration, StageOneEvidence evidence)
     {
+        var hasHeuristicUsageSignal =
+            evidence.ProductionMentions > 0 ||
+            evidence.TestMentions > 0 ||
+            evidence.DependencyInjectionMentions > 0;
+
+        var classification = hasHeuristicUsageSignal
+            ? ConventionTypeUsageClassification.Unknown
+            : ConventionTypeUsageClassification.Unused;
+
+        var origins = new List<ConventionTypeUsageOrigin>();
+        if (hasHeuristicUsageSignal)
+        {
+            origins.Add(ConventionTypeUsageOrigin.Unknown);
+        }
+
         return new TypeUsageFacts
         {
             TypeName = declaration.Name,
@@ -904,15 +919,14 @@ public sealed class DotNetTypeUsageAnalyzer
             FullyQualifiedName = string.IsNullOrWhiteSpace(declaration.Namespace)
                 ? declaration.Name
                 : $"{declaration.Namespace}.{declaration.Name}",
-            Classification = ConventionTypeUsageClassification.Unknown,
+            Classification = classification,
             ProductionReferenceCount = evidence.ProductionMentions,
             TestReferenceCount = evidence.TestMentions,
             DependencyInjectionRegistrationCount = evidence.DependencyInjectionMentions,
-            UnknownReferenceCount = evidence.ProductionMentions + evidence.TestMentions,
-            Origins = new List<ConventionTypeUsageOrigin>
-            {
-                ConventionTypeUsageOrigin.Unknown,
-            },
+            UnknownReferenceCount = hasHeuristicUsageSignal
+                ? evidence.ProductionMentions + evidence.TestMentions
+                : 0,
+            Origins = origins,
         };
     }
 

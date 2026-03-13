@@ -357,6 +357,7 @@
         <button data-action="refresh">${ui('toolbarRefresh', 'Refresh Dashboard')}</button>
         <button data-action="rebuild">${ui('toolbarRebuild', 'Rebuild Convention Profile')}</button>
         <button data-action="refreshConventionMap" class="secondary">${ui('toolbarRefreshMap', 'Refresh Convention Map')}</button>
+        <button data-action="forceUnusedTypeSearch" class="secondary">${ui('toolbarForceUnusedSearch', 'Force Unused Type Search')}</button>
         <button data-action="clearLogs" class="secondary">${ui('toolbarClearLogs', 'Clear Logs')}</button>
         <button data-action="openSettings" class="secondary">${ui('toolbarOpenSettings', 'Open Settings')}</button>
         ${state.profilePath ? `<button data-action="openProfile" data-path="${esc(state.profilePath)}" class="secondary">${ui('toolbarOpenProfileJson', 'Open Profile JSON')}</button>` : ''}

@@ -13,6 +13,7 @@ type DashboardMessage =
   | { command: 'refresh' }
   | { command: 'rebuild' }
   | { command: 'refreshConventionMap' }
+  | { command: 'forceUnusedTypeSearch' }
   | { command: 'clearLogs' }
   | { command: 'openSettings' }
   | { command: 'openProfile'; path?: string }
@@ -182,6 +183,10 @@ export class KoSpellCheckDashboardProvider implements vscode.WebviewViewProvider
       case 'refreshConventionMap':
         await this.projectConventionFeature.rebuildActiveScope('webview-refresh-convention-map', false);
         await this.refresh('webview-refresh-convention-map');
+        return;
+      case 'forceUnusedTypeSearch':
+        await this.projectConventionFeature.forceUnusedTypeSearch(vscode.window.activeTextEditor?.document.uri);
+        await this.refresh('webview-force-unused-type-search');
         return;
       case 'clearLogs':
         this.logService.clear();
@@ -397,6 +402,7 @@ export class KoSpellCheckDashboardProvider implements vscode.WebviewViewProvider
       toolbarRefresh: text('dashboard.toolbar.refresh', 'Refresh Dashboard', { configuredLanguage }),
       toolbarRebuild: text('dashboard.toolbar.rebuild', 'Rebuild Convention Profile', { configuredLanguage }),
       toolbarRefreshMap: text('dashboard.toolbar.refreshMap', 'Refresh Convention Map', { configuredLanguage }),
+      toolbarForceUnusedSearch: text('dashboard.toolbar.forceUnusedSearch', 'Force Unused Type Search', { configuredLanguage }),
       toolbarClearLogs: text('dashboard.toolbar.clearLogs', 'Clear Logs', { configuredLanguage }),
       toolbarOpenSettings: text('dashboard.toolbar.openSettings', 'Open Settings', { configuredLanguage }),
       toolbarOpenProfileJson: text('dashboard.toolbar.openProfileJson', 'Open Profile JSON', { configuredLanguage }),
