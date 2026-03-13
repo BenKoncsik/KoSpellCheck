@@ -470,6 +470,12 @@ internal sealed class ProjectConventionDashboardService
             .Select(diag => ToDiagnosticItem(analysis.Analysis.File, diag))
             .ToList();
         var unusedItems = BuildUnusedTypeItems(workspaceRoot, analysis.Analysis);
+        var folderKey = ConventionNamingUtils.NormalizeFolderKey(analysis.Analysis.File.FolderPath);
+        var folderExample = analysis.Analysis.File.PrimaryType?.Name;
+        if (string.IsNullOrWhiteSpace(folderExample))
+        {
+            folderExample = analysis.Analysis.File.FileStem;
+        }
 
         lock (_gate)
         {
@@ -477,6 +483,14 @@ internal sealed class ProjectConventionDashboardService
             state.IgnoreList = analysis.IgnoreList;
             state.DiagnosticsByFile[relativePath] = mapped;
             state.UnusedTypesByFile[relativePath] = unusedItems;
+            if (!string.IsNullOrWhiteSpace(folderExample))
+            {
+                var values = state.FolderExamples.TryGetValue(folderKey, out var existing)
+                    ? new HashSet<string>(existing, StringComparer.Ordinal)
+                    : new HashSet<string>(StringComparer.Ordinal);
+                values.Add(folderExample!);
+                state.FolderExamples[folderKey] = values.Take(3).ToArray();
+            }
         }
 
         if (raiseEvent)
@@ -564,37 +578,57 @@ internal sealed class ProjectConventionDashboardService
         ProjectConventionProfile? profile,
         IReadOnlyDictionary<string, string[]> examples)
     {
-        if (profile == null)
+        var list = new List<ConventionDashboardMapItem>();
+        var knownFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        if (profile != null)
         {
-            return Array.Empty<ConventionDashboardMapItem>();
+            foreach (var pair in profile.Folders)
+            {
+                var folder = pair.Value;
+                var suffix = folder.DominantSuffixes.FirstOrDefault()?.Value ?? string.Empty;
+                var prefix = folder.DominantPrefixes.FirstOrDefault()?.Value ?? string.Empty;
+                var kind = folder.DominantTypeKinds.FirstOrDefault()?.Value ?? string.Empty;
+                var namespaceSample = folder.NamespaceSamples.FirstOrDefault()?.Value ?? string.Empty;
+                var confidence = new[]
+                {
+                    folder.DominantSuffixes.FirstOrDefault()?.Ratio ?? 0,
+                    folder.DominantPrefixes.FirstOrDefault()?.Ratio ?? 0,
+                    folder.DominantTypeKinds.FirstOrDefault()?.Ratio ?? 0
+                }.Max();
+
+                list.Add(new ConventionDashboardMapItem
+                {
+                    Folder = pair.Key,
+                    ExpectedSuffix = suffix,
+                    ExpectedPrefix = prefix,
+                    DominantKind = kind,
+                    NamespaceSample = namespaceSample,
+                    Confidence = confidence,
+                    Examples = examples.TryGetValue(pair.Key, out var values)
+                        ? string.Join(", ", values.Take(3))
+                        : string.Empty,
+                });
+                knownFolders.Add(pair.Key);
+            }
         }
 
-        var list = new List<ConventionDashboardMapItem>();
-        foreach (var pair in profile.Folders)
+        foreach (var pair in examples)
         {
-            var folder = pair.Value;
-            var suffix = folder.DominantSuffixes.FirstOrDefault()?.Value ?? string.Empty;
-            var prefix = folder.DominantPrefixes.FirstOrDefault()?.Value ?? string.Empty;
-            var kind = folder.DominantTypeKinds.FirstOrDefault()?.Value ?? string.Empty;
-            var namespaceSample = folder.NamespaceSamples.FirstOrDefault()?.Value ?? string.Empty;
-            var confidence = new[]
+            if (knownFolders.Contains(pair.Key))
             {
-                folder.DominantSuffixes.FirstOrDefault()?.Ratio ?? 0,
-                folder.DominantPrefixes.FirstOrDefault()?.Ratio ?? 0,
-                folder.DominantTypeKinds.FirstOrDefault()?.Ratio ?? 0
-            }.Max();
+                continue;
+            }
 
             list.Add(new ConventionDashboardMapItem
             {
                 Folder = pair.Key,
-                ExpectedSuffix = suffix,
-                ExpectedPrefix = prefix,
-                DominantKind = kind,
-                NamespaceSample = namespaceSample,
-                Confidence = confidence,
-                Examples = examples.TryGetValue(pair.Key, out var values)
-                    ? string.Join(", ", values.Take(3))
-                    : string.Empty,
+                ExpectedSuffix = string.Empty,
+                ExpectedPrefix = string.Empty,
+                DominantKind = string.Empty,
+                NamespaceSample = string.Empty,
+                Confidence = 0,
+                Examples = string.Join(", ", pair.Value.Take(3)),
             });
         }
 
@@ -608,6 +642,12 @@ internal sealed class ProjectConventionDashboardService
         ProjectConventionOptions options,
         string uiLanguage)
     {
+        var workspaceStorageLabel = SharedUiText.Get("dashboard.setting.workspaceStoragePath", uiLanguage);
+        if (string.Equals(workspaceStorageLabel, "dashboard.setting.workspaceStoragePath", StringComparison.Ordinal))
+        {
+            workspaceStorageLabel = "Workspace storage path";
+        }
+
         return new List<ConventionDashboardSettingItem>
         {
             new() { Id = "EnableProjectConventionMapping", Label = SharedUiText.Get("dashboard.setting.projectConventionMapping", uiLanguage), Value = options.EnableProjectConventionMapping.ToString() },
@@ -621,6 +661,7 @@ internal sealed class ProjectConventionDashboardService
             new() { Id = "AnalyzeOnNewFile", Label = SharedUiText.Get("dashboard.setting.analyzeOnNewFile", uiLanguage), Value = options.AnalyzeOnNewFile.ToString() },
             new() { Id = "IgnoreGeneratedCode", Label = SharedUiText.Get("dashboard.setting.ignoreGeneratedCode", uiLanguage), Value = options.IgnoreGeneratedCode.ToString() },
             new() { Id = "IgnoreTestProjects", Label = SharedUiText.Get("dashboard.setting.ignoreTestProjects", uiLanguage), Value = options.IgnoreTestProjects.ToString() },
+            new() { Id = "WorkspaceStoragePath", Label = workspaceStorageLabel, Value = string.IsNullOrWhiteSpace(options.WorkspaceStoragePath) ? "(default: .kospellcheck)" : options.WorkspaceStoragePath },
             new() { Id = "StatisticalAnomalyThreshold", Label = SharedUiText.Get("dashboard.setting.statisticalAnomalyThreshold", uiLanguage), Value = options.StatisticalAnomalyThreshold.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) },
             new() { Id = "AiAnomalyThreshold", Label = SharedUiText.Get("dashboard.setting.aiAnomalyThreshold", uiLanguage), Value = options.AiAnomalyThreshold.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) },
             new() { Id = "Scope", Label = SharedUiText.Get("dashboard.setting.scope", uiLanguage), Value = options.Scope },
