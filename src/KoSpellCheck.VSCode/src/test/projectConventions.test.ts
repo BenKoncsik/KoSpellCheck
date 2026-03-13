@@ -117,8 +117,107 @@ test('core convention CLI bridge discovers CLI project from workspace root when 
   assert.ok(fs.existsSync(expectedCliProjectPath));
 });
 
+test('core convention CLI bridge prioritizes RID-specific packaged host candidates', () => {
+  const client = new CoreConventionCliClient(extensionPath, () => {});
+  const candidates = (client as unknown as { packagedCliDllCandidates: string[] }).packagedCliDllCandidates;
+  const hostSegment = `${path.sep}core-cli${path.sep}hosts${path.sep}`;
+  const firstHostIndex = candidates.findIndex((entry) => entry.includes(hostSegment));
+  const firstLegacyFrameworkIndex = candidates.findIndex((entry) =>
+    entry.includes(`${path.sep}core-cli${path.sep}net9.0${path.sep}`)
+  );
+
+  assert.ok(firstHostIndex >= 0);
+  assert.ok(firstLegacyFrameworkIndex >= 0);
+  assert.ok(firstHostIndex < firstLegacyFrameworkIndex);
+});
+
+test('core convention CLI bridge prioritizes host RID matching current platform and arch', () => {
+  const scenarios: Array<{ platform: NodeJS.Platform; arch: string; expectedRid: string }> = [
+    { platform: 'darwin', arch: 'arm64', expectedRid: 'osx-arm64' },
+    { platform: 'win32', arch: 'ia32', expectedRid: 'win-x86' },
+    { platform: 'linux', arch: 'x64', expectedRid: 'linux-x64' }
+  ];
+
+  for (const scenario of scenarios) {
+    withProcessPlatformAndArch(scenario.platform, scenario.arch, () => {
+      const client = new CoreConventionCliClient(extensionPath, () => {});
+      const candidates = (client as unknown as { packagedCliDllCandidates: string[] }).packagedCliDllCandidates;
+      const hostCandidates = candidates.filter((entry) =>
+        entry.includes(`${path.sep}core-cli${path.sep}hosts${path.sep}`)
+      );
+
+      assert.ok(hostCandidates.length > 0);
+      assert.ok(hostCandidates[0].includes(`${path.sep}hosts${path.sep}${scenario.expectedRid}${path.sep}`));
+    });
+  }
+});
+
+test('core convention CLI bridge uses apphost when dotnet is missing from PATH', async () => {
+  if (process.platform === 'win32') {
+    return;
+  }
+
+  const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kospellcheck-conv-cli-fallback-workspace-'));
+  const fakeCliRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'kospellcheck-conv-cli-fallback-host-'));
+  const originalPath = process.env.PATH;
+
+  try {
+    const fakeDllPath = path.join(fakeCliRoot, 'KoSpellCheck.ProjectConventions.Cli.dll');
+    const fakeAppHostPath = path.join(fakeCliRoot, 'KoSpellCheck.ProjectConventions.Cli');
+    fs.writeFileSync(fakeDllPath, 'placeholder', 'utf8');
+    fs.writeFileSync(
+      fakeAppHostPath,
+      '#!/bin/sh\nprintf "%s" "{\\"Profile\\":{\\"SchemaVersion\\":1}}"\n',
+      'utf8'
+    );
+    fs.chmodSync(fakeAppHostPath, 0o755);
+
+    process.env.PATH = '';
+    const client = new CoreConventionCliClient(
+      extensionPath,
+      () => {},
+      () => fakeCliRoot
+    );
+
+    const profileResult = await client.buildProfile({
+      WorkspaceRoot: workspaceRoot,
+      Scope: 'workspace',
+      PersistArtifacts: false,
+      Options: {}
+    });
+
+    assert.ok(profileResult);
+    assert.ok(profileResult.Profile);
+  } finally {
+    process.env.PATH = originalPath;
+    fs.rmSync(workspaceRoot, { recursive: true, force: true });
+    fs.rmSync(fakeCliRoot, { recursive: true, force: true });
+  }
+});
+
 function writeFile(root: string, relativePath: string, content: string): void {
   const fullPath = path.join(root, relativePath);
   fs.mkdirSync(path.dirname(fullPath), { recursive: true });
   fs.writeFileSync(fullPath, content, 'utf8');
+}
+
+function withProcessPlatformAndArch(
+  platform: NodeJS.Platform,
+  arch: string,
+  callback: () => void
+): void {
+  const platformDescriptor = Object.getOwnPropertyDescriptor(process, 'platform');
+  const archDescriptor = Object.getOwnPropertyDescriptor(process, 'arch');
+  if (!platformDescriptor?.configurable || !archDescriptor?.configurable) {
+    throw new Error('process platform/arch descriptors are not configurable in this runtime');
+  }
+
+  try {
+    Object.defineProperty(process, 'platform', { value: platform });
+    Object.defineProperty(process, 'arch', { value: arch });
+    callback();
+  } finally {
+    Object.defineProperty(process, 'platform', platformDescriptor);
+    Object.defineProperty(process, 'arch', archDescriptor);
+  }
 }

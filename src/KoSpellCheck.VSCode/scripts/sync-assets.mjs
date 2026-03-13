@@ -27,6 +27,16 @@ const cliProjectPath = path.join(
 );
 const targetCliRoot = path.join(extensionRoot, 'resources', 'projectConventions', 'core-cli');
 const cliTargetFrameworks = ['net9.0', 'net8.0'];
+const cliHostRuntimeIdentifiers = [
+  'win-x64',
+  'win-arm64',
+  'win-x86',
+  'linux-x64',
+  'linux-arm64',
+  'linux-x86',
+  'osx-x64',
+  'osx-arm64'
+];
 
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
@@ -41,11 +51,42 @@ function clearDir(dir) {
     const entryPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       clearDir(entryPath);
-      fs.rmdirSync(entryPath);
+      try {
+        fs.rmdirSync(entryPath);
+      } catch (error) {
+        if (isPermissionError(error) || isNotEmptyDirectoryError(error)) {
+          logWarn(`cannot remove directory '${entryPath}': ${error.message}`);
+          continue;
+        }
+
+        throw error;
+      }
     } else {
-      fs.unlinkSync(entryPath);
+      try {
+        fs.unlinkSync(entryPath);
+      } catch (error) {
+        if (isPermissionError(error)) {
+          logWarn(`cannot remove file '${entryPath}': ${error.message}`);
+          continue;
+        }
+
+        throw error;
+      }
     }
   }
+}
+
+function isPermissionError(error) {
+  return (
+    !!error &&
+    typeof error === 'object' &&
+    ('code' in error) &&
+    (error.code === 'EACCES' || error.code === 'EPERM')
+  );
+}
+
+function isNotEmptyDirectoryError(error) {
+  return !!error && typeof error === 'object' && ('code' in error) && error.code === 'ENOTEMPTY';
 }
 
 function copyRecursive(src, dest) {
@@ -132,6 +173,7 @@ function runDotnetBuildCli(targetFramework) {
     'Release',
     '-f',
     targetFramework,
+    '-p:UseAppHost=false',
     '--nologo'
   ];
   const result = spawnSync('dotnet', args, {
@@ -151,6 +193,129 @@ function runDotnetBuildCli(targetFramework) {
   }
 
   return true;
+}
+
+function runDotnetPublishCli(targetFramework, runtimeIdentifier) {
+  const args = [
+    'publish',
+    cliProjectPath,
+    '-c',
+    'Release',
+    '-f',
+    targetFramework,
+    '-r',
+    runtimeIdentifier,
+    '--self-contained',
+    'false',
+    '--nologo'
+  ];
+  const result = spawnSync('dotnet', args, {
+    cwd: repoRoot,
+    encoding: 'utf8'
+  });
+
+  const combinedOutput = `${result.stdout || ''}\n${result.stderr || ''}`;
+  if (result.status !== 0) {
+    const missingAppHost =
+      combinedOutput.includes('NETSDK1084') &&
+      combinedOutput.includes(`RuntimeIdentifier '${runtimeIdentifier}'`) &&
+      combinedOutput.includes('There is no application host available');
+
+    if (missingAppHost) {
+      logWarn(
+        `no RID apphost available for ${runtimeIdentifier} (${targetFramework}); using framework-dependent fallback`
+      );
+      return {
+        ok: false,
+        missingAppHost: true
+      };
+    }
+
+    logWarn(
+      `failed to publish ProjectConventions CLI for ${runtimeIdentifier} (${targetFramework}) (exit=${String(result.status)}): ${result.stderr || result.stdout || 'unknown error'}`
+    );
+    return {
+      ok: false,
+      missingAppHost: false
+    };
+  }
+
+  if (result.stderr?.trim()) {
+    logInfo(`dotnet publish stderr (${runtimeIdentifier}, ${targetFramework}): ${result.stderr.trim()}`);
+  }
+
+  return {
+    ok: true,
+    missingAppHost: false
+  };
+}
+
+function syncProjectConventionsCliHosts() {
+  const hostsRoot = path.join(targetCliRoot, 'hosts');
+  ensureDir(hostsRoot);
+
+  let copiedHostCount = 0;
+  let missingAppHostFallbackCount = 0;
+  let failedHostCount = 0;
+  for (const runtimeIdentifier of cliHostRuntimeIdentifiers) {
+    for (const framework of cliTargetFrameworks) {
+      const published = runDotnetPublishCli(framework, runtimeIdentifier);
+      let sourceDir = path.join(
+        repoRoot,
+        'src',
+        'KoSpellCheck.ProjectConventions.Cli',
+        'bin',
+        'Release',
+        framework,
+        runtimeIdentifier,
+        'publish'
+      );
+
+      if (!published.ok) {
+        if (!published.missingAppHost) {
+          failedHostCount += 1;
+          continue;
+        }
+
+        sourceDir = path.join(
+          repoRoot,
+          'src',
+          'KoSpellCheck.ProjectConventions.Cli',
+          'bin',
+          'Release',
+          framework
+        );
+        missingAppHostFallbackCount += 1;
+      }
+
+      if (!fs.existsSync(sourceDir)) {
+        logWarn(`CLI host source directory missing: ${sourceDir}`);
+        failedHostCount += 1;
+        continue;
+      }
+
+      const targetDir = path.join(hostsRoot, runtimeIdentifier, framework);
+      ensureDir(targetDir);
+      clearDir(targetDir);
+      copyRecursive(sourceDir, targetDir);
+      copiedHostCount += 1;
+      logInfo(`packaged core CLI host copied: ${targetDir}`);
+    }
+  }
+
+  if (missingAppHostFallbackCount > 0) {
+    logWarn(
+      `${String(missingAppHostFallbackCount)} RID host bundles were packaged without apphost; extension will launch them via dotnet <dll>`
+    );
+  }
+
+  if (failedHostCount > 0) {
+    throw new Error(`failed to package ${String(failedHostCount)} RID-specific CLI host bundles`);
+  }
+
+  if (copiedHostCount === 0) {
+    logWarn('no RID-specific CLI hosts were copied; extension will fall back to dotnet <dll> launch');
+  }
 }
 
 function syncProjectConventionsCli() {
@@ -193,6 +358,8 @@ function syncProjectConventionsCli() {
   if (copiedFrameworkCount === 0) {
     logWarn('no CLI artifacts were copied; project convention map will be unavailable without coreCliPath override');
   }
+
+  syncProjectConventionsCliHosts();
 }
 
 ensureDir(path.join(extensionRoot, 'resources'));

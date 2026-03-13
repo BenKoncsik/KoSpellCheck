@@ -9,6 +9,7 @@ const CLI_PROJECT_NAME = 'KoSpellCheck.ProjectConventions.Cli';
 const CLI_PROJECT_FILE = `${CLI_PROJECT_NAME}.csproj`;
 const CLI_DLL_NAME = `${CLI_PROJECT_NAME}.dll`;
 const CLI_TARGET_FRAMEWORKS = ['net9.0', 'net8.0'] as const;
+const CLI_HOST_RUNTIME_IDENTIFIERS = ['win-x64', 'win-arm64', 'win-x86', 'linux-x64', 'linux-arm64', 'linux-x86', 'osx-x64', 'osx-arm64'] as const;
 
 type LogFn = (message: string) => void;
 type ConfiguredCliPathProvider = () => string | undefined;
@@ -57,7 +58,40 @@ export class CoreConventionCliClient {
     private readonly log: LogFn,
     private readonly getConfiguredCliPath?: ConfiguredCliPathProvider
   ) {
+    const ridCandidates = resolveRuntimeRidCandidates(process.platform, process.arch);
+    const packagedHostCandidates = ridCandidates.flatMap((rid) => {
+      const candidates: string[] = [];
+      for (const framework of CLI_TARGET_FRAMEWORKS) {
+        candidates.push(
+          path.join(
+            this.extensionPath,
+            'resources',
+            'projectConventions',
+            'core-cli',
+            'hosts',
+            rid,
+            framework,
+            CLI_DLL_NAME
+          )
+        );
+      }
+
+      candidates.push(
+        path.join(
+          this.extensionPath,
+          'resources',
+          'projectConventions',
+          'core-cli',
+          'hosts',
+          rid,
+          CLI_DLL_NAME
+        )
+      );
+      return candidates;
+    });
+
     this.packagedCliDllCandidates = [
+      ...packagedHostCandidates,
       ...CLI_TARGET_FRAMEWORKS.map((framework) =>
         path.join(
           this.extensionPath,
@@ -124,31 +158,53 @@ export class CoreConventionCliClient {
 
       try {
         fs.writeFileSync(tempPath, JSON.stringify(payload), 'utf8');
-        const { stdout, stderr } = await execFileAsync(
-          'dotnet',
-          [this.resolvedCliDllPath, command, '--request', tempPath],
-          {
-            windowsHide: true,
-            timeout: 20_000,
-            maxBuffer: 8 * 1024 * 1024
+        const launchAttempts = this.buildLaunchAttempts(this.resolvedCliDllPath, command, tempPath);
+        let runtimeMismatchError: unknown;
+        let lastError: unknown;
+
+        for (const launch of launchAttempts) {
+          try {
+            const { stdout, stderr } = await execFileAsync(
+              launch.executable,
+              launch.args,
+              {
+                windowsHide: true,
+                timeout: 20_000,
+                maxBuffer: 8 * 1024 * 1024
+              }
+            );
+
+            if (stderr?.trim()) {
+              this.log(`project-conventions core-cli stderr=${stderr.trim()}`);
+            }
+
+            const raw = stdout?.trim();
+            if (!raw) {
+              return undefined;
+            }
+
+            return JSON.parse(raw) as Record<string, unknown>;
+          } catch (error) {
+            lastError = error;
+            if (
+              !runtimeMismatchError &&
+              String(error).includes('You must install or update .NET to run this application')
+            ) {
+              runtimeMismatchError = error;
+            }
           }
-        );
-
-        if (stderr?.trim()) {
-          this.log(`project-conventions core-cli stderr=${stderr.trim()}`);
         }
 
-        const raw = stdout?.trim();
-        if (!raw) {
-          return undefined;
-        }
-
-        return JSON.parse(raw) as Record<string, unknown>;
-      } catch (error) {
-        if (attempt === 0 && this.handleRuntimeMismatch(error)) {
+        const retryError = runtimeMismatchError ?? lastError;
+        if (attempt === 0 && retryError && this.handleRuntimeMismatch(retryError)) {
           continue;
         }
 
+        if (lastError !== undefined) {
+          this.log(`project-conventions core-cli command=${command} failed reason=${String(lastError)}`);
+        }
+        return undefined;
+      } catch (error) {
         this.log(`project-conventions core-cli command=${command} failed reason=${String(error)}`);
         return undefined;
       } finally {
@@ -161,6 +217,41 @@ export class CoreConventionCliClient {
     }
 
     return undefined;
+  }
+
+  private buildLaunchAttempts(
+    cliDllPath: string,
+    command: 'profile' | 'analyze' | 'ignore',
+    requestPath: string
+  ): Array<{ executable: string; args: string[] }> {
+    const attempts: Array<{ executable: string; args: string[] }> = [];
+    const appHostPath = this.resolveAppHostPath(cliDllPath);
+    if (appHostPath) {
+      attempts.push({
+        executable: appHostPath,
+        args: [command, '--request', requestPath]
+      });
+    }
+
+    attempts.push({
+      executable: 'dotnet',
+      args: [cliDllPath, command, '--request', requestPath]
+    });
+
+    return attempts;
+  }
+
+  private resolveAppHostPath(cliDllPath: string): string | undefined {
+    if (!cliDllPath.toLowerCase().endsWith('.dll')) {
+      return undefined;
+    }
+
+    const appHostBasePath = cliDllPath.slice(0, -4);
+    const candidates = process.platform === 'win32'
+      ? [`${appHostBasePath}.exe`, appHostBasePath]
+      : [appHostBasePath, `${appHostBasePath}.exe`];
+
+    return candidates.find((candidate) => fs.existsSync(candidate));
   }
 
   private async ensureBuilt(workspaceRoot?: string): Promise<boolean> {
@@ -461,6 +552,49 @@ export class CoreConventionCliClient {
     this.resolvedCliDllPath = undefined;
     return true;
   }
+}
+
+function resolveRuntimeRidCandidates(platform: NodeJS.Platform, architecture: string): string[] {
+  const normalizedArch = architecture.toLowerCase();
+  const addCandidates = (all: string[], selected: string[]) => {
+    for (const rid of selected) {
+      if (!all.includes(rid)) {
+        all.push(rid);
+      }
+    }
+  };
+
+  const candidates: string[] = [];
+  switch (platform) {
+    case 'win32':
+      if (normalizedArch === 'arm64') {
+        addCandidates(candidates, ['win-arm64', 'win-x64', 'win-x86']);
+      } else if (normalizedArch === 'ia32') {
+        addCandidates(candidates, ['win-x86', 'win-x64']);
+      } else {
+        addCandidates(candidates, ['win-x64', 'win-x86']);
+      }
+      break;
+    case 'darwin':
+      if (normalizedArch === 'arm64') {
+        addCandidates(candidates, ['osx-arm64', 'osx-x64']);
+      } else {
+        addCandidates(candidates, ['osx-x64', 'osx-arm64']);
+      }
+      break;
+    default:
+      if (normalizedArch === 'arm64') {
+        addCandidates(candidates, ['linux-arm64', 'linux-x64', 'linux-x86']);
+      } else if (normalizedArch === 'ia32') {
+        addCandidates(candidates, ['linux-x86', 'linux-x64', 'linux-arm64']);
+      } else {
+        addCandidates(candidates, ['linux-x64', 'linux-arm64', 'linux-x86']);
+      }
+      break;
+  }
+
+  addCandidates(candidates, [...CLI_HOST_RUNTIME_IDENTIFIERS]);
+  return candidates;
 }
 
 function workspaceRootTaskKey(workspaceRoot?: string): string {
