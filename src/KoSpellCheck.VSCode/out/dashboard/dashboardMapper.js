@@ -5,7 +5,7 @@ const sharedUiText_1 = require("../sharedUiText");
 function mapDashboardViewModel(snapshot, logs, examplesByFolder) {
     const overview = mapOverview(snapshot);
     const settings = mapSettings(snapshot.settings);
-    const conventionMap = mapConventionMap(snapshot.profile, examplesByFolder);
+    const conventionMap = mapConventionMap(snapshot.profile, examplesByFolder, snapshot.diagnostics ?? [], snapshot.unusedTypes ?? []);
     const diagnostics = mapDiagnostics(snapshot.diagnostics);
     const unusedTypes = mapUnusedTypes(snapshot.unusedTypes ?? []);
     return {
@@ -65,6 +65,15 @@ function mapSettings(settings) {
             value: settings.coreCliPath ?? (0, sharedUiText_1.text)('dashboard.value.auto', '(auto)', {
                 configuredLanguage: settings.uiLanguage
             }),
+            type: 'string',
+            editable: false
+        },
+        {
+            id: 'workspaceStoragePath',
+            label: (0, sharedUiText_1.text)('dashboard.setting.workspaceStoragePath', 'Workspace storage path', {
+                configuredLanguage: settings.uiLanguage
+            }),
+            value: settings.workspaceStoragePath?.trim() || '(default: .kospellcheck)',
             type: 'string',
             editable: false
         },
@@ -139,7 +148,7 @@ function boolSetting(_uiLanguage, id, label, value) {
         editable: true
     };
 }
-function mapConventionMap(profileValue, examplesByFolder) {
+function mapConventionMap(profileValue, examplesByFolder, diagnostics, unusedTypes) {
     const profile = asRecord(profileValue);
     const folders = asRecord(profile.Folders);
     const output = [];
@@ -160,8 +169,41 @@ function mapConventionMap(profileValue, examplesByFolder) {
             exampleTypes: examplesByFolder[folderPath] ?? []
         });
     }
+    const knownFolders = new Set(output.map((item) => item.folderPath));
+    for (const folderPath of collectSupplementalFolders(diagnostics, unusedTypes)) {
+        if (knownFolders.has(folderPath)) {
+            continue;
+        }
+        output.push({
+            folderPath,
+            expectedSuffix: '',
+            expectedPrefix: '',
+            dominantKind: '',
+            confidence: 0,
+            namespaceSample: undefined,
+            exampleTypes: examplesByFolder[folderPath] ?? []
+        });
+    }
     output.sort((left, right) => right.confidence - left.confidence || left.folderPath.localeCompare(right.folderPath));
     return output;
+}
+function collectSupplementalFolders(diagnostics, unusedTypes) {
+    const output = new Set();
+    for (const diagnostic of diagnostics) {
+        output.add(folderFromRelativePath(diagnostic.file.RelativePath));
+    }
+    for (const item of unusedTypes) {
+        output.add(folderFromRelativePath(item.declarationPath));
+    }
+    return [...output];
+}
+function folderFromRelativePath(relativePath) {
+    const normalized = (relativePath ?? '').replaceAll('\\', '/');
+    const separator = normalized.lastIndexOf('/');
+    if (separator <= 0) {
+        return '.';
+    }
+    return normalized.slice(0, separator);
 }
 function mapDiagnostics(diagnostics) {
     return diagnostics
