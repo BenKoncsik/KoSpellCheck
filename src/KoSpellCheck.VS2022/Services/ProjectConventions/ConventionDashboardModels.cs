@@ -42,6 +42,8 @@ internal sealed class ConventionDashboardSnapshot
 
     public IReadOnlyList<ConventionDashboardDiagnosticItem> Diagnostics { get; set; } = Array.Empty<ConventionDashboardDiagnosticItem>();
 
+    public IReadOnlyList<ConventionDashboardUnusedTypeItem> UnusedTypes { get; set; } = Array.Empty<ConventionDashboardUnusedTypeItem>();
+
     public IReadOnlyList<ConventionDashboardLogEntry> Logs { get; set; } = Array.Empty<ConventionDashboardLogEntry>();
 }
 
@@ -94,6 +96,33 @@ internal sealed class ConventionDashboardDiagnosticItem
     public int Line { get; set; }
 
     public int Column { get; set; }
+}
+
+internal sealed class ConventionDashboardUnusedTypeItem
+{
+    public string TypeName { get; set; } = string.Empty;
+
+    public string Classification { get; set; } = string.Empty;
+
+    public string RuleId { get; set; } = string.Empty;
+
+    public string DeclarationFilePath { get; set; } = string.Empty;
+
+    public string DeclarationAbsolutePath { get; set; } = string.Empty;
+
+    public int DeclarationLine { get; set; }
+
+    public int DeclarationColumn { get; set; }
+
+    public string NavigationFilePath { get; set; } = string.Empty;
+
+    public string NavigationAbsolutePath { get; set; } = string.Empty;
+
+    public int NavigationLine { get; set; }
+
+    public int NavigationColumn { get; set; }
+
+    public string NavigationMemberName { get; set; } = string.Empty;
 }
 
 internal sealed class ConventionDashboardLogEntry

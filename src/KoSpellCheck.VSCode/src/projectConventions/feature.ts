@@ -106,6 +106,34 @@ export interface CoreConventionDiagnostic {
   AiScore?: number;
 }
 
+export interface CoreTypeUsageEvidence {
+  FilePath: string;
+  Line: number;
+  Column: number;
+  MemberName?: string;
+  Origin: 'Production' | 'Test' | 'Reflection' | 'Unknown' | 'DependencyInjectionRegistration';
+  IsTestFile: boolean;
+  IsDependencyInjectionRegistration: boolean;
+}
+
+export interface CoreTypeUsageFacts {
+  TypeName: string;
+  TypeKind: 'Class' | 'Interface' | 'Enum' | 'Record' | 'Struct' | 'Type' | 'Unknown';
+  FilePath: string;
+  Line: number;
+  Column: number;
+  Namespace?: string;
+  FullyQualifiedName?: string;
+  Classification: 'Unknown' | 'UsedInProduction' | 'UsedOnlyInTests' | 'Unused';
+  ProductionReferenceCount: number;
+  TestReferenceCount: number;
+  ReflectionReferenceCount: number;
+  UnknownReferenceCount: number;
+  DependencyInjectionRegistrationCount: number;
+  Origins: Array<'Production' | 'Test' | 'Reflection' | 'Unknown' | 'DependencyInjectionRegistration'>;
+  Evidence: CoreTypeUsageEvidence[];
+}
+
 export interface CoreConventionFileFacts {
   WorkspaceRoot: string;
   AbsolutePath: string;
@@ -127,6 +155,7 @@ interface CoreAnalyzeResponse {
   Analysis?: {
     File?: CoreConventionFileFacts;
     Diagnostics?: CoreConventionDiagnostic[];
+    TypeUsages?: CoreTypeUsageFacts[];
   };
   Profile?: unknown;
   IgnoreList?: unknown;
@@ -137,6 +166,23 @@ export interface ProjectConventionDashboardDiagnosticSnapshot {
   workspaceRoot: string;
   file: CoreConventionFileFacts;
   diagnostic: CoreConventionDiagnostic;
+}
+
+export interface ProjectConventionDashboardUnusedTypeSnapshot {
+  key: string;
+  workspaceRoot: string;
+  typeName: string;
+  classification: 'unused' | 'test-only';
+  ruleId: 'KO_SPC_UNUSED_100' | 'KO_SPC_UNUSED_110';
+  declarationPath: string;
+  declarationAbsolutePath: string;
+  declarationLine: number;
+  declarationColumn: number;
+  navigationPath: string;
+  navigationAbsolutePath: string;
+  navigationLine: number;
+  navigationColumn: number;
+  navigationMemberName: string;
 }
 
 export interface ProjectConventionDashboardSnapshot {
@@ -157,6 +203,7 @@ export interface ProjectConventionDashboardSnapshot {
   profile?: unknown;
   summary?: unknown;
   diagnostics: ProjectConventionDashboardDiagnosticSnapshot[];
+  unusedTypes: ProjectConventionDashboardUnusedTypeSnapshot[];
   inFlightRebuildCount: number;
   queuedRebuildCount: number;
   coralRuntime?: CoreCliAnalyzeRequest['CoralRuntime'];
@@ -167,6 +214,7 @@ const SOURCE = 'KoSpellCheck.Conventions';
 export class ProjectConventionFeature implements vscode.Disposable {
   private readonly diagnostics: vscode.DiagnosticCollection;
   private readonly metadata = new Map<string, ConventionDiagnosticMetadata>();
+  private readonly unusedTypesByScope = new Map<string, Map<string, ProjectConventionDashboardUnusedTypeSnapshot[]>>();
   private readonly scopeStates = new Map<string, { profile?: unknown; ignoreList?: unknown }>();
   private readonly rebuildTimers = new Map<string, NodeJS.Timeout>();
   private readonly inFlightRebuilds = new Map<string, Promise<void>>();
@@ -219,6 +267,7 @@ export class ProjectConventionFeature implements vscode.Disposable {
     this.rebuildTimers.clear();
     this.inFlightRebuilds.clear();
     this.metadata.clear();
+    this.unusedTypesByScope.clear();
     this.scopeStates.clear();
     this.stateChangeEmitter.dispose();
 
@@ -243,6 +292,7 @@ export class ProjectConventionFeature implements vscode.Disposable {
       return {
         generatedAtUtc: new Date().toISOString(),
         diagnostics: [],
+        unusedTypes: [],
         inFlightRebuildCount: this.inFlightRebuilds.size,
         queuedRebuildCount: this.rebuildTimers.size
       };
@@ -264,6 +314,9 @@ export class ProjectConventionFeature implements vscode.Disposable {
       file: info.file,
       diagnostic: info.diagnostic
     }));
+    const unusedTypes = [...(this.unusedTypesByScope.get(scope.scopeKey)?.values() ?? [])]
+      .flat()
+      .sort((left, right) => left.typeName.localeCompare(right.typeName) || left.declarationPath.localeCompare(right.declarationPath));
 
     return {
       generatedAtUtc: new Date().toISOString(),
@@ -277,6 +330,7 @@ export class ProjectConventionFeature implements vscode.Disposable {
       profile,
       summary,
       diagnostics,
+      unusedTypes,
       inFlightRebuildCount: this.inFlightRebuilds.size,
       queuedRebuildCount: this.rebuildTimers.size,
       coralRuntime: this.toCoreCoralRuntime(config)
@@ -597,8 +651,12 @@ export class ProjectConventionFeature implements vscode.Disposable {
         return;
       }
 
+      const scope = this.resolveScope(document.uri);
       this.diagnostics.delete(document.uri);
       this.clearMetadataForUri(document.uri);
+      if (scope) {
+        this.clearUnusedTypesForUri(scope.scopeKey, document.uri);
+      }
       this.notifyDashboardStateChanged();
     });
 
@@ -689,8 +747,12 @@ export class ProjectConventionFeature implements vscode.Disposable {
   private async handleFilesRenamed(event: vscode.FileRenameEvent): Promise<void> {
     for (const item of event.files) {
       if (item.oldUri.scheme === 'file') {
+        const oldScope = this.resolveScope(item.oldUri);
         this.diagnostics.delete(item.oldUri);
         this.clearMetadataForUri(item.oldUri);
+        if (oldScope) {
+          this.clearUnusedTypesForUri(oldScope.scopeKey, item.oldUri);
+        }
       }
 
       if (item.newUri.scheme !== 'file') {
@@ -725,8 +787,11 @@ export class ProjectConventionFeature implements vscode.Disposable {
 
       this.diagnostics.delete(uri);
       this.clearMetadataForUri(uri);
-      this.notifyDashboardStateChanged();
       const scope = this.resolveScope(uri);
+      if (scope) {
+        this.clearUnusedTypesForUri(scope.scopeKey, uri);
+      }
+      this.notifyDashboardStateChanged();
       if (!scope) {
         continue;
       }
@@ -791,6 +856,7 @@ export class ProjectConventionFeature implements vscode.Disposable {
     const config = this.resolveConfig(scope.storageRoot, vscode.Uri.file(scope.storageRoot));
     if (!config.projectConventionMappingEnabled) {
       this.scopeStates.delete(scope.scopeKey);
+      this.unusedTypesByScope.delete(scope.scopeKey);
       this.notifyDashboardStateChanged();
       return;
     }
@@ -867,6 +933,7 @@ export class ProjectConventionFeature implements vscode.Disposable {
     if (!config.projectConventionMappingEnabled || !config.namingConventionDiagnosticsEnabled) {
       this.diagnostics.delete(uri);
       this.clearMetadataForUri(uri);
+      this.clearUnusedTypesForUri(scope.scopeKey, uri);
       this.notifyDashboardStateChanged();
       return;
     }
@@ -910,15 +977,19 @@ export class ProjectConventionFeature implements vscode.Disposable {
 
     const file = response.Analysis?.File;
     const diagnostics = response.Analysis?.Diagnostics ?? [];
+    const typeUsages = response.Analysis?.TypeUsages ?? [];
     if (!file) {
       this.diagnostics.delete(uri);
       this.clearMetadataForUri(uri);
+      this.clearUnusedTypesForUri(scope.scopeKey, uri);
       this.notifyDashboardStateChanged();
       return;
     }
 
     const vscodeDiagnostics = this.toVscodeDiagnostics(document, scope.storageRoot, file, diagnostics, response.Profile, response.IgnoreList);
     this.diagnostics.set(uri, vscodeDiagnostics);
+    const unusedTypes = this.toUnusedTypeSnapshots(scope.storageRoot, file, typeUsages);
+    this.setUnusedTypesForFile(scope.scopeKey, file.AbsolutePath, unusedTypes);
     this.log(`project-conventions core analyze trigger=${trigger} file=${file.RelativePath} diagnostics=${vscodeDiagnostics.length}`, uri);
     this.notifyDashboardStateChanged();
   }
@@ -954,6 +1025,87 @@ export class ProjectConventionFeature implements vscode.Disposable {
     }
 
     return output;
+  }
+
+  private toUnusedTypeSnapshots(
+    workspaceRoot: string,
+    file: CoreConventionFileFacts,
+    typeUsages: CoreTypeUsageFacts[]
+  ): ProjectConventionDashboardUnusedTypeSnapshot[] {
+    return typeUsages
+      .filter((usage) => usage.Classification === 'Unused' || usage.Classification === 'UsedOnlyInTests')
+      .map((usage) => {
+        const preferredEvidence = usage.Classification === 'UsedOnlyInTests'
+          ? usage.Evidence?.find((evidence) => evidence.IsTestFile)
+          : usage.Evidence?.[0];
+        const navigationPath = preferredEvidence?.FilePath || file.RelativePath;
+        const navigationAbsolutePath = this.toAbsolutePath(workspaceRoot, navigationPath);
+        const navigationLine = Number(preferredEvidence?.Line ?? usage.Line ?? 0);
+        const navigationColumn = Number(preferredEvidence?.Column ?? usage.Column ?? 0);
+        const navigationMemberName = preferredEvidence?.MemberName?.trim() || '';
+        const declarationLine = Number(usage.Line ?? 0);
+        const declarationColumn = Number(usage.Column ?? 0);
+
+        return {
+          key: `${file.RelativePath}|${usage.TypeName}|${usage.Classification}`,
+          workspaceRoot,
+          typeName: usage.TypeName,
+          classification: usage.Classification === 'UsedOnlyInTests' ? 'test-only' : 'unused',
+          ruleId: usage.Classification === 'UsedOnlyInTests' ? 'KO_SPC_UNUSED_110' : 'KO_SPC_UNUSED_100',
+          declarationPath: file.RelativePath,
+          declarationAbsolutePath: file.AbsolutePath,
+          declarationLine,
+          declarationColumn,
+          navigationPath,
+          navigationAbsolutePath,
+          navigationLine,
+          navigationColumn,
+          navigationMemberName
+        };
+      });
+  }
+
+  private toAbsolutePath(workspaceRoot: string, relativeOrAbsolutePath: string): string {
+    if (path.isAbsolute(relativeOrAbsolutePath)) {
+      return relativeOrAbsolutePath;
+    }
+
+    return path.resolve(workspaceRoot, relativeOrAbsolutePath.replaceAll('/', path.sep));
+  }
+
+  private setUnusedTypesForFile(
+    scopeKey: string,
+    absolutePath: string,
+    items: ProjectConventionDashboardUnusedTypeSnapshot[]
+  ): void {
+    const normalizedPath = path.normalize(absolutePath);
+    let byFile = this.unusedTypesByScope.get(scopeKey);
+    if (!byFile) {
+      byFile = new Map<string, ProjectConventionDashboardUnusedTypeSnapshot[]>();
+      this.unusedTypesByScope.set(scopeKey, byFile);
+    }
+
+    if (items.length === 0) {
+      byFile.delete(normalizedPath);
+    } else {
+      byFile.set(normalizedPath, items);
+    }
+
+    if (byFile.size === 0) {
+      this.unusedTypesByScope.delete(scopeKey);
+    }
+  }
+
+  private clearUnusedTypesForUri(scopeKey: string, uri: vscode.Uri): void {
+    const byFile = this.unusedTypesByScope.get(scopeKey);
+    if (!byFile) {
+      return;
+    }
+
+    byFile.delete(path.normalize(uri.fsPath));
+    if (byFile.size === 0) {
+      this.unusedTypesByScope.delete(scopeKey);
+    }
   }
 
   private notifyDashboardStateChanged(): void {

@@ -27,11 +27,13 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
     private DataGrid _settingsGrid = null!;
     private DataGrid _conventionGrid = null!;
     private DataGrid _diagnosticGrid = null!;
+    private DataGrid _unusedTypeGrid = null!;
     private ListBox _logList = null!;
 
     private readonly ObservableCollection<ConventionDashboardSettingItem> _settings = new();
     private readonly ObservableCollection<ConventionDashboardMapItem> _map = new();
     private readonly ObservableCollection<ConventionDashboardDiagnosticItem> _diagnostics = new();
+    private readonly ObservableCollection<ConventionDashboardUnusedTypeItem> _unusedTypes = new();
     private readonly ObservableCollection<ConventionDashboardLogEntry> _logs = new();
 
     private string? _currentWorkspaceRoot;
@@ -238,6 +240,31 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
         };
         panel.Children.Add(CreateExpander(T("dashboard.section.diagnostics", "Diagnostics"), _diagnosticGrid, isExpanded: true));
 
+        _unusedTypeGrid = new DataGrid
+        {
+            AutoGenerateColumns = false,
+            IsReadOnly = true,
+            CanUserAddRows = false,
+            CanUserDeleteRows = false,
+            HeadersVisibility = DataGridHeadersVisibility.Column,
+            ItemsSource = _unusedTypes,
+            Margin = new Thickness(2),
+            MinHeight = 150,
+        };
+        _unusedTypeGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.type", "Type"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardUnusedTypeItem.TypeName)), Width = new DataGridLength(1.5, DataGridLengthUnitType.Star) });
+        _unusedTypeGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.classification", "Classification"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardUnusedTypeItem.Classification)), Width = new DataGridLength(0.95, DataGridLengthUnitType.Star) });
+        _unusedTypeGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.rule", "Rule"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardUnusedTypeItem.RuleId)), Width = new DataGridLength(1.1, DataGridLengthUnitType.Star) });
+        _unusedTypeGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.file", "File"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardUnusedTypeItem.NavigationFilePath)), Width = new DataGridLength(2.4, DataGridLengthUnitType.Star) });
+        _unusedTypeGrid.Columns.Add(new DataGridTextColumn { Header = T("dashboard.table.method", "Method"), Binding = new System.Windows.Data.Binding(nameof(ConventionDashboardUnusedTypeItem.NavigationMemberName)), Width = new DataGridLength(1.5, DataGridLengthUnitType.Star) });
+        _unusedTypeGrid.MouseDoubleClick += async (_, _) =>
+        {
+            if (_unusedTypeGrid.SelectedItem is ConventionDashboardUnusedTypeItem item)
+            {
+                await RevealUnusedTypeAsync(item).ConfigureAwait(false);
+            }
+        };
+        panel.Children.Add(CreateExpander(T("dashboard.section.unusedTypes", "Unused Types"), _unusedTypeGrid, isExpanded: true));
+
         _logList = new ListBox
         {
             ItemsSource = _logs,
@@ -318,6 +345,35 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
         if (dte?.ActiveDocument?.Selection is TextSelection selection)
         {
             selection.MoveToLineAndOffset(Math.Max(1, item.Line + 1), Math.Max(1, item.Column + 1), false);
+        }
+    }
+
+    private async Task RevealUnusedTypeAsync(ConventionDashboardUnusedTypeItem item)
+    {
+        var targetPath = !string.IsNullOrWhiteSpace(item.NavigationAbsolutePath)
+            ? item.NavigationAbsolutePath
+            : item.DeclarationAbsolutePath;
+        if (string.IsNullOrWhiteSpace(targetPath) || !File.Exists(targetPath))
+        {
+            return;
+        }
+
+        var hasNavigationTarget = !string.IsNullOrWhiteSpace(item.NavigationAbsolutePath) ||
+            !string.IsNullOrWhiteSpace(item.NavigationFilePath);
+        var targetLine = hasNavigationTarget
+            ? item.NavigationLine
+            : item.DeclarationLine;
+        var targetColumn = hasNavigationTarget
+            ? item.NavigationColumn
+            : item.DeclarationColumn;
+
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(_package.DisposalToken);
+        VsShellUtilities.OpenDocument(_package, targetPath);
+
+        var dte = await _package.GetServiceAsync(typeof(SDTE)).ConfigureAwait(true) as DTE2;
+        if (dte?.ActiveDocument?.Selection is TextSelection selection)
+        {
+            selection.MoveToLineAndOffset(Math.Max(1, targetLine + 1), Math.Max(1, targetColumn + 1), false);
         }
     }
 
@@ -403,6 +459,7 @@ internal sealed class KoSpellCheckDashboardControl : UserControl, IDisposable
         Replace(_settings, snapshot.Settings);
         Replace(_map, snapshot.ConventionMap);
         Replace(_diagnostics, snapshot.Diagnostics);
+        Replace(_unusedTypes, snapshot.UnusedTypes);
         Replace(_logs, snapshot.Logs);
     }
 

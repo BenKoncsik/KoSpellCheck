@@ -51,6 +51,22 @@ export interface DashboardDiagnosticItem {
   column: number;
 }
 
+export interface DashboardUnusedTypeItem {
+  key: string;
+  typeName: string;
+  classification: 'unused' | 'test-only';
+  ruleId: 'KO_SPC_UNUSED_100' | 'KO_SPC_UNUSED_110';
+  declarationPath: string;
+  declarationAbsolutePath: string;
+  declarationLine: number;
+  declarationColumn: number;
+  navigationPath: string;
+  navigationAbsolutePath: string;
+  navigationLine: number;
+  navigationColumn: number;
+  navigationMemberName: string;
+}
+
 export interface DashboardViewModel {
   loading: boolean;
   errorMessage?: string;
@@ -62,6 +78,7 @@ export interface DashboardViewModel {
   settings: DashboardSettingItem[];
   conventionMap: DashboardConventionItem[];
   diagnostics: DashboardDiagnosticItem[];
+  unusedTypes: DashboardUnusedTypeItem[];
   logs: DashboardLogEntry[];
 }
 
@@ -138,6 +155,7 @@ function createEmptyState(): DashboardViewModel {
     settings: [],
     conventionMap: [],
     diagnostics: [],
+    unusedTypes: [],
     logs: []
   };
 }

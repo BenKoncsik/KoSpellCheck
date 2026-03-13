@@ -18,6 +18,23 @@ public enum ConventionTypeKind
     Unknown,
 }
 
+public enum ConventionTypeUsageClassification
+{
+    Unknown,
+    UsedInProduction,
+    UsedOnlyInTests,
+    Unused,
+}
+
+public enum ConventionTypeUsageOrigin
+{
+    Production,
+    Test,
+    Reflection,
+    Unknown,
+    DependencyInjectionRegistration,
+}
+
 public enum ConventionCaseStyle
 {
     PascalCase,
@@ -249,6 +266,56 @@ public sealed class ConventionDiagnostic
     public double? AiScore { get; set; }
 }
 
+public sealed class TypeUsageEvidence
+{
+    public string FilePath { get; set; } = string.Empty;
+
+    public int Line { get; set; }
+
+    public int Column { get; set; }
+
+    public string? MemberName { get; set; }
+
+    public ConventionTypeUsageOrigin Origin { get; set; } = ConventionTypeUsageOrigin.Unknown;
+
+    public bool IsTestFile { get; set; }
+
+    public bool IsDependencyInjectionRegistration { get; set; }
+}
+
+public sealed class TypeUsageFacts
+{
+    public string TypeName { get; set; } = string.Empty;
+
+    public ConventionTypeKind TypeKind { get; set; } = ConventionTypeKind.Unknown;
+
+    public string FilePath { get; set; } = string.Empty;
+
+    public int Line { get; set; }
+
+    public int Column { get; set; }
+
+    public string? Namespace { get; set; }
+
+    public string? FullyQualifiedName { get; set; }
+
+    public ConventionTypeUsageClassification Classification { get; set; } = ConventionTypeUsageClassification.Unknown;
+
+    public int ProductionReferenceCount { get; set; }
+
+    public int TestReferenceCount { get; set; }
+
+    public int ReflectionReferenceCount { get; set; }
+
+    public int UnknownReferenceCount { get; set; }
+
+    public int DependencyInjectionRegistrationCount { get; set; }
+
+    public IList<ConventionTypeUsageOrigin> Origins { get; set; } = new List<ConventionTypeUsageOrigin>();
+
+    public IList<TypeUsageEvidence> Evidence { get; set; } = new List<TypeUsageEvidence>();
+}
+
 public sealed class StatisticalAnomalyResult
 {
     public double Score { get; set; }
@@ -287,6 +354,8 @@ public sealed class ConventionFileAnalysisResult
     public ProjectFileFacts File { get; set; } = new();
 
     public IList<ConventionDiagnostic> Diagnostics { get; set; } = new List<ConventionDiagnostic>();
+
+    public IList<TypeUsageFacts> TypeUsages { get; set; } = new List<TypeUsageFacts>();
 
     public StatisticalAnomalyResult? Statistical { get; set; }
 

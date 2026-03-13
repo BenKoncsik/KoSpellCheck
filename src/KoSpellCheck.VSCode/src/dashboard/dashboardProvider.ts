@@ -17,6 +17,7 @@ type DashboardMessage =
   | { command: 'openSettings' }
   | { command: 'openProfile'; path?: string }
   | { command: 'revealDiagnostic'; path?: string; line?: number; column?: number }
+  | { command: 'revealUnusedType'; path?: string; line?: number; column?: number }
   | { command: 'toggleSetting'; settingId?: string; value?: unknown };
 
 export class KoSpellCheckDashboardProvider implements vscode.WebviewViewProvider, vscode.Disposable {
@@ -194,6 +195,11 @@ export class KoSpellCheckDashboardProvider implements vscode.WebviewViewProvider
         }
         return;
       case 'revealDiagnostic':
+        if (message.path) {
+          await this.revealDiagnostic(message.path, message.line, message.column);
+        }
+        return;
+      case 'revealUnusedType':
         if (message.path) {
           await this.revealDiagnostic(message.path, message.line, message.column);
         }
@@ -398,6 +404,7 @@ export class KoSpellCheckDashboardProvider implements vscode.WebviewViewProvider
       sectionSettings: text('dashboard.section.settings', 'Settings', { configuredLanguage }),
       sectionConventionMap: text('dashboard.section.conventionMap', 'Convention Map', { configuredLanguage }),
       sectionDiagnostics: text('dashboard.section.diagnostics', 'Diagnostics', { configuredLanguage }),
+      sectionUnusedTypes: text('dashboard.section.unusedTypes', 'Unused Types', { configuredLanguage }),
       sectionLogs: text('dashboard.section.logs', 'Logs', { configuredLanguage }),
       overviewWorkspaceRoot: text('dashboard.overview.workspaceRoot', 'Workspace root', { configuredLanguage }),
       overviewScope: text('dashboard.overview.scope', 'Scope', { configuredLanguage }),
@@ -429,14 +436,20 @@ export class KoSpellCheckDashboardProvider implements vscode.WebviewViewProvider
         { configuredLanguage }
       ),
       tableSeverity: text('dashboard.table.severity', 'Severity', { configuredLanguage }),
+      tableType: text('dashboard.table.type', 'Type', { configuredLanguage }),
+      tableClassification: text('dashboard.table.classification', 'Classification', { configuredLanguage }),
       tableFile: text('dashboard.table.file', 'File', { configuredLanguage }),
+      tableMethod: text('dashboard.table.method', 'Method', { configuredLanguage }),
       tableProblem: text('dashboard.table.problem', 'Problem', { configuredLanguage }),
       tableRule: text('dashboard.table.rule', 'Rule', { configuredLanguage }),
       tableExpected: text('dashboard.table.expected', 'Expected', { configuredLanguage }),
       tableObserved: text('dashboard.table.observed', 'Observed', { configuredLanguage }),
       tableSuggestion: text('dashboard.table.suggestion', 'Suggestion', { configuredLanguage }),
       reveal: text('dashboard.button.reveal', 'Reveal', { configuredLanguage }),
+      classificationUnused: text('dashboard.value.unused', 'Unused', { configuredLanguage }),
+      classificationTestOnly: text('dashboard.value.testOnly', 'Test-only', { configuredLanguage }),
       emptyDiagnostics: text('dashboard.empty.diagnostics', 'No active convention diagnostics.', { configuredLanguage }),
+      emptyUnusedTypes: text('dashboard.empty.unusedTypes', 'No unused or test-only types in current snapshot.', { configuredLanguage }),
       emptyLogs: text('dashboard.empty.logs', 'No log entries yet.', { configuredLanguage }),
       valueActive: text('dashboard.value.active', 'Active', { configuredLanguage }),
       valueInactive: text('dashboard.value.inactive', 'Inactive', { configuredLanguage }),

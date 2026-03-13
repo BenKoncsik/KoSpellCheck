@@ -8,7 +8,8 @@ public sealed class ConventionRuleEngine
     public IReadOnlyList<ConventionDiagnostic> Evaluate(
         ProjectFileFacts file,
         ProjectConventionProfile profile,
-        int minEvidenceCount)
+        int minEvidenceCount,
+        IReadOnlyList<TypeUsageFacts>? typeUsages = null)
     {
         var context = new RuleContext
         {
@@ -31,7 +32,123 @@ public sealed class ConventionRuleEngine
             diagnostics.AddRange(CheckFolderBySuffixConvention(file, symbol, context));
         }
 
+        diagnostics.AddRange(CheckUnusedTypeConventions(file, typeUsages));
+
         return DedupeDiagnostics(diagnostics);
+    }
+
+    private static IEnumerable<ConventionDiagnostic> CheckUnusedTypeConventions(
+        ProjectFileFacts file,
+        IReadOnlyList<TypeUsageFacts>? typeUsages)
+    {
+        if (!string.Equals(file.Extension, "cs", StringComparison.OrdinalIgnoreCase) ||
+            typeUsages == null ||
+            typeUsages.Count == 0)
+        {
+            return Array.Empty<ConventionDiagnostic>();
+        }
+
+        var diagnostics = new List<ConventionDiagnostic>();
+        foreach (var usage in typeUsages)
+        {
+            if (usage.TypeKind is not ConventionTypeKind.Class and not ConventionTypeKind.Interface)
+            {
+                continue;
+            }
+
+            var symbol = new TypeSymbolFacts
+            {
+                Name = usage.TypeName,
+                Kind = usage.TypeKind,
+                Line = usage.Line,
+                Column = usage.Column,
+                Namespace = usage.Namespace,
+            };
+
+            if (usage.Classification == ConventionTypeUsageClassification.Unused)
+            {
+                var diNote = usage.DependencyInjectionRegistrationCount > 0
+                    ? $" Only DI registration references were found ({usage.DependencyInjectionRegistrationCount}), and those do not count as real usage."
+                    : string.Empty;
+                diagnostics.Add(CreateDiagnostic(
+                    file,
+                    symbol,
+                    "KO_SPC_UNUSED_100",
+                    "Type has no production usage",
+                    ConventionSeverity.Warning,
+                    usage.DependencyInjectionRegistrationCount > 0 ? 0.84 : 0.92,
+                    $"The type {usage.TypeName} has no detected real usage in production code.{diNote}",
+                    "A two-stage analysis (fast candidate prefilter + semantic verification) did not find production references for this class/interface.",
+                    new[]
+                    {
+                        new ConventionEvidence
+                        {
+                            Metric = "production references",
+                            Expected = ">= 1 production usage",
+                            Observed = usage.ProductionReferenceCount.ToString(),
+                            Ratio = usage.ProductionReferenceCount > 0 ? 1 : 0,
+                            SampleSize = usage.ProductionReferenceCount + usage.TestReferenceCount + usage.DependencyInjectionRegistrationCount,
+                        },
+                    },
+                    new[]
+                    {
+                        "Remove the type if it is obsolete",
+                        "Add a real production usage if the type is required",
+                    },
+                    new[]
+                    {
+                        new ConventionQuickFix
+                        {
+                            Kind = ConventionQuickFixKind.IgnoreRuleForFile,
+                            RuleId = "KO_SPC_UNUSED_100",
+                            ScopeTarget = file.RelativePath,
+                            Title = "Ignore unused-type warning for this file",
+                        },
+                    }));
+                continue;
+            }
+
+            if (usage.Classification == ConventionTypeUsageClassification.UsedOnlyInTests)
+            {
+                diagnostics.Add(CreateDiagnostic(
+                    file,
+                    symbol,
+                    "KO_SPC_UNUSED_110",
+                    "Type referenced only from tests",
+                    ConventionSeverity.Warning,
+                    0.88,
+                    $"The type {usage.TypeName} is referenced only from test files/projects and has no production usage.",
+                    "Semantic verification found references in test code only. Production usage was not detected.",
+                    new[]
+                    {
+                        new ConventionEvidence
+                        {
+                            Metric = "test-only references",
+                            Expected = "at least one production reference",
+                            Observed = $"{usage.TestReferenceCount} test references, {usage.ProductionReferenceCount} production references",
+                            Ratio = usage.TestReferenceCount > 0 ? 1 : 0,
+                            SampleSize = usage.TestReferenceCount + usage.ProductionReferenceCount,
+                        },
+                    },
+                    new[]
+                    {
+                        "Move the type closer to tests if it is test-only by design",
+                        "Introduce production usage or remove the type",
+                    },
+                    new[]
+                    {
+                        new ConventionQuickFix
+                        {
+                            Kind = ConventionQuickFixKind.IgnoreRuleForFile,
+                            RuleId = "KO_SPC_UNUSED_110",
+                            ScopeTarget = file.RelativePath,
+                            Title = "Ignore test-only usage warning for this file",
+                        },
+                    }));
+            }
+        }
+
+        return diagnostics;
     }
 
     private static IEnumerable<ConventionDiagnostic> CheckFileToPrimaryTypeMapping(ProjectFileFacts file, RuleContext context)

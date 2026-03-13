@@ -25,6 +25,9 @@ internal sealed class ProjectConventionDashboardService
         public readonly Dictionary<string, List<ConventionDashboardDiagnosticItem>> DiagnosticsByFile =
             new(StringComparer.OrdinalIgnoreCase);
 
+        public readonly Dictionary<string, List<ConventionDashboardUnusedTypeItem>> UnusedTypesByFile =
+            new(StringComparer.OrdinalIgnoreCase);
+
         public readonly Dictionary<string, string[]> FolderExamples =
             new(StringComparer.OrdinalIgnoreCase);
 
@@ -222,6 +225,7 @@ internal sealed class ProjectConventionDashboardService
                     Options = options,
                 }).IgnoreList;
                 state.DiagnosticsByFile.Clear();
+                state.UnusedTypesByFile.Clear();
                 state.FolderExamples.Clear();
             }
 
@@ -305,6 +309,12 @@ internal sealed class ProjectConventionDashboardService
         }
 
         var diagnostics = state.DiagnosticsByFile.Values.SelectMany(item => item).ToList();
+        var unusedTypes = state.UnusedTypesByFile.Values
+            .SelectMany(item => item)
+            .OrderBy(item => item.TypeName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(item => item.DeclarationFilePath, StringComparer.OrdinalIgnoreCase)
+            .Take(300)
+            .ToList();
         var mapItems = BuildMapItems(profile, state.FolderExamples);
         var settings = BuildSettingItems(options, config.UiLanguage);
         var coralActive = options.EnableAiNamingAnomalyDetection && options.UseCoralTpuIfAvailable && false;
@@ -340,6 +350,7 @@ internal sealed class ProjectConventionDashboardService
                 .ThenByDescending(item => item.Confidence)
                 .Take(250)
                 .ToList(),
+            UnusedTypes = unusedTypes,
             Logs = _logs.Snapshot(),
         };
     }
@@ -367,6 +378,7 @@ internal sealed class ProjectConventionDashboardService
             .ToList();
 
         var diagnosticsByFile = new Dictionary<string, List<ConventionDashboardDiagnosticItem>>(StringComparer.OrdinalIgnoreCase);
+        var unusedByFile = new Dictionary<string, List<ConventionDashboardUnusedTypeItem>>(StringComparer.OrdinalIgnoreCase);
         var folderExamples = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var filePath in filePaths)
@@ -397,6 +409,12 @@ internal sealed class ProjectConventionDashboardService
                     .ToList();
             }
 
+            var unusedItems = BuildUnusedTypeItems(workspaceRoot, analysis.Analysis);
+            if (unusedItems.Count > 0)
+            {
+                unusedByFile[analysis.Analysis.File.RelativePath] = unusedItems;
+            }
+
             var folderKey = ConventionNamingUtils.NormalizeFolderKey(analysis.Analysis.File.FolderPath);
             if (!folderExamples.TryGetValue(folderKey, out var exampleSet))
             {
@@ -422,6 +440,12 @@ internal sealed class ProjectConventionDashboardService
                 state.DiagnosticsByFile[pair.Key] = pair.Value;
             }
 
+            state.UnusedTypesByFile.Clear();
+            foreach (var pair in unusedByFile)
+            {
+                state.UnusedTypesByFile[pair.Key] = pair.Value;
+            }
+
             state.FolderExamples.Clear();
             foreach (var pair in folderExamples)
             {
@@ -439,12 +463,14 @@ internal sealed class ProjectConventionDashboardService
         var mapped = analysis.Analysis.Diagnostics
             .Select(diag => ToDiagnosticItem(analysis.Analysis.File, diag))
             .ToList();
+        var unusedItems = BuildUnusedTypeItems(workspaceRoot, analysis.Analysis);
 
         lock (_gate)
         {
             state.Profile = analysis.Profile;
             state.IgnoreList = analysis.IgnoreList;
             state.DiagnosticsByFile[relativePath] = mapped;
+            state.UnusedTypesByFile[relativePath] = unusedItems;
         }
 
         if (raiseEvent)
@@ -470,6 +496,62 @@ internal sealed class ProjectConventionDashboardService
             Line = diag.Line,
             Column = diag.Column,
         };
+    }
+
+    private static List<ConventionDashboardUnusedTypeItem> BuildUnusedTypeItems(
+        string workspaceRoot,
+        ConventionFileAnalysisResult analysis)
+    {
+        var output = new List<ConventionDashboardUnusedTypeItem>();
+        foreach (var usage in analysis.TypeUsages)
+        {
+            if (usage.Classification is not ConventionTypeUsageClassification.Unused and not ConventionTypeUsageClassification.UsedOnlyInTests)
+            {
+                continue;
+            }
+
+            var reference = usage.Classification == ConventionTypeUsageClassification.UsedOnlyInTests
+                ? usage.Evidence.FirstOrDefault(item => item.IsTestFile)
+                : usage.Evidence.FirstOrDefault();
+            var navigationPath = reference?.FilePath ?? analysis.File.RelativePath;
+            var navigationLine = reference?.Line ?? usage.Line;
+            var navigationColumn = reference?.Column ?? usage.Column;
+            var navigationMember = reference?.MemberName ?? string.Empty;
+
+            output.Add(new ConventionDashboardUnusedTypeItem
+            {
+                TypeName = usage.TypeName,
+                Classification = usage.Classification == ConventionTypeUsageClassification.UsedOnlyInTests
+                    ? "test-only"
+                    : "unused",
+                RuleId = usage.Classification == ConventionTypeUsageClassification.UsedOnlyInTests
+                    ? "KO_SPC_UNUSED_110"
+                    : "KO_SPC_UNUSED_100",
+                DeclarationFilePath = analysis.File.RelativePath,
+                DeclarationAbsolutePath = analysis.File.AbsolutePath,
+                DeclarationLine = usage.Line,
+                DeclarationColumn = usage.Column,
+                NavigationFilePath = navigationPath,
+                NavigationAbsolutePath = ToAbsolutePath(workspaceRoot, navigationPath),
+                NavigationLine = navigationLine,
+                NavigationColumn = navigationColumn,
+                NavigationMemberName = navigationMember,
+            });
+        }
+
+        return output;
+    }
+
+    private static string ToAbsolutePath(string workspaceRoot, string pathValue)
+    {
+        if (Path.IsPathRooted(pathValue))
+        {
+            return pathValue;
+        }
+
+        return Path.GetFullPath(Path.Combine(
+            workspaceRoot,
+            pathValue.Replace('/', Path.DirectorySeparatorChar)));
     }
 
     private static IReadOnlyList<ConventionDashboardMapItem> BuildMapItems(

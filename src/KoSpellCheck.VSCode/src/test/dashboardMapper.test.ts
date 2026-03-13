@@ -84,6 +84,7 @@ test('dashboard mapper converts convention profile snapshot into view model', ()
         }
       }
     ],
+    unusedTypes: [],
     inFlightRebuildCount: 0,
     queuedRebuildCount: 0,
     coralRuntime: {
@@ -111,5 +112,6 @@ test('dashboard mapper converts convention profile snapshot into view model', ()
   assert.equal(model.conventionMap[0].exampleTypes[0], 'CustomerService');
   assert.equal(model.diagnostics.length, 1);
   assert.equal(model.diagnostics[0].severity, 'warning');
+  assert.equal(model.unusedTypes.length, 0);
   assert.equal(model.logs.length, 1);
 });

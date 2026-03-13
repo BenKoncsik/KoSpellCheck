@@ -17,6 +17,7 @@ public sealed class ProjectConventionService : IProjectConventionProfiler, IProj
     private readonly IWorkspaceFileProvider _workspaceFileProvider;
     private readonly ITextFileReader _textFileReader;
     private readonly ProjectConventionSymbolExtractor _symbolExtractor;
+    private readonly DotNetTypeUsageAnalyzer _dotNetTypeUsageAnalyzer;
     private readonly ConventionProfiler _profiler;
     private readonly ConventionRuleEngine _ruleEngine;
     private readonly IAnomalyScorer _anomalyScorer;
@@ -27,6 +28,7 @@ public sealed class ProjectConventionService : IProjectConventionProfiler, IProj
         IWorkspaceFileProvider? workspaceFileProvider = null,
         ITextFileReader? textFileReader = null,
         ProjectConventionSymbolExtractor? symbolExtractor = null,
+        DotNetTypeUsageAnalyzer? dotNetTypeUsageAnalyzer = null,
         ConventionProfiler? profiler = null,
         ConventionRuleEngine? ruleEngine = null,
         IAnomalyScorer? anomalyScorer = null,
@@ -36,6 +38,7 @@ public sealed class ProjectConventionService : IProjectConventionProfiler, IProj
         _workspaceFileProvider = workspaceFileProvider ?? new FileSystemWorkspaceFileProvider();
         _textFileReader = textFileReader ?? new FileSystemTextFileReader();
         _symbolExtractor = symbolExtractor ?? new ProjectConventionSymbolExtractor();
+        _dotNetTypeUsageAnalyzer = dotNetTypeUsageAnalyzer ?? new DotNetTypeUsageAnalyzer(_workspaceFileProvider, _textFileReader, _symbolExtractor);
         _profiler = profiler ?? new ConventionProfiler();
         _ruleEngine = ruleEngine ?? new ConventionRuleEngine();
         _anomalyScorer = anomalyScorer ?? new StatisticalAnomalyScorer();
@@ -196,7 +199,9 @@ public sealed class ProjectConventionService : IProjectConventionProfiler, IProj
             };
         }
 
-        var diagnostics = _ruleEngine.Evaluate(fileFacts, profile, Math.Max(1, options.MinEvidenceCount))
+        var typeUsage = BuildTypeUsageFacts(request.WorkspaceRoot, fullPath, content!, fileFacts, options);
+
+        var diagnostics = _ruleEngine.Evaluate(fileFacts, profile, Math.Max(1, options.MinEvidenceCount), typeUsage)
             .Where(diag => !JsonConventionProfileStore.IsIgnored(ignoreList, diag.RuleId, fileFacts.RelativePath, fileFacts.FolderPath))
             .ToList();
 
@@ -266,6 +271,7 @@ public sealed class ProjectConventionService : IProjectConventionProfiler, IProj
             {
                 File = fileFacts,
                 Diagnostics = diagnostics,
+                TypeUsages = typeUsage.ToList(),
                 Statistical = options.EnableStatisticalAnomalyDetection ? statisticalResult : null,
                 Ai = aiScore,
             },
@@ -348,6 +354,26 @@ public sealed class ProjectConventionService : IProjectConventionProfiler, IProj
             Column = file.PrimaryType?.Column ?? 0,
             AnomalyScore = statistical.Score,
         };
+    }
+
+    private IReadOnlyList<TypeUsageFacts> BuildTypeUsageFacts(
+        string workspaceRoot,
+        string fullPath,
+        string fileContent,
+        ProjectFileFacts fileFacts,
+        ProjectConventionOptions options)
+    {
+        if (!string.Equals(fileFacts.Extension, "cs", StringComparison.OrdinalIgnoreCase))
+        {
+            return Array.Empty<TypeUsageFacts>();
+        }
+
+        if (fileFacts.Types.All(symbol => symbol.Kind is not ConventionTypeKind.Class and not ConventionTypeKind.Interface))
+        {
+            return Array.Empty<TypeUsageFacts>();
+        }
+
+        return _dotNetTypeUsageAnalyzer.Analyze(workspaceRoot, fullPath, fileContent, options);
     }
 
     private static ConventionDiagnostic CreateAiSupportDiagnostic(ProjectFileFacts file, AiAnomalyScore ai)

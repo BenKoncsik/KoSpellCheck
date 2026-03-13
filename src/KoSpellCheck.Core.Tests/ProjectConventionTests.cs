@@ -266,6 +266,246 @@ public sealed class ProjectConventionTests
         }
     }
 
+    [Fact]
+    public void Analyzer_reports_KO_SPC_UNUSED_100_when_type_has_no_real_usage()
+    {
+        var root = CreateTempWorkspace();
+        try
+        {
+            WriteFile(root, "Domain/OrphanType.cs", "namespace App.Domain; public sealed class OrphanType {}");
+            WriteFile(root, "Domain/OtherType.cs", "namespace App.Domain; public sealed class OtherType {}");
+
+            var service = new ProjectConventionService();
+            var profile = service.BuildProfile(new ConventionProfileBuildRequest
+            {
+                WorkspaceRoot = root,
+                Scope = "workspace",
+                Options = new ProjectConventionOptions
+                {
+                    MinEvidenceCount = 1,
+                },
+                PersistArtifacts = false,
+            }).Profile;
+
+            var analysis = service.Analyze(new ConventionAnalysisRequest
+            {
+                WorkspaceRoot = root,
+                FilePath = Path.Combine(root, "Domain", "OrphanType.cs"),
+                FileContent = "namespace App.Domain; public sealed class OrphanType {}",
+                Profile = profile,
+                IgnoreList = new ConventionIgnoreList(),
+                Options = new ProjectConventionOptions
+                {
+                    MinEvidenceCount = 1,
+                    EnableStatisticalAnomalyDetection = false,
+                    EnableAiNamingAnomalyDetection = false,
+                },
+            });
+
+            var unused = Assert.Single(analysis.Analysis.Diagnostics, d => d.RuleId == "KO_SPC_UNUSED_100");
+            Assert.Equal(ConventionSeverity.Warning, unused.Severity);
+            Assert.DoesNotContain(analysis.Analysis.Diagnostics, d => d.RuleId == "KO_SPC_UNUSED_110");
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Analyzer_reports_KO_SPC_UNUSED_110_when_type_is_only_used_by_tests()
+    {
+        var root = CreateTempWorkspace();
+        try
+        {
+            WriteFile(root, "Domain/TestOnlyType.cs", "namespace App.Domain; public sealed class TestOnlyType {}");
+            WriteFile(
+                root,
+                "Tests/TestOnlyTypeTests.cs",
+                "using App.Domain; namespace App.Tests; public sealed class TestOnlyTypeTests { private readonly TestOnlyType _sut = new(); }");
+
+            var service = new ProjectConventionService();
+            var profile = service.BuildProfile(new ConventionProfileBuildRequest
+            {
+                WorkspaceRoot = root,
+                Scope = "workspace",
+                Options = new ProjectConventionOptions
+                {
+                    MinEvidenceCount = 1,
+                },
+                PersistArtifacts = false,
+            }).Profile;
+
+            var analysis = service.Analyze(new ConventionAnalysisRequest
+            {
+                WorkspaceRoot = root,
+                FilePath = Path.Combine(root, "Domain", "TestOnlyType.cs"),
+                FileContent = "namespace App.Domain; public sealed class TestOnlyType {}",
+                Profile = profile,
+                IgnoreList = new ConventionIgnoreList(),
+                Options = new ProjectConventionOptions
+                {
+                    MinEvidenceCount = 1,
+                    EnableStatisticalAnomalyDetection = false,
+                    EnableAiNamingAnomalyDetection = false,
+                },
+            });
+
+            var testOnly = Assert.Single(analysis.Analysis.Diagnostics, d => d.RuleId == "KO_SPC_UNUSED_110");
+            Assert.Equal(ConventionSeverity.Warning, testOnly.Severity);
+            Assert.DoesNotContain(analysis.Analysis.Diagnostics, d => d.RuleId == "KO_SPC_UNUSED_100");
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Analyzer_recognizes_generic_interface_usage_as_used()
+    {
+        var root = CreateTempWorkspace();
+        try
+        {
+            WriteFile(root, "Contracts/IFoo.cs", "namespace App.Contracts; public interface IFoo<TItem> {}");
+            WriteFile(
+                root,
+                "Services/GenericConsumer.cs",
+                "using App.Contracts; namespace App.Services; public sealed class GenericConsumer { private readonly IFoo<GenericPayload> _foo; public GenericConsumer(IFoo<GenericPayload> foo) { _foo = foo; } } public sealed class GenericPayload {}");
+
+            var service = new ProjectConventionService();
+            var profile = service.BuildProfile(new ConventionProfileBuildRequest
+            {
+                WorkspaceRoot = root,
+                Scope = "workspace",
+                Options = new ProjectConventionOptions
+                {
+                    MinEvidenceCount = 1,
+                },
+                PersistArtifacts = false,
+            }).Profile;
+
+            var analysis = service.Analyze(new ConventionAnalysisRequest
+            {
+                WorkspaceRoot = root,
+                FilePath = Path.Combine(root, "Contracts", "IFoo.cs"),
+                FileContent = "namespace App.Contracts; public interface IFoo<TItem> {}",
+                Profile = profile,
+                IgnoreList = new ConventionIgnoreList(),
+                Options = new ProjectConventionOptions
+                {
+                    MinEvidenceCount = 1,
+                    EnableStatisticalAnomalyDetection = false,
+                    EnableAiNamingAnomalyDetection = false,
+                },
+            });
+
+            Assert.DoesNotContain(analysis.Analysis.Diagnostics, d => d.RuleId is "KO_SPC_UNUSED_100" or "KO_SPC_UNUSED_110");
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Analyzer_does_not_count_di_registration_alone_as_usage()
+    {
+        var root = CreateTempWorkspace();
+        try
+        {
+            WriteFile(root, "Services/EmailSender.cs", "namespace App.Services; public sealed class EmailSender {}");
+            WriteFile(
+                root,
+                "Composition/Registrations.cs",
+                "namespace App.Composition; public sealed class Registrations { public void Register(object services) { services.AddTransient<App.Services.EmailSender>(); services.AddScoped<App.Services.EmailSender>(); services.AddSingleton<App.Services.EmailSender>(); } }");
+
+            var service = new ProjectConventionService();
+            var profile = service.BuildProfile(new ConventionProfileBuildRequest
+            {
+                WorkspaceRoot = root,
+                Scope = "workspace",
+                Options = new ProjectConventionOptions
+                {
+                    MinEvidenceCount = 1,
+                },
+                PersistArtifacts = false,
+            }).Profile;
+
+            var analysis = service.Analyze(new ConventionAnalysisRequest
+            {
+                WorkspaceRoot = root,
+                FilePath = Path.Combine(root, "Services", "EmailSender.cs"),
+                FileContent = "namespace App.Services; public sealed class EmailSender {}",
+                Profile = profile,
+                IgnoreList = new ConventionIgnoreList(),
+                Options = new ProjectConventionOptions
+                {
+                    MinEvidenceCount = 1,
+                    EnableStatisticalAnomalyDetection = false,
+                    EnableAiNamingAnomalyDetection = false,
+                },
+            });
+
+            Assert.Contains(analysis.Analysis.Diagnostics, d => d.RuleId == "KO_SPC_UNUSED_100");
+            Assert.DoesNotContain(analysis.Analysis.Diagnostics, d => d.RuleId == "KO_SPC_UNUSED_110");
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Analyzer_recognizes_reflection_usage_patterns()
+    {
+        var root = CreateTempWorkspace();
+        try
+        {
+            WriteFile(
+                root,
+                "Reflection/ReflectionTargets.cs",
+                "namespace App.Reflection; public sealed class TypeOfTarget {} public sealed class NameOfTarget {} public sealed class GetTypeTarget {} public sealed class StringTypeTarget {} public sealed class AssemblyTypeTarget {} public sealed class ActivatorTarget {}");
+            WriteFile(
+                root,
+                "Reflection/ReflectionConsumer.cs",
+                "using System; using System.Reflection; namespace App.Reflection; public sealed class ReflectionConsumer { private readonly GetTypeTarget _instance = new(); public void Use(Assembly assembly) { _ = typeof(TypeOfTarget); _ = nameof(NameOfTarget); _ = _instance.GetType(); _ = Type.GetType(\"App.Reflection.StringTypeTarget\"); _ = assembly.GetType(\"App.Reflection.AssemblyTypeTarget\"); _ = Activator.CreateInstance(typeof(ActivatorTarget)); } }");
+
+            var service = new ProjectConventionService();
+            var profile = service.BuildProfile(new ConventionProfileBuildRequest
+            {
+                WorkspaceRoot = root,
+                Scope = "workspace",
+                Options = new ProjectConventionOptions
+                {
+                    MinEvidenceCount = 1,
+                },
+                PersistArtifacts = false,
+            }).Profile;
+
+            var analysis = service.Analyze(new ConventionAnalysisRequest
+            {
+                WorkspaceRoot = root,
+                FilePath = Path.Combine(root, "Reflection", "ReflectionTargets.cs"),
+                FileContent = "namespace App.Reflection; public sealed class TypeOfTarget {} public sealed class NameOfTarget {} public sealed class GetTypeTarget {} public sealed class StringTypeTarget {} public sealed class AssemblyTypeTarget {} public sealed class ActivatorTarget {}",
+                Profile = profile,
+                IgnoreList = new ConventionIgnoreList(),
+                Options = new ProjectConventionOptions
+                {
+                    MinEvidenceCount = 1,
+                    EnableStatisticalAnomalyDetection = false,
+                    EnableAiNamingAnomalyDetection = false,
+                },
+            });
+
+            Assert.DoesNotContain(analysis.Analysis.Diagnostics, d => d.RuleId is "KO_SPC_UNUSED_100" or "KO_SPC_UNUSED_110");
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
     private static string CreateTempWorkspace()
     {
         return Directory.CreateTempSubdirectory("koscore-conventions-").FullName;

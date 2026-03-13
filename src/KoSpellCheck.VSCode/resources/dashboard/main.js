@@ -22,6 +22,7 @@
     settings: [],
     conventionMap: [],
     diagnostics: [],
+    unusedTypes: [],
     logs: []
   };
   const persisted = vscode.getState();
@@ -511,6 +512,54 @@
     `;
   }
 
+  function renderUnusedTypes() {
+    const rows = (state.unusedTypes || [])
+      .map((item) => {
+        const classification = item.classification === 'test-only'
+          ? ui('classificationTestOnly', 'Test-only')
+          : ui('classificationUnused', 'Unused');
+        const member = item.navigationMemberName
+          ? esc(item.navigationMemberName)
+          : '-';
+        return `
+          <tr>
+            <td>${esc(item.typeName)}</td>
+            <td>${esc(classification)}</td>
+            <td>${esc(item.ruleId)}</td>
+            <td>${esc(item.navigationPath || item.declarationPath)}</td>
+            <td>${member}</td>
+            <td>
+              <button class="secondary" data-action="revealUnusedType" data-path="${esc(item.navigationAbsolutePath || item.declarationAbsolutePath)}" data-line="${esc(item.navigationLine)}" data-column="${esc(item.navigationColumn)}">${ui('reveal', 'Reveal')}</button>
+            </td>
+          </tr>
+        `;
+      })
+      .join('');
+
+    return `
+      <details open>
+        <summary>${ui('sectionUnusedTypes', 'Unused Types')}</summary>
+        <div class="section-body">
+          ${rows
+            ? `<table class="table">
+                <thead>
+                  <tr>
+                    <th>${ui('tableType', 'Type')}</th>
+                    <th>${ui('tableClassification', 'Classification')}</th>
+                    <th>${ui('tableRule', 'Rule')}</th>
+                    <th>${ui('tableFile', 'File')}</th>
+                    <th>${ui('tableMethod', 'Method')}</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+              </table>`
+            : `<div class="empty">${ui('emptyUnusedTypes', 'No unused or test-only types in current snapshot.')}</div>`}
+        </div>
+      </details>
+    `;
+  }
+
   function renderLogs() {
     const rows = (state.logs || [])
       .map((entry) => {
@@ -538,6 +587,7 @@
       ${renderSettings()}
       ${renderConventionMap()}
       ${renderDiagnostics()}
+      ${renderUnusedTypes()}
       ${renderLogs()}
     `;
 
@@ -580,6 +630,15 @@
 
         if (action === 'revealDiagnostic') {
           post('revealDiagnostic', {
+            path: element.getAttribute('data-path') || '',
+            line: Number(element.getAttribute('data-line') || '0'),
+            column: Number(element.getAttribute('data-column') || '0')
+          });
+          return;
+        }
+
+        if (action === 'revealUnusedType') {
+          post('revealUnusedType', {
             path: element.getAttribute('data-path') || '',
             line: Number(element.getAttribute('data-line') || '0'),
             column: Number(element.getAttribute('data-column') || '0')
