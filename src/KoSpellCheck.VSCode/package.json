@@ -2,7 +2,7 @@
   "name": "kospellcheck",
   "displayName": "%kospellcheck.displayName%",
   "description": "%kospellcheck.description%",
-  "version": "0.1.34",
+  "version": "0.1.35",
   "publisher": "BenKoncsik",
   "license": "MIT",
   "engines": {

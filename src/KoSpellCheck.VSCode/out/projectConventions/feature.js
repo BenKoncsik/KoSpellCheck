@@ -96,6 +96,20 @@ class ProjectConventionFeature {
         await this.rebuildScope(scope, reason, force);
         return true;
     }
+    async forceUnusedTypeSearch(uri) {
+        const scope = this.resolveScope(uri ?? vscode.window.activeTextEditor?.document.uri);
+        if (!scope) {
+            return false;
+        }
+        const config = this.resolveConfig(scope.storageRoot, uri ?? vscode.window.activeTextEditor?.document.uri);
+        if (!config.projectConventionMappingEnabled || !config.namingConventionDiagnosticsEnabled) {
+            return false;
+        }
+        await this.rebuildScope(scope, 'dashboard-force-unused-type-search', false);
+        await this.scanScopeForUnusedTypes(scope, config);
+        this.notifyDashboardStateChanged();
+        return true;
+    }
     getDashboardSnapshot(uri) {
         const scope = this.resolveScope(uri ?? vscode.window.activeTextEditor?.document.uri);
         if (!scope) {
@@ -698,6 +712,58 @@ class ProjectConventionFeature {
         if (byFile.size === 0) {
             this.unusedTypesByScope.delete(scopeKey);
         }
+    }
+    async scanScopeForUnusedTypes(scope, config) {
+        const includePattern = new vscode.RelativePattern(scope.storageRoot, '**/*.cs');
+        const excludePattern = '**/{bin,obj,node_modules,.git,.vs,.kospellcheck}/**';
+        const fileUris = await vscode.workspace.findFiles(includePattern, excludePattern);
+        let state = this.scopeStates.get(scope.scopeKey);
+        const nextUnusedTypes = new Map();
+        for (const fileUri of fileUris) {
+            let content;
+            try {
+                content = await node_fs_1.default.promises.readFile(fileUri.fsPath, 'utf8');
+            }
+            catch {
+                continue;
+            }
+            const request = {
+                WorkspaceRoot: scope.storageRoot,
+                FilePath: fileUri.fsPath,
+                FileContent: content,
+                Options: this.toCoreOptions(config),
+                Profile: state?.profile,
+                IgnoreList: state?.ignoreList,
+                CoralRuntime: this.toCoreCoralRuntime(config)
+            };
+            const raw = await this.cliClient.analyze(request);
+            if (!raw) {
+                continue;
+            }
+            const response = raw;
+            if (response.Profile || response.IgnoreList) {
+                state = {
+                    profile: response.Profile,
+                    ignoreList: response.IgnoreList
+                };
+                this.scopeStates.set(scope.scopeKey, state);
+            }
+            const file = response.Analysis?.File;
+            if (!file) {
+                continue;
+            }
+            const unusedTypes = this.toUnusedTypeSnapshots(scope.storageRoot, file, response.Analysis?.TypeUsages ?? []);
+            if (unusedTypes.length > 0) {
+                nextUnusedTypes.set(node_path_1.default.normalize(file.AbsolutePath), unusedTypes);
+            }
+        }
+        if (nextUnusedTypes.size === 0) {
+            this.unusedTypesByScope.delete(scope.scopeKey);
+        }
+        else {
+            this.unusedTypesByScope.set(scope.scopeKey, nextUnusedTypes);
+        }
+        this.log(`project-conventions forced unused-type scan completed files=${fileUris.length} unusedFiles=${nextUnusedTypes.size}`);
     }
     clearUnusedTypesForUri(scopeKey, uri) {
         const byFile = this.unusedTypesByScope.get(scopeKey);

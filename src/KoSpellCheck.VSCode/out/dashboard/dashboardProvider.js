@@ -157,6 +157,10 @@ class KoSpellCheckDashboardProvider {
                 await this.projectConventionFeature.rebuildActiveScope('webview-refresh-convention-map', false);
                 await this.refresh('webview-refresh-convention-map');
                 return;
+            case 'forceUnusedTypeSearch':
+                await this.projectConventionFeature.forceUnusedTypeSearch(vscode.window.activeTextEditor?.document.uri);
+                await this.refresh('webview-force-unused-type-search');
+                return;
             case 'clearLogs':
                 this.logService.clear();
                 return;
@@ -337,6 +341,7 @@ class KoSpellCheckDashboardProvider {
             toolbarRefresh: (0, sharedUiText_1.text)('dashboard.toolbar.refresh', 'Refresh Dashboard', { configuredLanguage }),
             toolbarRebuild: (0, sharedUiText_1.text)('dashboard.toolbar.rebuild', 'Rebuild Convention Profile', { configuredLanguage }),
             toolbarRefreshMap: (0, sharedUiText_1.text)('dashboard.toolbar.refreshMap', 'Refresh Convention Map', { configuredLanguage }),
+            toolbarForceUnusedSearch: (0, sharedUiText_1.text)('dashboard.toolbar.forceUnusedSearch', 'Force Unused Type Search', { configuredLanguage }),
             toolbarClearLogs: (0, sharedUiText_1.text)('dashboard.toolbar.clearLogs', 'Clear Logs', { configuredLanguage }),
             toolbarOpenSettings: (0, sharedUiText_1.text)('dashboard.toolbar.openSettings', 'Open Settings', { configuredLanguage }),
             toolbarOpenProfileJson: (0, sharedUiText_1.text)('dashboard.toolbar.openProfileJson', 'Open Profile JSON', { configuredLanguage }),
