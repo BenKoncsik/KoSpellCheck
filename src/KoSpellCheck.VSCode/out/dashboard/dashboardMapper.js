@@ -7,6 +7,7 @@ function mapDashboardViewModel(snapshot, logs, examplesByFolder) {
     const settings = mapSettings(snapshot.settings);
     const conventionMap = mapConventionMap(snapshot.profile, examplesByFolder);
     const diagnostics = mapDiagnostics(snapshot.diagnostics);
+    const unusedTypes = mapUnusedTypes(snapshot.unusedTypes ?? []);
     return {
         refreshedAtUtc: snapshot.generatedAtUtc,
         profilePath: snapshot.profilePath,
@@ -16,6 +17,7 @@ function mapDashboardViewModel(snapshot, logs, examplesByFolder) {
         settings,
         conventionMap,
         diagnostics,
+        unusedTypes,
         logs
     };
 }
@@ -187,6 +189,25 @@ function mapDiagnostics(diagnostics) {
         };
     })
         .sort((left, right) => severityRank(right.severity) - severityRank(left.severity) || right.confidence - left.confidence);
+}
+function mapUnusedTypes(unusedTypes) {
+    return unusedTypes
+        .map((item) => ({
+        key: item.key,
+        typeName: item.typeName,
+        classification: item.classification,
+        ruleId: item.ruleId,
+        declarationPath: item.declarationPath,
+        declarationAbsolutePath: item.declarationAbsolutePath,
+        declarationLine: Number(item.declarationLine ?? 0),
+        declarationColumn: Number(item.declarationColumn ?? 0),
+        navigationPath: item.navigationPath,
+        navigationAbsolutePath: item.navigationAbsolutePath,
+        navigationLine: Number(item.navigationLine ?? 0),
+        navigationColumn: Number(item.navigationColumn ?? 0),
+        navigationMemberName: item.navigationMemberName ?? ''
+    }))
+        .sort((left, right) => left.typeName.localeCompare(right.typeName) || left.declarationPath.localeCompare(right.declarationPath));
 }
 function normalizeSeverity(value) {
     switch ((value ?? '').toLowerCase()) {

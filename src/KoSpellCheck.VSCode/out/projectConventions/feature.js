@@ -50,6 +50,7 @@ class ProjectConventionFeature {
     constructor(context, log, typoAcceleration) {
         this.context = context;
         this.metadata = new Map();
+        this.unusedTypesByScope = new Map();
         this.scopeStates = new Map();
         this.rebuildTimers = new Map();
         this.inFlightRebuilds = new Map();
@@ -80,6 +81,7 @@ class ProjectConventionFeature {
         this.rebuildTimers.clear();
         this.inFlightRebuilds.clear();
         this.metadata.clear();
+        this.unusedTypesByScope.clear();
         this.scopeStates.clear();
         this.stateChangeEmitter.dispose();
         for (const disposable of this.disposables) {
@@ -100,6 +102,7 @@ class ProjectConventionFeature {
             return {
                 generatedAtUtc: new Date().toISOString(),
                 diagnostics: [],
+                unusedTypes: [],
                 inFlightRebuildCount: this.inFlightRebuilds.size,
                 queuedRebuildCount: this.rebuildTimers.size
             };
@@ -119,6 +122,9 @@ class ProjectConventionFeature {
             file: info.file,
             diagnostic: info.diagnostic
         }));
+        const unusedTypes = [...(this.unusedTypesByScope.get(scope.scopeKey)?.values() ?? [])]
+            .flat()
+            .sort((left, right) => left.typeName.localeCompare(right.typeName) || left.declarationPath.localeCompare(right.declarationPath));
         return {
             generatedAtUtc: new Date().toISOString(),
             scope,
@@ -131,6 +137,7 @@ class ProjectConventionFeature {
             profile,
             summary,
             diagnostics,
+            unusedTypes,
             inFlightRebuildCount: this.inFlightRebuilds.size,
             queuedRebuildCount: this.rebuildTimers.size,
             coralRuntime: this.toCoreCoralRuntime(config)
@@ -344,8 +351,12 @@ class ProjectConventionFeature {
             if (document.uri.scheme !== 'file') {
                 return;
             }
+            const scope = this.resolveScope(document.uri);
             this.diagnostics.delete(document.uri);
             this.clearMetadataForUri(document.uri);
+            if (scope) {
+                this.clearUnusedTypesForUri(scope.scopeKey, document.uri);
+            }
             this.notifyDashboardStateChanged();
         });
         const onActiveEditor = vscode.window.onDidChangeActiveTextEditor((editor) => {
@@ -410,8 +421,12 @@ class ProjectConventionFeature {
     async handleFilesRenamed(event) {
         for (const item of event.files) {
             if (item.oldUri.scheme === 'file') {
+                const oldScope = this.resolveScope(item.oldUri);
                 this.diagnostics.delete(item.oldUri);
                 this.clearMetadataForUri(item.oldUri);
+                if (oldScope) {
+                    this.clearUnusedTypesForUri(oldScope.scopeKey, item.oldUri);
+                }
             }
             if (item.newUri.scheme !== 'file') {
                 continue;
@@ -439,8 +454,11 @@ class ProjectConventionFeature {
             }
             this.diagnostics.delete(uri);
             this.clearMetadataForUri(uri);
-            this.notifyDashboardStateChanged();
             const scope = this.resolveScope(uri);
+            if (scope) {
+                this.clearUnusedTypesForUri(scope.scopeKey, uri);
+            }
+            this.notifyDashboardStateChanged();
             if (!scope) {
                 continue;
             }
@@ -494,6 +512,7 @@ class ProjectConventionFeature {
         const config = this.resolveConfig(scope.storageRoot, vscode.Uri.file(scope.storageRoot));
         if (!config.projectConventionMappingEnabled) {
             this.scopeStates.delete(scope.scopeKey);
+            this.unusedTypesByScope.delete(scope.scopeKey);
             this.notifyDashboardStateChanged();
             return;
         }
@@ -550,6 +569,7 @@ class ProjectConventionFeature {
         if (!config.projectConventionMappingEnabled || !config.namingConventionDiagnosticsEnabled) {
             this.diagnostics.delete(uri);
             this.clearMetadataForUri(uri);
+            this.clearUnusedTypesForUri(scope.scopeKey, uri);
             this.notifyDashboardStateChanged();
             return;
         }
@@ -588,14 +608,18 @@ class ProjectConventionFeature {
         }
         const file = response.Analysis?.File;
         const diagnostics = response.Analysis?.Diagnostics ?? [];
+        const typeUsages = response.Analysis?.TypeUsages ?? [];
         if (!file) {
             this.diagnostics.delete(uri);
             this.clearMetadataForUri(uri);
+            this.clearUnusedTypesForUri(scope.scopeKey, uri);
             this.notifyDashboardStateChanged();
             return;
         }
         const vscodeDiagnostics = this.toVscodeDiagnostics(document, scope.storageRoot, file, diagnostics, response.Profile, response.IgnoreList);
         this.diagnostics.set(uri, vscodeDiagnostics);
+        const unusedTypes = this.toUnusedTypeSnapshots(scope.storageRoot, file, typeUsages);
+        this.setUnusedTypesForFile(scope.scopeKey, file.AbsolutePath, unusedTypes);
         this.log(`project-conventions core analyze trigger=${trigger} file=${file.RelativePath} diagnostics=${vscodeDiagnostics.length}`, uri);
         this.notifyDashboardStateChanged();
     }
@@ -619,6 +643,71 @@ class ProjectConventionFeature {
             output.push(diagnostic);
         }
         return output;
+    }
+    toUnusedTypeSnapshots(workspaceRoot, file, typeUsages) {
+        return typeUsages
+            .filter((usage) => usage.Classification === 'Unused' || usage.Classification === 'UsedOnlyInTests')
+            .map((usage) => {
+            const preferredEvidence = usage.Classification === 'UsedOnlyInTests'
+                ? usage.Evidence?.find((evidence) => evidence.IsTestFile)
+                : usage.Evidence?.[0];
+            const navigationPath = preferredEvidence?.FilePath || file.RelativePath;
+            const navigationAbsolutePath = this.toAbsolutePath(workspaceRoot, navigationPath);
+            const navigationLine = Number(preferredEvidence?.Line ?? usage.Line ?? 0);
+            const navigationColumn = Number(preferredEvidence?.Column ?? usage.Column ?? 0);
+            const navigationMemberName = preferredEvidence?.MemberName?.trim() || '';
+            const declarationLine = Number(usage.Line ?? 0);
+            const declarationColumn = Number(usage.Column ?? 0);
+            return {
+                key: `${file.RelativePath}|${usage.TypeName}|${usage.Classification}`,
+                workspaceRoot,
+                typeName: usage.TypeName,
+                classification: usage.Classification === 'UsedOnlyInTests' ? 'test-only' : 'unused',
+                ruleId: usage.Classification === 'UsedOnlyInTests' ? 'KO_SPC_UNUSED_110' : 'KO_SPC_UNUSED_100',
+                declarationPath: file.RelativePath,
+                declarationAbsolutePath: file.AbsolutePath,
+                declarationLine,
+                declarationColumn,
+                navigationPath,
+                navigationAbsolutePath,
+                navigationLine,
+                navigationColumn,
+                navigationMemberName
+            };
+        });
+    }
+    toAbsolutePath(workspaceRoot, relativeOrAbsolutePath) {
+        if (node_path_1.default.isAbsolute(relativeOrAbsolutePath)) {
+            return relativeOrAbsolutePath;
+        }
+        return node_path_1.default.resolve(workspaceRoot, relativeOrAbsolutePath.replaceAll('/', node_path_1.default.sep));
+    }
+    setUnusedTypesForFile(scopeKey, absolutePath, items) {
+        const normalizedPath = node_path_1.default.normalize(absolutePath);
+        let byFile = this.unusedTypesByScope.get(scopeKey);
+        if (!byFile) {
+            byFile = new Map();
+            this.unusedTypesByScope.set(scopeKey, byFile);
+        }
+        if (items.length === 0) {
+            byFile.delete(normalizedPath);
+        }
+        else {
+            byFile.set(normalizedPath, items);
+        }
+        if (byFile.size === 0) {
+            this.unusedTypesByScope.delete(scopeKey);
+        }
+    }
+    clearUnusedTypesForUri(scopeKey, uri) {
+        const byFile = this.unusedTypesByScope.get(scopeKey);
+        if (!byFile) {
+            return;
+        }
+        byFile.delete(node_path_1.default.normalize(uri.fsPath));
+        if (byFile.size === 0) {
+            this.unusedTypesByScope.delete(scopeKey);
+        }
     }
     notifyDashboardStateChanged() {
         this.stateChangeEmitter.fire();

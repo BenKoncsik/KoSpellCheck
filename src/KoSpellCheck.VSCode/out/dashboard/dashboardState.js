@@ -103,6 +103,7 @@ function createEmptyState() {
         settings: [],
         conventionMap: [],
         diagnostics: [],
+        unusedTypes: [],
         logs: []
     };
 }

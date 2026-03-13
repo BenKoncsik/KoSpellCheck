@@ -86,6 +86,7 @@ const dashboardMapper_1 = require("../dashboard/dashboardMapper");
                 }
             }
         ],
+        unusedTypes: [],
         inFlightRebuildCount: 0,
         queuedRebuildCount: 0,
         coralRuntime: {
@@ -110,6 +111,7 @@ const dashboardMapper_1 = require("../dashboard/dashboardMapper");
     node_assert_1.default.equal(model.conventionMap[0].exampleTypes[0], 'CustomerService');
     node_assert_1.default.equal(model.diagnostics.length, 1);
     node_assert_1.default.equal(model.diagnostics[0].severity, 'warning');
+    node_assert_1.default.equal(model.unusedTypes.length, 0);
     node_assert_1.default.equal(model.logs.length, 1);
 });
 //# sourceMappingURL=dashboardMapper.test.js.map

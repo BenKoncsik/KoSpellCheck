@@ -173,6 +173,11 @@ class KoSpellCheckDashboardProvider {
                     await this.revealDiagnostic(message.path, message.line, message.column);
                 }
                 return;
+            case 'revealUnusedType':
+                if (message.path) {
+                    await this.revealDiagnostic(message.path, message.line, message.column);
+                }
+                return;
             case 'toggleSetting':
                 if (typeof message.settingId === 'string') {
                     await this.toggleSetting(message.settingId, message.value);
@@ -339,6 +344,7 @@ class KoSpellCheckDashboardProvider {
             sectionSettings: (0, sharedUiText_1.text)('dashboard.section.settings', 'Settings', { configuredLanguage }),
             sectionConventionMap: (0, sharedUiText_1.text)('dashboard.section.conventionMap', 'Convention Map', { configuredLanguage }),
             sectionDiagnostics: (0, sharedUiText_1.text)('dashboard.section.diagnostics', 'Diagnostics', { configuredLanguage }),
+            sectionUnusedTypes: (0, sharedUiText_1.text)('dashboard.section.unusedTypes', 'Unused Types', { configuredLanguage }),
             sectionLogs: (0, sharedUiText_1.text)('dashboard.section.logs', 'Logs', { configuredLanguage }),
             overviewWorkspaceRoot: (0, sharedUiText_1.text)('dashboard.overview.workspaceRoot', 'Workspace root', { configuredLanguage }),
             overviewScope: (0, sharedUiText_1.text)('dashboard.overview.scope', 'Scope', { configuredLanguage }),
@@ -366,14 +372,20 @@ class KoSpellCheckDashboardProvider {
             emptyExamples: (0, sharedUiText_1.text)('dashboard.empty.examples', 'No examples found in current workspace snapshot.', { configuredLanguage }),
             emptyConventionMap: (0, sharedUiText_1.text)('dashboard.empty.conventionMap', 'No convention profile loaded yet. Rebuild profile to populate this section.', { configuredLanguage }),
             tableSeverity: (0, sharedUiText_1.text)('dashboard.table.severity', 'Severity', { configuredLanguage }),
+            tableType: (0, sharedUiText_1.text)('dashboard.table.type', 'Type', { configuredLanguage }),
+            tableClassification: (0, sharedUiText_1.text)('dashboard.table.classification', 'Classification', { configuredLanguage }),
             tableFile: (0, sharedUiText_1.text)('dashboard.table.file', 'File', { configuredLanguage }),
+            tableMethod: (0, sharedUiText_1.text)('dashboard.table.method', 'Method', { configuredLanguage }),
             tableProblem: (0, sharedUiText_1.text)('dashboard.table.problem', 'Problem', { configuredLanguage }),
             tableRule: (0, sharedUiText_1.text)('dashboard.table.rule', 'Rule', { configuredLanguage }),
             tableExpected: (0, sharedUiText_1.text)('dashboard.table.expected', 'Expected', { configuredLanguage }),
             tableObserved: (0, sharedUiText_1.text)('dashboard.table.observed', 'Observed', { configuredLanguage }),
             tableSuggestion: (0, sharedUiText_1.text)('dashboard.table.suggestion', 'Suggestion', { configuredLanguage }),
             reveal: (0, sharedUiText_1.text)('dashboard.button.reveal', 'Reveal', { configuredLanguage }),
+            classificationUnused: (0, sharedUiText_1.text)('dashboard.value.unused', 'Unused', { configuredLanguage }),
+            classificationTestOnly: (0, sharedUiText_1.text)('dashboard.value.testOnly', 'Test-only', { configuredLanguage }),
             emptyDiagnostics: (0, sharedUiText_1.text)('dashboard.empty.diagnostics', 'No active convention diagnostics.', { configuredLanguage }),
+            emptyUnusedTypes: (0, sharedUiText_1.text)('dashboard.empty.unusedTypes', 'No unused or test-only types in current snapshot.', { configuredLanguage }),
             emptyLogs: (0, sharedUiText_1.text)('dashboard.empty.logs', 'No log entries yet.', { configuredLanguage }),
             valueActive: (0, sharedUiText_1.text)('dashboard.value.active', 'Active', { configuredLanguage }),
             valueInactive: (0, sharedUiText_1.text)('dashboard.value.inactive', 'Inactive', { configuredLanguage }),
