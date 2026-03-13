@@ -18,6 +18,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses"
+VS_CODE_MARKETPLACE_URL = "https://marketplace.visualstudio.com/items?itemName=BenKoncsik.kospellcheck"
+VS2022_MARKETPLACE_URL = "https://marketplace.visualstudio.com/items?itemName=BenKoncsik.BenKoncsik-KoSpellCheck-VS2022"
 
 
 def load_context(path: Path) -> Dict[str, Any]:
@@ -113,6 +115,10 @@ def build_fallback_summary(context: Dict[str, Any]) -> str:
     en_lines.extend([
         "- If this is your first summarized release, treat this as a baseline summary.",
         "",
+        "### Marketplace links",
+        f"- VS Code: {VS_CODE_MARKETPLACE_URL}",
+        f"- Visual Studio 2022: {VS2022_MARKETPLACE_URL}",
+        "",
         "## Magyar",
         "",
         "### Mi változott",
@@ -137,6 +143,10 @@ def build_fallback_summary(context: Dict[str, Any]) -> str:
     en_lines.extend([f"- {line}" for line in path_bullets])
     en_lines.extend([
         "- Ha ez az első összegzett release, kezeld bázis összegzésként.",
+        "",
+        "### Marketplace linkek",
+        f"- VS Code: {VS_CODE_MARKETPLACE_URL}",
+        f"- Visual Studio 2022: {VS2022_MARKETPLACE_URL}",
         "",
     ])
 
@@ -179,14 +189,19 @@ def try_openai_summary(context: Dict[str, Any], model: str, timeout: int) -> str
         "You generate concise bilingual (English then Hungarian) software release summaries. "
         "Ground all claims in provided JSON context. Use headings exactly: "
         "English/What changed/New features/Fixes and quality improvements/Potential impact and migration notes "
-        "and Hungarian equivalents. Hungarian text must use proper Hungarian diacritics "
+        "and Hungarian equivalents. Also include a 'Marketplace links' section in English and a "
+        "'Marketplace linkek' section in Hungarian with these exact links: "
+        f"VS Code: {VS_CODE_MARKETPLACE_URL} and Visual Studio 2022: {VS2022_MARKETPLACE_URL}. "
+        "Hungarian text must use proper Hungarian diacritics "
         "(á, é, í, ó, ö, ő, ú, ü, ű). Never transliterate Hungarian to ASCII."
     )
 
     user_prompt = (
         "Generate EN+HU summary from this context JSON. Keep technical names unchanged. "
         "If data is missing, state that explicitly. "
-        "Hungarian section must contain correct Hungarian diacritics.\n\n"
+        "Hungarian section must contain correct Hungarian diacritics. "
+        "Include a marketplace-links section in both languages and keep these URLs exactly as-is: "
+        f"{VS_CODE_MARKETPLACE_URL} ; {VS2022_MARKETPLACE_URL}\n\n"
         + json.dumps(context, ensure_ascii=False)
     )
 

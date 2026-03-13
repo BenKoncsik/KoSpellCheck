@@ -112,6 +112,11 @@ jobs:
         with:
           tag_name: ${{ steps.ensure_tag.outputs.tag_name }}
           fail_on_unmatched_files: true
+          body: |
+            ## Marketplace links
+
+            - VS Code: https://marketplace.visualstudio.com/items?itemName=BenKoncsik.kospellcheck
+            - Visual Studio 2022: https://marketplace.visualstudio.com/items?itemName=BenKoncsik.BenKoncsik-KoSpellCheck-VS2022
           files: |
             artifacts/vscode/KoSpellCheck.VSCode.vsix
             artifacts/vsix/KoSpellCheck.VS2022.vsix
