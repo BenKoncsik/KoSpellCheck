@@ -6,9 +6,9 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v9.0": {
-      "KoSpellCheck.ProjectConventions.Cli/0.1.36": {
+      "KoSpellCheck.ProjectConventions.Cli/0.1.37": {
         "dependencies": {
-          "KoSpellCheck.Core": "0.1.36"
+          "KoSpellCheck.Core": "0.1.37"
         },
         "runtime": {
           "KoSpellCheck.ProjectConventions.Cli.dll": {}
@@ -131,7 +131,7 @@
           }
         }
       },
-      "KoSpellCheck.Core/0.1.36": {
+      "KoSpellCheck.Core/0.1.37": {
         "dependencies": {
           "Microsoft.CodeAnalysis.CSharp": "4.11.0",
           "Newtonsoft.Json": "13.0.3",
@@ -139,15 +139,15 @@
         },
         "runtime": {
           "KoSpellCheck.Core.dll": {
-            "assemblyVersion": "0.1.36.0",
-            "fileVersion": "0.1.36.0"
+            "assemblyVersion": "0.1.37.0",
+            "fileVersion": "0.1.37.0"
           }
         }
       }
     }
   },
   "libraries": {
-    "KoSpellCheck.ProjectConventions.Cli/0.1.36": {
+    "KoSpellCheck.ProjectConventions.Cli/0.1.37": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -180,7 +180,7 @@
       "path": "wecantspell.hunspell/1.0.0",
       "hashPath": "wecantspell.hunspell.1.0.0.nupkg.sha512"
     },
-    "KoSpellCheck.Core/0.1.36": {
+    "KoSpellCheck.Core/0.1.37": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
