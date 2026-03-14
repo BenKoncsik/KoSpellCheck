@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Interfaces
 {
-    public interface ICare
+    public interface ICar
     {
         void Speed();
     }
