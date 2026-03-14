@@ -162,7 +162,7 @@ export class KoSpellCheckDashboardProvider implements vscode.WebviewViewProvider
       model.uiStrings = this.buildUiStrings(snapshot.settings?.uiLanguage);
       this.state.setData(model);
       this.logService.append(
-        `dashboard refresh completed diagnostics=${model.diagnostics.length} folders=${model.conventionMap.length}`
+        `dashboard refresh completed diagnostics=${model.diagnostics.length} unusedTypes=${model.unusedTypes.length} folders=${model.conventionMap.length}`
       );
     } catch (error) {
       const message = `dashboard refresh failed reason=${String(error)}`;
